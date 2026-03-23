@@ -1,13 +1,17 @@
-import {ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection} from '@angular/core'; // provideZoneChangeDetection è standard ora
+import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http'; // <-- AGGIUNGI QUESTO
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { authInterceptor } from './interceptors/AuthInterceptor';
 
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    provideHttpClient(),
+    // Modificato per includere l'interceptor di autenticazione
+    provideHttpClient(
+      withInterceptors([authInterceptor])
+    ),
     provideBrowserGlobalErrorListeners()
   ]
 };
