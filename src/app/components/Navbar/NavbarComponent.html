@@ -1,0 +1,29 @@
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="logo" routerLink="/Home">🏎️ ARENA<span>AUTO</span></div>
+
+    <ul class="nav-menu">
+      <li><a routerLink="/Home" routerLinkActive="active">Catalogo</a></li>
+
+      <li *ngIf="authService.isLoggedIn()">
+        <a routerLink="/preferiti" routerLinkActive="active">❤️ Preferiti</a>
+      </li>
+
+      <li *ngIf="authService.isLoggedIn() && isAdmin()">
+        <a routerLink="/admin-panel" class="admin-link">🛠️ Admin Panel</a>
+      </li>
+    </ul>
+
+    <div class="nav-auth">
+      <ng-container *ngIf="!authService.isLoggedIn()">
+        <button class="btn-login" routerLink="/login">Accedi</button>
+        <button class="btn-register" routerLink="/registrazione">Registrati</button>
+      </ng-container>
+
+      <div class="user-section" *ngIf="authService.isLoggedIn()">
+        <span class="user-email" routerLink="/profilo">{{ authService.getToken() ? 'Mio Profilo' : '' }}</span>
+        <button class="btn-logout" (click)="logout()">Logout</button>
+      </div>
+    </div>
+  </div>
+</nav>

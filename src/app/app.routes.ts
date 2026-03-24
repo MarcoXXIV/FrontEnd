@@ -5,9 +5,9 @@ import { adminGuard } from './guards/AdminGuards';
 import { HomeComponent } from './pages/Home/HomeComponent';
 import { LoginComponent } from './pages/Login/LoginComponent';
 import { ProfiloComponent } from './pages/Profilo/ProfiloComponent';
-import { GaraComponent } from './pages/Gara/GaraComponent';
+//import { GaraComponent } from './pages/Gara/GaraComponent';
 import { PreferitiComponent } from './pages/Preferiti/PreferitiComponent';
-import { AdminComponent } from './pages/Admin/admincomponent';
+import { AdminComponent } from './pages/Admin/AdminComponent';
 
 export const routes: Routes = [
   // Ora component punta alla CLASSE del componente, non alla tastiera!
@@ -16,7 +16,7 @@ export const routes: Routes = [
 
   // Rotte protette dal Login
   { path: 'Profilo', component: ProfiloComponent, canActivate: [authGuard] },
-  { path: 'Gara', component: GaraComponent, canActivate: [authGuard] },
+  //{ path: 'Gara', component: GaraComponent, canActivate: [authGuard] },
   { path: 'Preferiti', component: PreferitiComponent, canActivate: [authGuard] },
 
   // Rotta protetta solo per l'Admin

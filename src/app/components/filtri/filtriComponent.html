@@ -1,10 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
+<div class="filter-card">
+  <div class="filter-grid">
 
-</body>
-</html>
+    <div class="filter-group">
+      <label>Marca</label>
+      <input type="text" [(ngModel)]="marca" placeholder="Es: Ferrari" (keyup.enter)="inviaFiltri()">
+    </div>
+
+    <div class="filter-group">
+      <label>Modello</label>
+      <input type="text" [(ngModel)]="modello" placeholder="Es: F8 Tributo" (keyup.enter)="inviaFiltri()">
+    </div>
+
+    <div class="filter-group">
+      <button class="btn-reset" (click)="inviaFiltri()">🔍 Cerca Bolide</button>
+    </div>
+
+  </div>
+</div>

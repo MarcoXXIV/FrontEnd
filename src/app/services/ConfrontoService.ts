@@ -8,7 +8,6 @@ import { ConfrontoModel } from '../models/ConfrontoModel';
   providedIn: 'root'
 })
 export class ConfrontoService {
-  // CORRETTO: Ora punta alla variabile centralizzata nell'environment
   private apiUrl = `${environment.apiUrl}/confronto`;
 
   constructor(private http: HttpClient) { }

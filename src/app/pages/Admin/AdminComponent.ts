@@ -10,38 +10,14 @@ import { CommonModule } from '@angular/common';
   selector: 'app-admin',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './admincomponent.html',
-  styleUrls: ['./admincomponent.css']
+  templateUrl: './AdminComponent.html',
+  styleUrls: ['./AdminComponent.css']
 })
-
 export class AdminComponent implements OnInit {
-  listaAuto: AutoModel[] = [];
   listaUtenti: UtenteModel[] = [];
-  sezioneAttiva: 'auto' | 'utenti' | 'nuova-auto' = 'auto';
+  sezioneAttiva: 'utenti' | 'nuova-auto' = 'utenti'; // Parte subito sugli utenti
 
-  nuovaAuto: any = {
-    marca: '',
-    modello: '',
-    anno: new Date().getFullYear(),
-    prezzo: 0,
-    categoria: '',
-    cv: 0,
-    velocitaMax: 0,
-    accelerazione0100: 0.0,
-    accelerazione100200: 0.0,
-    accelerazione80140: 0.0,
-    cilindri: 0,
-    pesoKg: 0,
-    consumoMedio: 0.0,
-    coppia: 0,
-    trazione: '',
-    rapportoPesoPotenza: 0.0,
-    cilindrata: 0,
-    alimentazione: '',
-    codice: '',
-    euro: '',
-    co2: 0
-  };
+  nuovaAuto: any = this.getResetForm();
 
   constructor(
     private autoService: AutoService,
@@ -49,6 +25,7 @@ export class AdminComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.caricaUtenti(); // Carica gli utenti appena entri
   }
 
   setSezione(nome: 'utenti' | 'nuova-auto') {
@@ -56,97 +33,37 @@ export class AdminComponent implements OnInit {
     if (nome === 'utenti') this.caricaUtenti();
   }
 
-
   caricaUtenti() {
     this.utenteService.getAllUtenti().subscribe({
-      next: (data: UtenteModel[]) => {
-        this.listaUtenti = data;
-        console.log("Utenti caricati:", data);
-      },
-      error: (err) => alert("Errore nel caricamento utenti: " + err.error)
+      next: (data) => this.listaUtenti = data,
+      error: (err) => alert("Errore nel caricamento utenti")
     });
   }
 
   aggiungiAuto() {
     this.autoService.aggiungiAuto(this.nuovaAuto).subscribe({
-      next: (res) => {
+      next: () => {
         alert("Auto aggiunta con successo!");
-        this.resetForm();
+        this.nuovaAuto = this.getResetForm(); // Svuota il form
       },
-      error: (err) => {
-        alert("Errore durante il salvataggio: " + err.error);
-        console.error(err);
-      }
+      error: (err) => alert("Errore durante il salvataggio")
     });
   }
 
-  eliminaAuto(id: number) {
-    if (confirm("Confermi l'eliminazione definitiva?")) {
-      this.autoService.eliminaAuto(id).subscribe({
-        next: () => {
-          alert("Auto eliminata con successo!");
-        },
-        error: (err) => {
-          console.error("Errore eliminazione:", err);
-          alert("Si è verificato un errore durante l'eliminazione.");
-        }
+  eliminaUtente(id: number | undefined) {
+    if (id && confirm("Sei sicuro di voler eliminare questo utente?")) {
+      this.utenteService.eliminaUtente(id).subscribe({
+        next: () => this.caricaUtenti(), // Ricarica la lista dopo l'eliminazione
+        error: (err) => alert("Errore nell'eliminazione")
       });
     }
   }
 
-  private resetForm() {
-    this.nuovaAuto = {
-      marca: '',
-      modello: '',
-      anno: new Date().getFullYear(),
-      prezzo: 0,
-      categoria: '',
-      cv: 0,
-      velocitaMax: 0,
-      accelerazione0100: 0.0,
-      accelerazione100200: 0.0,
-      accelerazione80140: 0.0,
-      cilindri: 0,
-      pesoKg: 0,
-      consumoMedio: 0.0,
-      coppia: 0,
-      trazione: '',
-      rapportoPesoPotenza: 0.0,
-      cilindrata: 0,
-      alimentazione: '',
-      codice: '',
-      euro: '',
-      co2: 0
+  private getResetForm() {
+    return {
+      marca: '', modello: '', anno: new Date().getFullYear(),
+      prezzo: 0, cv: 0, velocitaMax: 0, accelerazione0100: 0,
+      alimentazione: '', trazione: ''
     };
   }
-
-
-  eliminaUtente(id: number) {
-    if (confirm("Sei sicuro di voler eliminare questo utente? L'azione è irreversibile.")) {
-      this.utenteService.eliminaUtente(id).subscribe({
-        next: () => {
-          alert("Utente eliminato!");
-          this.caricaUtenti(); // Refresh della lista
-        },
-        error: (err) => alert("Errore: " + err.error)
-      });
-    }
-  }
-
-  stats = {
-    totaleAuto: 0,
-    autoPiuPotente: '',
-    mediaPrezzi: 0,
-    numeroUtenti: 0
-  };
-
-  calcolaStats() {
-    this.stats.totaleAuto = this.listaAuto.length;
-    this.stats.numeroUtenti = this.listaUtenti.length;
-    if(this.listaAuto.length > 0) {
-      const top = this.listaAuto.reduce((prev, current) => (prev.cv > current.cv) ? prev : current);
-      this.stats.autoPiuPotente = `${top.marca} ${top.modello} (${top.cv} CV)`;
-    }
-  }
-
 }

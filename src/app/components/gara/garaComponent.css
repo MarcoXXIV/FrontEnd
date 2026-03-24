@@ -1,0 +1,135 @@
+/* Contenitore della pista */
+.race-track {
+  background: linear-gradient(180deg, #2c3e50 0%, #000000 100%);
+  border-radius: 15px;
+  padding: 40px 20px;
+  position: relative;
+  overflow: hidden; /* Fondamentale per non far uscire le auto dal box */
+  border: 4px solid #333;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+  margin-top: 20px;
+}
+
+/* Linea di traguardo */
+.finish-line {
+  position: absolute;
+  right: 50px;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  background-image:
+    linear-gradient(45deg, #fff 25%, transparent 25%),
+    linear-gradient(-45deg, #fff 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #fff 75%),
+    linear-gradient(-45deg, transparent 75%, #fff 75%);
+  background-size: 10px 10px;
+  background-color: #000;
+  border-left: 2px solid #555;
+}
+
+/* Corsie */
+.lane {
+  height: 140px;
+  display: flex;
+  align-items: center;
+  border-bottom: 2px dashed rgba(255,255,255,0.2);
+  position: relative;
+  z-index: 2;
+}
+
+.lane:last-child { border-bottom: none; }
+
+/* Contenitore Auto */
+.car-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: fit-content;
+  transform: translateX(0);
+  transition: transform 3s cubic-bezier(0.42, 0, 0.58, 1); /* Accelerazione naturale */
+}
+
+/* Animazione movimento */
+.car-wrapper.moving {
+  /* Chi perde si ferma prima del traguardo */
+  transform: translateX(calc(100% + 400px));
+}
+
+.car-wrapper.moving.winner {
+  /* Chi vince attraversa il traguardo */
+  transform: translateX(calc(100% + 650px));
+}
+
+/* Immagine Auto */
+.car-sprite {
+  width: 180px;
+  height: auto;
+  filter: drop-shadow(0 8px 15px rgba(0,0,0,0.6));
+  object-fit: contain;
+}
+
+/* Informazioni sopra l'auto */
+.car-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.car-name {
+  color: #fff;
+  font-weight: bold;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.score-tag {
+  background: #e74c3c;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  margin-top: 3px;
+}
+
+.winner .score-tag {
+  background: #f1c40f; /* Oro per il vincitore */
+  color: #000;
+}
+
+/* Divisore VS centrale (estetico) */
+.vs-divider {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 4rem;
+  font-weight: 900;
+  color: rgba(255,255,255,0.03);
+  pointer-events: none;
+}
+
+/* Banner Vittoria */
+.victory-banner {
+  text-align: center;
+  margin-top: 25px;
+  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.animate-winner {
+  color: #f1c40f;
+  font-size: 2.2rem;
+  text-shadow: 0 0 10px rgba(241, 196, 15, 0.4);
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Responsive: Evita che le auto spariscano su schermi piccoli */
+@media (max-width: 992px) {
+  .car-wrapper.moving { transform: translateX(150px); }
+  .car-wrapper.moving.winner { transform: translateX(250px); }
+  .car-sprite { width: 120px; }
+}

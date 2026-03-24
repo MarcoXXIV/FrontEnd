@@ -1,10 +1,70 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
+<div class="confronto-wrapper">
 
-</body>
-</html>
+  <div *ngIf="loading" class="loader-container">
+    <div class="race-loader"></div>
+    <p>Analizzando le centraline...</p>
+  </div>
+
+  <div *ngIf="errore && !loading" class="error-box">
+    <i class="fas fa-exclamation-triangle"></i>
+    <p>{{ errore }}</p>
+    <button (click)="tornaAllaHome()" class="btn-retry">Torna alla selezione</button>
+  </div>
+
+  <div *ngIf="!loading && risultato" class="battle-arena fade-in">
+
+    <div class="battle-header">
+      <div class="title-badge">PRESTAZIONI TECNICHE</div>
+      <h1>SFIDA SUL QUARTO DI MIGLIO</h1>
+    </div>
+
+    <div class="animation-container shadow-vignette">
+      <app-gara-animation
+        [car1]="risultato.auto1"
+        [car2]="risultato.auto2"
+        [score1]="risultato.punteggioAuto1"
+        [score2]="risultato.punteggioAuto2">
+      </app-gara-animation>
+    </div>
+
+    <div class="tech-specs">
+      <div class="spec-table-container">
+        <table class="comparison-table">
+          <thead>
+          <tr>
+            <th class="car-header">{{risultato.auto1.marca}}</th>
+            <th class="vs-label">PARAMETRO</th>
+            <th class="car-header">{{risultato.auto2.marca}}</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td>{{risultato.auto1.cv}} CV</td>
+            <td class="feature">Potenza</td>
+            <td>{{risultato.auto2.cv}} CV</td>
+          </tr>
+          <tr>
+            <td>{{risultato.auto1.accelerazione0100}}s</td>
+            <td class="feature">0 - 100 km/h</td>
+            <td>{{risultato.auto2.accelerazione0100}}s</td>
+          </tr>
+          <tr>
+            <td>{{risultato.auto1.velocitaMax}} km/h</td>
+            <td class="feature">Velocità Max</td>
+            <td>{{risultato.auto2.velocitaMax}} km/h</td>
+          </tr>
+          <tr>
+            <td>{{risultato.auto1.pesoKg}} kg</td>
+            <td class="feature">Peso</td>
+            <td>{{risultato.auto2.pesoKg}} kg</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-back" routerLink="/catalogo">NUOVA SFIDA</button>
+    </div>
+  </div>
+</div>

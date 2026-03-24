@@ -1,0 +1,55 @@
+.filter-card {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  border: 1px solid #e9ecef;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  align-items: flex-end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-group label {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #495057;
+  text-transform: uppercase;
+}
+
+.filter-group input, .filter-group select {
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  outline: none;
+  transition: 0.3s;
+}
+
+.filter-group input:focus { border-color: #e74c3c; box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.1); }
+
+.btn-reset {
+  background: #e74c3c; /* Rosso sportivo */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+  height: 45px; /* Allineato agli input */
+}
+
+.btn-reset:hover {
+  background: #c0392b;
+  transform: scale(1.02);
+}

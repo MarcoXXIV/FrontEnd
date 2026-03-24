@@ -1,0 +1,6 @@
+.stat-container { margin-bottom: 15px; width: 100%; }
+.stat-info { display: flex; justify-content: space-between; margin-bottom: 5px; font-family: 'Segoe UI', sans-serif; }
+.stat-label { font-weight: 600; color: #444; text-transform: uppercase; font-size: 0.8rem; }
+.stat-value { font-weight: bold; color: #2c3e50; }
+.progress-track { background: #eee; height: 8px; border-radius: 10px; overflow: hidden; }
+.progress-fill { height: 100%; transition: width 1s ease-in-out; border-radius: 10px; }
