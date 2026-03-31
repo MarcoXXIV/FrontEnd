@@ -1,10 +1,66 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
+<div class="home-container">
+  <header class="hero-section">
+    <h1>Trova il tuo prossimo <span class="highlight">Bolide</span></h1>
+    <p>Confronta le prestazioni e scegli la velocità pura.</p>
 
-</body>
-</html>
+    <div class="search-bar">
+      <div class="input-group">
+        <i class="fas fa-search"></i>
+        <input type="text" [(ngModel)]="filtroMarca" placeholder="Marca (es. Ferrari)">
+      </div>
+      <div class="input-group">
+        <i class="fas fa-car"></i>
+        <input type="text" [(ngModel)]="filtroModello" placeholder="Modello">
+      </div>
+      <button class="btn-search" (click)="eseguiRicerca()">
+        Cerca <i class="fas fa-bolt"></i>
+      </button>
+    </div>
+  </header>
+
+  <div class="quick-actions">
+    <button class="chip" (click)="caricaCatalogo()">
+      <i class="fas fa-random"></i> Random
+    </button>
+    <button class="chip" (click)="caricaTopAccelerazione()">
+      <i class="fas fa-tachometer-alt"></i> Top Speed
+    </button>
+    <button class="chip" (click)="caricaTopGreen()">
+      <i class="fas fa-leaf"></i> Eco Friendly
+    </button>
+    <select class="chip select-chip" (change)="caricaPerCategoria($any($event.target).value)">
+      <option value="">Tutte le Categorie</option>
+      <option value="Supercar">Supercar</option>
+      <option value="Sportiva">Sportiva</option>
+      <option value="Berlina">Berlina</option>
+    </select>
+  </div>
+
+  <div class="status-info" *ngIf="messaggio || loading">
+    <p *ngIf="messaggio" class="info-text">{{ messaggio }}</p>
+    <div *ngIf="loading" class="loader"></div>
+  </div>
+
+  <div class="auto-grid" *ngIf="!loading">
+    <div class="card-wrapper" *ngFor="let auto of autoFiltrate"
+         [class.selected]="autoSelezionate.includes(auto.id!)">
+
+      <app-auto-card
+        [auto]="auto"
+        (seleziona)="gestisciSelezione($event)">
+      </app-auto-card>
+
+      <div class="selection-badge" *ngIf="autoSelezionate.includes(auto.id!)">
+        <i class="fas fa-check"></i> Selezionata
+      </div>
+    </div>
+  </div>
+
+  <div class="comparison-bar" *ngIf="autoSelezionate.length > 0">
+    <p>Veicoli selezionati per la sfida: <strong>{{ autoSelezionate.length }} / 2</strong></p>
+    <div class="dots">
+      <span class="dot" [class.active]="autoSelezionate.length >= 1"></span>
+      <span class="dot" [class.active]="autoSelezionate.length === 2"></span>
+    </div>
+  </div>
+</div>

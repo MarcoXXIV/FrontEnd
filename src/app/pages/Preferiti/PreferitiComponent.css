@@ -1,0 +1,118 @@
+.preferiti-page {
+  min-height: 100vh;
+  padding: 40px 20px;
+  background: radial-gradient(circle at top, #1a1a1a, #000000);
+  color: white;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+.accent {
+  color: #e74c3c; /* Rosso racing */
+}
+
+.count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 8px 20px;
+  border-radius: 50px;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  margin-top: 15px;
+  font-size: 0.9rem;
+}
+
+/* Griglia */
+.grid-preferiti {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.card-wrapper {
+  position: relative;
+}
+
+/* Pulsante eliminazione rapida */
+.btn-delete-overlay {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(231, 76, 60, 0.8);
+  border: none;
+  color: white;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 5;
+  transition: 0.3s;
+}
+
+.btn-delete-overlay:hover {
+  background: #e74c3c;
+  transform: scale(1.1);
+}
+
+/* Empty State */
+.empty-garage {
+  text-align: center;
+  padding: 100px 20px;
+  opacity: 0.7;
+}
+
+.empty-garage i {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.btn-action {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+/* Loader */
+.loader-container {
+  text-align: center;
+  padding: 100px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(255,255,255,0.1);
+  border-top-color: #e74c3c;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.fade-in {
+  animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

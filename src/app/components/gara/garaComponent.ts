@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -17,9 +17,21 @@ export class GaraAnimationComponent implements OnInit {
   animazioneIniziata = false;
   mostraVincitore = false;
 
-  ngOnInit(): void {
-    setTimeout(() => this.animazioneIniziata = true, 500);
-    setTimeout(() => this.mostraVincitore = true, 3500);
+  constructor(private cd: ChangeDetectorRef) {}
+
+  ngOnInit() {
+    this.mostraVincitore = false;
+    this.animazioneIniziata = false;
+
+    // Avvia auto
+    setTimeout(() => {
+      this.animazioneIniziata = true;
+    }, 100);
+
+    // Proclama vincitore (coordinato con la durata dell'animazione CSS)
+    setTimeout(() => {
+      this.mostraVincitore = true;
+    }, 4500);
   }
 
   get vincitoreNome(): string {

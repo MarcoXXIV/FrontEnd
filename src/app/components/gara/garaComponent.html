@@ -1,0 +1,43 @@
+<div class="race-track-container">
+  <div class="race-header" [class.fade-out]="mostraVincitore">
+    <h2>DRAG RACE: <span class="blue">{{car1?.marca}}</span> vs <span class="red">{{car2?.marca}}</span></h2>
+    <p>Il semaforo è verde! Chi dominerà il quarto di miglio?</p>
+  </div>
+
+  <div class="track">
+    <div class="finish-line" [class.show]="animazioneIniziata"></div>
+
+    <div class="lane">
+      <div class="car blue-glow"
+           [class.racing]="animazioneIniziata"
+           [style.animation-duration]="(4 - (score1/100)) + 's'">
+        <i class="fas fa-car-side"></i>
+        <div class="car-label">{{car1?.modello}}</div>
+        <div class="flame" *ngIf="animazioneIniziata"></div>
+      </div>
+    </div>
+
+    <div class="lane">
+      <div class="car red-glow"
+           [class.racing]="animazioneIniziata"
+           [style.animation-duration]="(4 - (score2/100)) + 's'">
+        <i class="fas fa-car-side"></i>
+        <div class="car-label">{{car2?.modello}}</div>
+        <div class="flame" *ngIf="animazioneIniziata"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="winner-overlay" *ngIf="mostraVincitore">
+    <div class="winner-card fade-in">
+      <i class="fas fa-flag-checkered trophy"></i>
+      <h3>Vincitore</h3>
+      <h2 [class.blue-text]="score1 > score2" [class.red-text]="score2 > score1">
+        {{ vincitoreNome }}
+      </h2>
+      <div class="final-scores">
+        {{score1}} pts - {{score2}} pts
+      </div>
+    </div>
+  </div>
+</div>

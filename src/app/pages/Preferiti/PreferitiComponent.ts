@@ -1,20 +1,21 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { PreferitiService } from '../../services/PreferitiService';
 import { PreferitoModel } from '../../models/PreferitoModel';
-import { AutoCardComponent } from '../../components/auto-card/auto-cardComponent';
+import { ConfrontoCardComponent } from '../../components/confronto-card/confronto-cardComponent';
 
 @Component({
   selector: 'app-preferiti',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ConfrontoCardComponent, RouterModule],
   templateUrl: './PreferitiComponent.html',
   styleUrl: './PreferitiComponent.css'
 })
 export class PreferitiComponent implements OnInit {
 
   listaPreferiti: PreferitoModel[] = [];
-  totalePreferiti: number = 0; // <--- Nuova variabile per il conteggio
+  totalePreferiti: number = 0;
   loading: boolean = true;
   messaggio: string = '';
 
@@ -22,9 +23,8 @@ export class PreferitiComponent implements OnInit {
 
   ngOnInit(): void {
     this.caricaPreferiti();
-    this.aggiornaConteggio(); // <--- Carica il numero totale all'avvio
+    this.aggiornaConteggio();
   }
-
 
   caricaPreferiti(): void {
     this.loading = true;
@@ -33,7 +33,7 @@ export class PreferitiComponent implements OnInit {
         this.listaPreferiti = data;
         this.loading = false;
         if (this.listaPreferiti.length === 0) {
-          this.messaggio = "Non hai ancora salvato nessun confronto nei preferiti.";
+          this.messaggio = "Il tuo garage è attualmente vuoto.";
         }
       },
       error: (err) => {
@@ -44,29 +44,23 @@ export class PreferitiComponent implements OnInit {
     });
   }
 
-
   aggiornaConteggio(): void {
     this.preferitiService.getConteggio().subscribe({
       next: (count) => this.totalePreferiti = count,
-      error: (err) => console.error("Errore nel recupero del conteggio:", err)
+      error: (err) => console.error("Errore conteggio:", err)
     });
   }
-
 
   rimuoviPreferito(confrontoId: number): void {
     this.preferitiService.togglePreferito(confrontoId).subscribe({
       next: () => {
-        // 1. Filtriamo la lista locale (per velocità della UI)
         this.listaPreferiti = this.listaPreferiti.filter(p => p.confronto?.id !== confrontoId);
-
-        // 2. Aggiorniamo il contatore dal server per sicurezza
         this.aggiornaConteggio();
-
         if (this.listaPreferiti.length === 0) {
-          this.messaggio = "Lista preferiti svuotata.";
+          this.messaggio = "Garage svuotato.";
         }
       },
-      error: (err) => console.error("Errore durante la rimozione:", err)
+      error: (err) => console.error("Errore rimozione:", err)
     });
   }
 }

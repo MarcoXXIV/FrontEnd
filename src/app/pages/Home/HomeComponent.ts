@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core'; // Importa ChangeDetectorRef
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -9,7 +9,7 @@ import { AutoCardComponent } from '../../components/auto-card/auto-cardComponent
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AutoCardComponent],
   templateUrl: './HomeComponent.html',
   styleUrl: './HomeComponent.css'
 })
@@ -20,87 +20,89 @@ export class HomeComponent implements OnInit {
 
   filtroMarca: string = '';
   filtroModello: string = '';
-  loading: boolean = true;
+  loading: boolean = false;
   messaggio: string = '';
 
-  constructor(private autoService: AutoService, private router: Router) {}
+  constructor(
+    private autoService: AutoService,
+    private router: Router,
+    private cd: ChangeDetectorRef // Iniezione del Change Detector
+  ) {}
 
   ngOnInit(): void {
     this.caricaCatalogo();
   }
 
+  // Metodo generico per gestire la risposta e forzare la UI
+  private gestisciRisposta(data: AutoModel[], msg: string = ''): void {
+    this.autoFiltrate = [...data];
+    this.messaggio = msg;
+    this.loading = false;
+    this.cd.detectChanges(); // FORZA l'aggiornamento della grafica
+  }
+
   caricaCatalogo(): void {
     this.loading = true;
+    this.messaggio = '';
     this.autoService.getRandom10().subscribe({
       next: (data) => {
         this.listaAuto = data;
-        this.autoFiltrate = data;
-        this.loading = false;
+        this.gestisciRisposta(data);
       },
-      error: () => {
+      error: (err) => {
+        console.error("Errore API:", err);
         this.loading = false;
-        this.messaggio = "Errore nel caricamento del catalogo.";
+        this.messaggio = "Impossibile caricare i bolidi.";
+        this.cd.detectChanges();
       }
     });
   }
 
   eseguiRicerca(): void {
     this.loading = true;
+    this.messaggio = '';
     this.autoService.searchAuto(this.filtroMarca, this.filtroModello).subscribe({
       next: (risultati) => {
-        this.autoFiltrate = risultati;
-        this.messaggio = risultati.length === 0 ? "Nessun bolide trovato." : "";
+        const msg = risultati.length === 0 ? "Nessun bolide trovato." : `Risultati per: ${this.filtroMarca}`;
+        this.gestisciRisposta(risultati, msg);
+      },
+      error: () => {
         this.loading = false;
+        this.messaggio = "Errore durante la ricerca.";
+        this.cd.detectChanges();
       }
     });
   }
 
   gestisciSelezione(idAuto: number): void {
     const index = this.autoSelezionate.indexOf(idAuto);
-
     if (index > -1) {
       this.autoSelezionate.splice(index, 1);
-    } else {
+    } else if (this.autoSelezionate.length < 2) {
       this.autoSelezionate.push(idAuto);
     }
 
+    this.cd.detectChanges(); // Aggiorna i badge di selezione
+
     if (this.autoSelezionate.length === 2) {
       this.router.navigate(['/Confronto'], {
-        queryParams: {
-          idAuto1: this.autoSelezionate[0],
-          idAuto2: this.autoSelezionate[1]
-        }
+        queryParams: { idAuto1: this.autoSelezionate[0], idAuto2: this.autoSelezionate[1] }
       });
       this.autoSelezionate = [];
     }
   }
 
   caricaPerCategoria(categoria: string): void {
+    if (!categoria) {
+      this.caricaCatalogo();
+      return;
+    }
     this.loading = true;
     this.autoService.getAutoByCategoria(categoria).subscribe({
-      next: (data) => {
-        this.autoFiltrate = data;
-        this.loading = false;
-        this.messaggio = data.length > 0 ? `Categoria: ${categoria}` : "Nessuna auto in questa categoria.";
-      },
+      next: (data) => this.gestisciRisposta(data, `Categoria: ${categoria}`),
       error: () => {
         this.loading = false;
-        this.messaggio = "Errore nel recupero della categoria.";
-      }
-    });
-  }
-
-  caricaTopAccelerazione(): void {
-    this.loading = true;
-    this.autoService.getTopAccelerazione().subscribe({
-      next: (data) => {
-        this.autoFiltrate = data;
-        this.loading = false;
-        this.messaggio = "Top 10 Accelerazione (0-100 km/h)";
-      },
-      error: () => {
-        this.loading = false;
-        this.messaggio = "Errore nel recupero della classifica accelerazione.";
+        this.cd.detectChanges();
       }
     });
   }
@@ -108,27 +110,22 @@ export class HomeComponent implements OnInit {
   caricaTopGreen(): void {
     this.loading = true;
     this.autoService.getTopGreen().subscribe({
-      next: (data) => {
-        this.autoFiltrate = data;
-        this.loading = false;
-        this.messaggio = "Top 10 Auto Green";
-      },
+      next: (data) => this.gestisciRisposta(data, "Classifica Eco Friendly (Minor CO2)"),
       error: () => {
         this.loading = false;
-        this.messaggio = "Errore nel recupero della classifica Green.";
+        this.cd.detectChanges();
       }
     });
   }
 
-  filtraPerCategoria(cat: string): void {
-    this.autoFiltrate = this.listaAuto.filter(a => a.categoria === cat);
-  }
-
-  gestisciFiltri(criteri: any) {
-    this.autoFiltrate = this.listaAuto.filter(auto => {
-      return (!criteri.marca || auto.marca.toLowerCase().includes(criteri.marca.toLowerCase())) &&
-        (!criteri.prezzoMax || auto.prezzo <= criteri.prezzoMax) &&
-        (!criteri.alimentazione || auto.alimentazione === criteri.alimentazione);
+  caricaTopAccelerazione(): void {
+    this.loading = true;
+    this.autoService.getTopAccelerazione().subscribe({
+      next: (data) => this.gestisciRisposta(data, "Top 10 Accelerazione 0-100 km/h"),
+      error: () => {
+        this.loading = false;
+        this.cd.detectChanges();
+      }
     });
   }
 }

@@ -1,0 +1,147 @@
+:host {
+  display: block;
+}
+
+.battle-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.battle-card:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: #e74c3c;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* Header: Data e Tasto Chiudi */
+.battle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 2;
+}
+
+.battle-date {
+  font-size: 0.75rem;
+  color: #7f8c8d;
+  font-weight: 600;
+}
+
+.btn-remove {
+  background: none;
+  border: none;
+  color: #555;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 5px;
+}
+
+.btn-remove:hover {
+  color: #e74c3c;
+}
+
+/* Main: Info Auto e VS */
+.battle-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 2;
+  position: relative;
+}
+
+.car-info {
+  width: 40%;
+  display: flex;
+  flex-direction: column;
+}
+
+.car-info.side-left { text-align: left; }
+.car-info.side-right { text-align: right; }
+
+.brand {
+  font-size: 0.7rem;
+  color: #e74c3c;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 800;
+}
+
+.model {
+  font-size: 1.1rem;
+  color: white;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vs-container {
+  position: relative;
+}
+
+.vs-circle {
+  width: 40px;
+  height: 40px;
+  background: #1a1a1a;
+  border: 2px solid #e74c3c;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-style: italic;
+  font-size: 0.8rem;
+  box-shadow: 0 0 10px rgba(231, 76, 60, 0.3);
+}
+
+/* Footer: Punteggio */
+.battle-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  z-index: 2;
+}
+
+.score-board {
+  background: #000;
+  padding: 5px 15px;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.score-val { color: #fff; font-size: 1.2rem; }
+.score-divider { color: #e74c3c; margin: 0 5px; }
+
+.view-details {
+  font-size: 0.8rem;
+  color: #e74c3c;
+  font-weight: 700;
+}
+
+/* Effetto luce soffusa */
+.card-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.05) 0%, transparent 50%);
+  pointer-events: none;
+}

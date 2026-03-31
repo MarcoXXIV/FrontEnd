@@ -9,13 +9,14 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./stat-progress-barComponent.css']
 })
 export class StatProgressBarComponent {
-  @Input() label: string = '';
   @Input() value: number = 0;
   @Input() max: number = 100;
-  @Input() unit: string = '';
   @Input() color: string = '#3498db';
 
   get percentage(): number {
-    return (this.value / this.max) * 100;
+    // Evitiamo divisioni per zero e percentuali superiori a 100
+    if (!this.max || this.max === 0) return 0;
+    const calc = (this.value / this.max) * 100;
+    return calc > 100 ? 100 : calc;
   }
 }

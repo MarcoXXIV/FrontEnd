@@ -13,6 +13,12 @@ export class UtenteService {
   constructor(private http: HttpClient) { }
 
   getProfilo(): Observable<UtenteModel> {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      console.error("ERRORE: Nessun token trovato nel localStorage! Il profilo non caricherà.");
+    }
+
     return this.http.get<UtenteModel>(`${this.apiUrl}/profilo`);
   }
 

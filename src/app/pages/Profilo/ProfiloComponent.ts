@@ -45,36 +45,48 @@ export class ProfiloComponent implements OnInit {
     this.caricaTutto();
   }
 
-  /**
-   * Carica tutti i dati della dashboard utente
-   */
   caricaTutto(): void {
     this.loading = true;
 
-    // Carica Dati Profilo
+    // 1. Carichiamo prima l'utente. Solo quando abbiamo l'utente, carichiamo il resto.
     this.utenteService.getProfilo().subscribe({
       next: (data) => {
         this.utente = data;
+        console.log("DEBUG - Utente caricato:", this.utente);
+
+        // 2. Ora che abbiamo l'ID dell'utente, carichiamo le sue attività
+        this.caricaAttivita();
+
         this.loading = false;
       },
-      error: () => this.loading = false
+      error: (err) => {
+        console.error("Errore nel caricamento profilo:", err);
+        this.loading = false;
+      }
+    });
+  }
+
+  private caricaAttivita() {
+    this.confrontoService.getMieiConfronti().subscribe(data => {
+      this.mieisfide = data;
+      console.log("DEBUG - Sfide caricate:", data);
     });
 
-    // Carica Cronologia Sfide
-    this.confrontoService.getMieiConfronti().subscribe({
-      next: (data) => this.mieisfide = data
+    this.recensioniService.getMieRecensioni().subscribe(data => {
+      this.mieRecensioni = data;
+      console.log("DEBUG - Recensioni caricate:", data);
     });
 
-    // Carica Conteggio Totale
-    this.confrontoService.getMioTotale().subscribe({
-      next: (count) => this.totaleSfide = count
-    });
+    this.confrontoService.getMioTotale().subscribe(count => this.totaleSfide = count);
+  }
 
-    // 5. Carica le recensioni scritte dall'utente
-    this.recensioniService.getMieRecensioni().subscribe({
-      next: (data) => this.mieRecensioni = data,
-      error: (err) => console.error("Errore caricamento recensioni", err)
-    });
+  private caricaDatiSecondari(): void {
+    // Carica Cronologia
+    this.confrontoService.getMieiConfronti().subscribe(data => this.mieisfide = data);
+    // Carica Totale
+    this.confrontoService.getMioTotale().subscribe(count => this.totaleSfide = count);
+    // Carica Recensioni
+    this.recensioniService.getMieRecensioni().subscribe(data => this.mieRecensioni = data);
   }
 
   /**

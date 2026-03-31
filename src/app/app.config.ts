@@ -6,7 +6,6 @@ import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    // withComponentInputBinding() permette di leggere i parametri URL come @Input
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(
       withInterceptors([authInterceptor])

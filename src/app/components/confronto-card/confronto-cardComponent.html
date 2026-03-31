@@ -1,0 +1,37 @@
+<div class="battle-card" (click)="onCardClick()">
+  <div class="card-glow"></div>
+
+  <div class="battle-header">
+    <span class="battle-date">{{ $any(preferito).dataAggiunta | date:'dd/MM/yyyy' }}</span>
+    <button class="btn-remove" (click)="onRemoveClick($event)" title="Rimuovi dai preferiti">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+
+  <div class="battle-main">
+    <div class="car-info side-left">
+      <span class="brand">{{ preferito.confronto?.auto1?.marca }}</span>
+      <span class="model">{{ preferito.confronto?.auto1?.modello }}</span>
+    </div>
+
+    <div class="vs-container">
+      <div class="vs-circle">VS</div>
+    </div>
+
+    <div class="car-info side-right">
+      <span class="brand">{{ preferito.confronto?.auto2?.marca }}</span>
+      <span class="model">{{ preferito.confronto?.auto2?.modello }}</span>
+    </div>
+  </div>
+
+  <div class="battle-footer">
+    <div class="score-board">
+      <span class="score-val">{{ $any(preferito.confronto).punteggioAuto1 || 0 }}</span>
+      <span class="score-divider">:</span>
+      <span class="score-val">{{ $any(preferito.confronto).punteggioAuto2 || 0 }}</span>
+    </div>
+    <div class="view-details">
+      Dettagli Sfida <i class="fas fa-chevron-right"></i>
+    </div>
+  </div>
+</div>

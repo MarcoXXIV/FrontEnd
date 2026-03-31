@@ -1,10 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Title</title>
-</head>
-<body>
+<div class="preferiti-page">
 
-</body>
-</html>
+  <header class="page-header fade-in">
+    <div class="header-content">
+      <h1>Il Tuo <span class="accent">Garage</span></h1>
+      <div class="count-badge">
+        <i class="fas fa-car"></i>
+        <span>{{ totalePreferiti }} Confronti Salvati</span>
+      </div>
+    </div>
+  </header>
+
+  <div *ngIf="loading" class="loader-container">
+    <div class="spinner"></div>
+    <p>Apertura garage in corso...</p>
+  </div>
+
+  <div *ngIf="!loading && listaPreferiti.length === 0" class="empty-garage fade-in">
+    <i class="fas fa-ghost"></i>
+    <h2>Nessun bolide parcheggiato</h2>
+    <p>{{ messaggio }}</p>
+    <button class="btn-action" routerLink="/Home">Trova Nuove Sfide</button>
+  </div>
+
+  <div class="grid-preferiti" *ngIf="!loading && listaPreferiti.length > 0">
+    <div class="card-wrapper fade-in" *ngFor="let p of listaPreferiti">
+      <div class="preferiti-grid">
+        <div *ngFor="let p of listaPreferiti">
+
+          <app-confronto-card
+            [preferito]="p"
+            (rimuovi)="rimuoviPreferito($event)">
+          </app-confronto-card>
+
+        </div>
+      </div>
+
+      <button class="btn-delete-overlay" (click)="rimuoviPreferito(p.confronto!.id!)">
+        <i class="fas fa-trash"></i>
+      </button>
+    </div>
+  </div>
+
+</div>

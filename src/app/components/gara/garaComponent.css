@@ -1,135 +1,147 @@
-/* Contenitore della pista */
-.race-track {
-  background: linear-gradient(180deg, #2c3e50 0%, #000000 100%);
-  border-radius: 15px;
-  padding: 40px 20px;
+.race-track-container {
+  background: #0a0a0a;
+  border-radius: 20px;
+  padding: 40px;
+  overflow: hidden;
   position: relative;
-  overflow: hidden; /* Fondamentale per non far uscire le auto dal box */
-  border: 4px solid #333;
-  box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
-  margin-top: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 30px 0;
+  box-shadow: inset 0 0 50px rgba(0,0,0,1);
 }
 
-/* Linea di traguardo */
+.race-header {
+  text-align: center;
+  margin-bottom: 30px;
+  transition: opacity 0.5s;
+}
+
+.race-header h2 { color: white; font-weight: 800; }
+.blue { color: #3b82f6; }
+.red { color: #ef4444; }
+
+/* La Pista */
+.track {
+  height: 250px;
+  background: repeating-linear-gradient(
+    90deg,
+    #111 0px,
+    #111 50px,
+    #222 50px,
+    #222 100px
+  );
+  border-top: 3px solid #333;
+  border-bottom: 3px solid #333;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+/* Linea di Partenza/Arrivo */
 .finish-line {
   position: absolute;
-  right: 50px;
+  right: -50px;
   top: 0;
   bottom: 0;
-  width: 20px;
-  background-image:
-    linear-gradient(45deg, #fff 25%, transparent 25%),
-    linear-gradient(-45deg, #fff 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #fff 75%),
-    linear-gradient(-45deg, transparent 75%, #fff 75%);
-  background-size: 10px 10px;
-  background-color: #000;
-  border-left: 2px solid #555;
+  width: 40px;
+  background: repeating-conic-gradient(#fff 0 25%, #000 0 50%) 0 0/20px 20px;
+  transition: right 3s linear;
 }
 
-/* Corsie */
+.finish-line.show {
+  right: 50px;
+}
+
+/* Le Auto */
 .lane {
-  height: 140px;
-  display: flex;
-  align-items: center;
-  border-bottom: 2px dashed rgba(255,255,255,0.2);
+  width: 100%;
   position: relative;
-  z-index: 2;
-}
-
-.lane:last-child { border-bottom: none; }
-
-/* Contenitore Auto */
-.car-wrapper {
+  height: 80px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  width: fit-content;
-  transform: translateX(0);
-  transition: transform 3s cubic-bezier(0.42, 0, 0.58, 1); /* Accelerazione naturale */
+  border-bottom: 1px dashed rgba(255,255,255,0.1);
 }
 
-/* Animazione movimento */
-.car-wrapper.moving {
-  /* Chi perde si ferma prima del traguardo */
-  transform: translateX(calc(100% + 400px));
-}
-
-.car-wrapper.moving.winner {
-  /* Chi vince attraversa il traguardo */
-  transform: translateX(calc(100% + 650px));
-}
-
-/* Immagine Auto */
-.car-sprite {
-  width: 180px;
-  height: auto;
-  filter: drop-shadow(0 8px 15px rgba(0,0,0,0.6));
-  object-fit: contain;
-}
-
-/* Informazioni sopra l'auto */
-.car-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 5px;
-}
-
-.car-name {
-  color: #fff;
-  font-weight: bold;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-}
-
-.score-tag {
-  background: #e74c3c;
-  color: white;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  margin-top: 3px;
-}
-
-.winner .score-tag {
-  background: #f1c40f; /* Oro per il vincitore */
-  color: #000;
-}
-
-/* Divisore VS centrale (estetico) */
-.vs-divider {
+.car {
   position: absolute;
   left: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 4rem;
-  font-weight: 900;
-  color: rgba(255,255,255,0.03);
-  pointer-events: none;
+  font-size: 2.5rem;
+  color: white;
+  transition: transform 0.1s linear;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
 }
 
-/* Banner Vittoria */
-.victory-banner {
+.car-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  margin-top: 5px;
+  background: rgba(0,0,0,0.7);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.blue-glow { filter: drop-shadow(0 0 10px #3b82f6); color: #3b82f6; }
+.red-glow { filter: drop-shadow(0 0 10px #ef4444); color: #ef4444; }
+
+/* Animazione di Corsa */
+.car.racing {
+  animation: moveForward linear forwards;
+}
+
+@keyframes moveForward {
+  0% { left: 20px; transform: scale(1); }
+  90% { left: calc(100% - 120px); transform: scale(1.1); }
+  100% { left: calc(100% - 100px); transform: scale(1); }
+}
+
+/* Effetto Fiamma Turbo */
+.flame {
+  position: absolute;
+  left: -20px;
+  top: 15px;
+  width: 30px;
+  height: 10px;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.8));
+  filter: blur(5px);
+  animation: flicker 0.1s infinite;
+}
+
+@keyframes flicker {
+  0% { opacity: 0.5; } 100% { opacity: 1; }
+}
+
+/* Overlay Vincitore */
+.winner-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.winner-card {
+  background: #1a1a1a;
+  padding: 40px;
+  border-radius: 20px;
+  border: 2px solid #e74c3c;
   text-align: center;
-  margin-top: 25px;
-  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 0 50px rgba(231, 76, 60, 0.4);
 }
 
-.animate-winner {
-  color: #f1c40f;
-  font-size: 2.2rem;
-  text-shadow: 0 0 10px rgba(241, 196, 15, 0.4);
+.trophy { font-size: 4rem; color: #f1c40f; margin-bottom: 20px; animation: bounce 1s infinite; }
+.blue-text { color: #3b82f6; }
+.red-text { color: #ef4444; }
+.final-scores { font-family: monospace; font-size: 1.5rem; margin-top: 10px; opacity: 0.6; }
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); }
 }
 
-@keyframes popIn {
-  from { opacity: 0; transform: scale(0.5); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-/* Responsive: Evita che le auto spariscano su schermi piccoli */
-@media (max-width: 992px) {
-  .car-wrapper.moving { transform: translateX(150px); }
-  .car-wrapper.moving.winner { transform: translateX(250px); }
-  .car-sprite { width: 120px; }
-}
+.fade-in { animation: fadeIn 0.8s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
