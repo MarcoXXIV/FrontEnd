@@ -1,0 +1,117 @@
+.register-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at bottom left, #2c3e50, #000000);
+  padding: 40px 20px;
+}
+
+.register-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 40px;
+  width: 100%;
+  max-width: 550px; /* Leggermente più larga del login */
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.6s ease-out;
+}
+
+.card-header { text-align: center; margin-bottom: 30px; }
+.logo { font-size: 2.5rem; color: #e74c3c; margin-bottom: 10px; }
+h1 { color: white; font-size: 1.6rem; font-weight: 700; margin: 0; }
+p { color: #bdc3c7; font-size: 0.85rem; margin-top: 5px; }
+
+.register-form { display: flex; flex-direction: column; gap: 15px; }
+
+/* Layout per Nome e Cognome affiancati */
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.input-group label {
+  display: block;
+  color: #ecf0f1;
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+  margin-left: 4px;
+}
+
+.input-wrapper { position: relative; display: flex; align-items: center; }
+.input-wrapper i:not(.toggle-icon) { position: absolute; left: 15px; color: #7f8c8d; }
+
+.input-wrapper input {
+  width: 100%;
+  padding: 12px 15px 12px 42px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: white;
+  transition: all 0.3s;
+}
+
+.input-wrapper input:focus {
+  outline: none;
+  border-color: #e74c3c;
+  box-shadow: 0 0 10px rgba(231, 76, 60, 0.2);
+}
+
+/* Toggle icon per password */
+.toggle-icon {
+  position: absolute;
+  right: 15px;
+  cursor: pointer;
+  color: #7f8c8d;
+}
+
+.btn-register {
+  margin-top: 15px;
+  padding: 14px;
+  background: linear-gradient(45deg, #e74c3c, #c0392b);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.btn-register:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3); }
+
+.error-banner {
+  background: rgba(231, 76, 60, 0.1);
+  border: 1px solid #e74c3c;
+  padding: 10px;
+  border-radius: 8px;
+  color: #ff7675;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-footer { text-align: center; margin-top: 25px; color: #bdc3c7; font-size: 0.9rem; }
+.card-footer a { color: #e74c3c; font-weight: 600; cursor: pointer; text-decoration: none; }
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Mobile optimization */
+@media (max-width: 480px) {
+  .row { grid-template-columns: 1fr; }
+  .register-card { padding: 30px 15px; }
+}

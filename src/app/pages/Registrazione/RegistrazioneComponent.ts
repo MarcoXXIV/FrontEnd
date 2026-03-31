@@ -6,21 +6,26 @@ import { AuthService } from '../../services/AuthService';
 import { RegisterRequest } from '../../models/RegisterRequest';
 
 @Component({
-  selector: 'app-register',
+  selector: 'app-registrazione',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './RegistrazioneComponent.html',
-  styleUrls: ['./RegistrazioneComponent.css']
+  styleUrl: './RegistrazioneComponent.css'
 })
-export class RegisterComponent {
+export class RegistrazioneComponent {
 
-  // Modello basato sulla tua interfaccia
   user: RegisterRequest = {
     nome: '',
     cognome: '',
     email: '',
     password: ''
   };
+
+  showPassword = false;
+
+  togglePassword(): void {
+    this.showPassword = !this.showPassword;
+  }
 
   confermaPassword: string = '';
   loading: boolean = false;
@@ -32,8 +37,14 @@ export class RegisterComponent {
   ) {}
 
   onRegister(): void {
+    // Validazione base lato client
     if (this.user.password !== this.confermaPassword) {
       this.errorMessage = "Le password non coincidono!";
+      return;
+    }
+
+    if (!this.user.email.includes('@')) {
+      this.errorMessage = "Inserisci un'email valida.";
       return;
     }
 
@@ -42,23 +53,25 @@ export class RegisterComponent {
 
     this.authService.register(this.user).subscribe({
       next: (res) => {
-        console.log('Registrazione completata e login effettuato!', res);
+        console.log('Utente creato con successo:', res);
         this.loading = false;
+        // Dopo la registrazione l'AuthService ha già salvato il token,
+        // quindi possiamo mandare l'utente direttamente in Home.
         this.router.navigate(['/Home']);
       },
       error: (err) => {
         this.loading = false;
-        if (err.status === 409) {
-          this.errorMessage = "Questa email è già registrata.";
+        // Gestione errore email duplicata (solitamente 400 o 409 dal backend)
+        if (err.status === 400 || err.status === 409) {
+          this.errorMessage = "Questa email è già associata a un account.";
         } else {
-          this.errorMessage = "Errore durante la registrazione. Riprova.";
+          this.errorMessage = "Errore durante la creazione dell'account.";
         }
-        console.error(err);
       }
     });
   }
 
   goToLogin(): void {
-    this.router.navigate(['/login']);
+    this.router.navigate(['/Login']);
   }
 }

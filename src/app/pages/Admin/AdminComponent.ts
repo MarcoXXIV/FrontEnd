@@ -11,11 +11,12 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './AdminComponent.html',
-  styleUrls: ['./AdminComponent.css']
+  styleUrl: './AdminComponent.css'
 })
 export class AdminComponent implements OnInit {
   listaUtenti: UtenteModel[] = [];
-  sezioneAttiva: 'utenti' | 'nuova-auto' = 'utenti'; // Parte subito sugli utenti
+  listaAuto: AutoModel[] = []; // Aggiunta lista auto per la gestione
+  sezioneAttiva: 'utenti' | 'nuova-auto' | 'gestione-auto' = 'utenti';
 
   nuovaAuto: any = this.getResetForm();
 
@@ -25,36 +26,69 @@ export class AdminComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.caricaUtenti(); // Carica gli utenti appena entri
+    this.caricaUtenti();
+    this.caricaAuto(); // Carica anche le auto all'inizializzazione
   }
 
-  setSezione(nome: 'utenti' | 'nuova-auto') {
+  setSezione(nome: 'utenti' | 'nuova-auto' | 'gestione-auto') {
     this.sezioneAttiva = nome;
     if (nome === 'utenti') this.caricaUtenti();
+    if (nome === 'gestione-auto') this.caricaAuto();
   }
 
+  // --- GESTIONE UTENTI ---
   caricaUtenti() {
     this.utenteService.getAllUtenti().subscribe({
       next: (data) => this.listaUtenti = data,
-      error: (err) => alert("Errore nel caricamento utenti")
+      error: () => alert("Errore caricamento utenti.")
     });
   }
 
-  aggiungiAuto() {
-    this.autoService.aggiungiAuto(this.nuovaAuto).subscribe({
+  modificaRuolo(idUtente: number | undefined, nuovoRuolo: string) {
+    if (!idUtente) return;
+    this.utenteService.cambiaRuolo(idUtente, nuovoRuolo).subscribe({
       next: () => {
-        alert("Auto aggiunta con successo!");
-        this.nuovaAuto = this.getResetForm(); // Svuota il form
-      },
-      error: (err) => alert("Errore durante il salvataggio")
+        alert("Ruolo aggiornato!");
+        this.caricaUtenti();
+      }
     });
   }
 
   eliminaUtente(id: number | undefined) {
-    if (id && confirm("Sei sicuro di voler eliminare questo utente?")) {
+    if (id && confirm("Eliminare definitivamente l'utente?")) {
       this.utenteService.eliminaUtente(id).subscribe({
-        next: () => this.caricaUtenti(), // Ricarica la lista dopo l'eliminazione
-        error: (err) => alert("Errore nell'eliminazione")
+        next: () => this.caricaUtenti()
+      });
+    }
+  }
+
+  // --- GESTIONE AUTO ---
+  caricaAuto() {
+    this.autoService.getAllAuto().subscribe({
+      next: (data) => this.listaAuto = data,
+      error: () => alert("Errore caricamento catalogo auto.")
+    });
+  }
+
+  aggiungiAuto() {
+    this.autoService.aggiungiAuto(this.nuovaAuto as AutoModel).subscribe({
+      next: () => {
+        alert("Auto aggiunta!");
+        this.nuovaAuto = this.getResetForm();
+        this.caricaAuto(); // Rinfresca la lista
+      }
+    });
+  }
+
+
+  eliminaAuto(id: number | undefined) {
+    if (id && confirm("Sei sicuro di voler rimuovere questa auto dal catalogo?")) {
+      this.autoService.eliminaAuto(id).subscribe({
+        next: (messaggio) => {
+          alert(messaggio); // Mostra il testo confermato dal backend
+          this.caricaAuto(); // Ricarica la lista per riflettere i cambiamenti
+        },
+        error: (err) => alert("Errore nell'eliminazione dell'auto.")
       });
     }
   }
@@ -63,7 +97,7 @@ export class AdminComponent implements OnInit {
     return {
       marca: '', modello: '', anno: new Date().getFullYear(),
       prezzo: 0, cv: 0, velocitaMax: 0, accelerazione0100: 0,
-      alimentazione: '', trazione: ''
+      categoria: '', alimentazione: '', trazione: '', codice: ''
     };
   }
 }

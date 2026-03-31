@@ -9,28 +9,21 @@ import { AutoCardComponent } from '../../components/auto-card/auto-cardComponent
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, AutoCardComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './HomeComponent.html',
-  styleUrls: ['./HomeComponent.css']
+  styleUrl: './HomeComponent.css'
 })
 export class HomeComponent implements OnInit {
-
   listaAuto: AutoModel[] = [];
   autoFiltrate: AutoModel[] = [];
-
   autoSelezionate: number[] = [];
 
   filtroMarca: string = '';
   filtroModello: string = '';
-
-  // Stati della UI
   loading: boolean = true;
   messaggio: string = '';
 
-  constructor(
-    private autoService: AutoService,
-    private router: Router
-  ) {}
+  constructor(private autoService: AutoService, private router: Router) {}
 
   ngOnInit(): void {
     this.caricaCatalogo();
@@ -38,34 +31,26 @@ export class HomeComponent implements OnInit {
 
   caricaCatalogo(): void {
     this.loading = true;
-    this.autoService.getAllAuto().subscribe({
+    this.autoService.getRandom10().subscribe({
       next: (data) => {
         this.listaAuto = data;
         this.autoFiltrate = data;
         this.loading = false;
       },
-      error: (err) => {
-        console.error("Errore caricamento catalogo", err);
+      error: () => {
         this.loading = false;
-        this.messaggio = "Impossibile caricare il catalogo al momento.";
+        this.messaggio = "Errore nel caricamento del catalogo.";
       }
     });
   }
 
   eseguiRicerca(): void {
-    if (!this.filtroMarca && !this.filtroModello) {
-      this.autoFiltrate = this.listaAuto;
-      return;
-    }
-
+    this.loading = true;
     this.autoService.searchAuto(this.filtroMarca, this.filtroModello).subscribe({
       next: (risultati) => {
         this.autoFiltrate = risultati;
-        if (risultati.length === 0) {
-          this.messaggio = "Nessun bolide trovato con questi criteri.";
-        } else {
-          this.messaggio = '';
-        }
+        this.messaggio = risultati.length === 0 ? "Nessun bolide trovato." : "";
+        this.loading = false;
       }
     });
   }
@@ -75,12 +60,12 @@ export class HomeComponent implements OnInit {
 
     if (index > -1) {
       this.autoSelezionate.splice(index, 1);
-    } else if (this.autoSelezionate.length < 2) {
+    } else {
       this.autoSelezionate.push(idAuto);
     }
 
     if (this.autoSelezionate.length === 2) {
-      this.router.navigate(['/confronto'], {
+      this.router.navigate(['/Confronto'], {
         queryParams: {
           idAuto1: this.autoSelezionate[0],
           idAuto2: this.autoSelezionate[1]
@@ -90,12 +75,53 @@ export class HomeComponent implements OnInit {
     }
   }
 
-  filtraPerCategoria(cat: string): void {
+  caricaPerCategoria(categoria: string): void {
     this.loading = true;
-    this.autoService.getAutoByCategoria(cat).subscribe(data => {
-      this.autoFiltrate = data;
-      this.loading = false;
+    this.autoService.getAutoByCategoria(categoria).subscribe({
+      next: (data) => {
+        this.autoFiltrate = data;
+        this.loading = false;
+        this.messaggio = data.length > 0 ? `Categoria: ${categoria}` : "Nessuna auto in questa categoria.";
+      },
+      error: () => {
+        this.loading = false;
+        this.messaggio = "Errore nel recupero della categoria.";
+      }
     });
+  }
+
+  caricaTopAccelerazione(): void {
+    this.loading = true;
+    this.autoService.getTopAccelerazione().subscribe({
+      next: (data) => {
+        this.autoFiltrate = data;
+        this.loading = false;
+        this.messaggio = "Top 10 Accelerazione (0-100 km/h)";
+      },
+      error: () => {
+        this.loading = false;
+        this.messaggio = "Errore nel recupero della classifica accelerazione.";
+      }
+    });
+  }
+
+  caricaTopGreen(): void {
+    this.loading = true;
+    this.autoService.getTopGreen().subscribe({
+      next: (data) => {
+        this.autoFiltrate = data;
+        this.loading = false;
+        this.messaggio = "Top 10 Auto Green";
+      },
+      error: () => {
+        this.loading = false;
+        this.messaggio = "Errore nel recupero della classifica Green.";
+      }
+    });
+  }
+
+  filtraPerCategoria(cat: string): void {
+    this.autoFiltrate = this.listaAuto.filter(a => a.categoria === cat);
   }
 
   gestisciFiltri(criteri: any) {

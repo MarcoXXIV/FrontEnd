@@ -1,15 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms'; // Necessario per il form della recensione
 import { ConfrontoService } from '../../services/ConfrontoService';
+import { RecensioniService } from '../../services/RecensioniService'; // Importa il service
 import { ConfrontoModel } from '../../models/ConfrontoModel';
 
 @Component({
   selector: 'app-confronto',
   standalone: true,
-  imports: [CommonModule],
-  templateUrl: './confronto.component.html',
-  styleUrls: ['./confronto.component.css']
+  imports: [CommonModule, FormsModule], // Aggiunto FormsModule
+  templateUrl: './ConfrontoComponent.html',
+  styleUrl: './ConfrontoComponent.css'
 })
 export class ConfrontoComponent implements OnInit {
 
@@ -17,9 +19,16 @@ export class ConfrontoComponent implements OnInit {
   loading: boolean = true;
   errore: string | null = null;
 
+  // --- Variabili per la Nuova Recensione ---
+  voto: number = 5; // Valore di default
+  commento: string = '';
+  recensioneInviata: boolean = false;
+  messaggioFeedback: string | null = null;
+
   constructor(
     private route: ActivatedRoute,
     private confrontoService: ConfrontoService,
+    private recensioniService: RecensioniService, // Iniettato
     private router: Router
   ) {}
 
@@ -32,13 +41,15 @@ export class ConfrontoComponent implements OnInit {
         this.eseguiSfida(id1, id2);
       } else {
         this.loading = false;
-        this.errore = "Per favore, seleziona due veicoli per il confronto.";
+        this.errore = "Parametri insufficienti per avviare la sfida.";
       }
     });
   }
 
   private eseguiSfida(id1: number, id2: number): void {
     this.loading = true;
+    this.errore = null;
+
     this.confrontoService.eseguiBattaglia(id1, id2).subscribe({
       next: (data) => {
         this.risultato = data;
@@ -46,9 +57,39 @@ export class ConfrontoComponent implements OnInit {
       },
       error: (err) => {
         this.loading = false;
-        this.errore = "Errore di connessione con il database delle prestazioni.";
+        if (err.status === 400) {
+          this.errore = err.error || "Hai già effettuato questo confronto.";
+        } else {
+          this.errore = "Errore durante il calcolo della sfida.";
+        }
+      }
+    });
+  }
+
+
+  inviaRecensione(): void {
+    if (!this.risultato || !this.risultato.id) return;
+
+    if (this.voto < 1 || this.voto > 10) {
+      this.messaggioFeedback = "Il voto deve essere compreso tra 1 e 10.";
+      return;
+    }
+
+    this.recensioniService.aggiungiRecensione(this.risultato.id, this.voto, this.commento).subscribe({
+      next: (res) => {
+        this.recensioneInviata = true;
+        this.messaggioFeedback = "Grazie per il tuo feedback!";
+        this.voto = 0;
+        this.commento = '';
+      },
+      error: (err) => {
+        this.messaggioFeedback = "Errore durante l'invio della recensione.";
         console.error(err);
       }
     });
+  }
+
+  tornaAllaHome(): void {
+    this.router.navigate(['/Home']);
   }
 }

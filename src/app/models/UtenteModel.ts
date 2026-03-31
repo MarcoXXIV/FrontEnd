@@ -3,6 +3,6 @@ export interface UtenteModel {
   nome: string;
   cognome: string;
   email: string;
-  password: string;
+  password?: string;
   ruolo?: string;
 }

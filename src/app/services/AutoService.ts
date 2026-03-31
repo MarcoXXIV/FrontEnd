@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { environment } from '../environments/environment'; // Verifica il numero di ../
+import { environment } from '../environments/environment';
 import { Observable } from 'rxjs';
 import { AutoModel } from '../models/AutoModel';
 
@@ -12,26 +12,26 @@ export class AutoService {
 
   constructor(private http: HttpClient) { }
 
-  // Recupero tutto il catalogo
   getAllAuto(): Observable<AutoModel[]> {
     return this.http.get<AutoModel[]>(`${this.apiUrl}/all`);
   }
 
-  // Dettaglio singola auto
-  getAutoById(id: number): Observable<AutoModel> {
-    return this.http.get<AutoModel>(`${id}`); // Se il back-end ha @GetMapping("/{id}")
+  getRandom10(): Observable<AutoModel[]> {
+    return this.http.get<AutoModel[]>(`${this.apiUrl}/random`);
   }
 
-  // METODO PER ADMIN: AGGIUNTA AUTO
+  getAutoById(id: number): Observable<AutoModel> {
+    return this.http.get<AutoModel>(`${this.apiUrl}/${id}`);
+  }
+
   aggiungiAuto(auto: AutoModel): Observable<AutoModel> {
     return this.http.post<AutoModel>(`${this.apiUrl}/AggiungiAuto`, auto);
   }
 
-  eliminaAuto(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/delete/${id}`);
+  eliminaAuto(id: number): Observable<string> {
+    return this.http.delete(`${this.apiUrl}/elimina/${id}`, { responseType: 'text' });
   }
 
-  // Ricerca filtrata
   searchAuto(marca?: string, modello?: string): Observable<AutoModel[]> {
     let params = new HttpParams();
     if (marca) params = params.set('marca', marca);
@@ -39,12 +39,15 @@ export class AutoService {
     return this.http.get<AutoModel[]>(`${this.apiUrl}/search`, { params });
   }
 
-  // Altri filtri
   getAutoByCategoria(categoria: string): Observable<AutoModel[]> {
     return this.http.get<AutoModel[]>(`${this.apiUrl}/categoria/${categoria}`);
   }
 
   getTopAccelerazione(): Observable<AutoModel[]> {
     return this.http.get<AutoModel[]>(`${this.apiUrl}/top/accelerazione`);
+  }
+
+  getTopGreen(): Observable<AutoModel[]> {
+    return this.http.get<AutoModel[]>(`${this.apiUrl}/top/green`);
   }
 }

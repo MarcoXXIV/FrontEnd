@@ -5,8 +5,8 @@ import { CommonModule } from '@angular/common';
   selector: 'app-gara-animation',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './gara.component.html',
-  styleUrls: ['./gara.component.css']
+  templateUrl: './garaComponent.html',
+  styleUrls: ['./garaComponent.css']
 })
 export class GaraAnimationComponent implements OnInit {
   @Input() car1: any;

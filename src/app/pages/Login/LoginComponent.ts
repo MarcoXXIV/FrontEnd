@@ -10,15 +10,20 @@ import { LoginRequest } from '../../models/LoginRequest';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './LoginComponent.html',
-  styleUrls: ['./LoginComponent.css']
+  styleUrl: './LoginComponent.css' //
 })
 export class LoginComponent {
 
-  // Modello per il form (Two-way binding con ngModel)
   credentials: LoginRequest = {
     email: '',
     password: ''
   };
+
+  showPassword = false;
+
+  togglePassword(): void {
+    this.showPassword = !this.showPassword;
+  }
 
   loading: boolean = false;
   errorMessage: string | null = null;
@@ -29,29 +34,34 @@ export class LoginComponent {
   ) {}
 
   onLogin(): void {
+    if (!this.credentials.email || !this.credentials.password) {
+      this.errorMessage = "Inserisci tutte le credenziali.";
+      return;
+    }
+
     this.loading = true;
     this.errorMessage = null;
 
     this.authService.login(this.credentials).subscribe({
       next: (response) => {
-        console.log('Login effettuato con successo!', response);
+        console.log('Login OK:', response);
         this.loading = false;
+        // Navigazione verso la rotta definita in app.routes.ts
         this.router.navigate(['/Home']);
       },
       error: (err) => {
         this.loading = false;
         if (err.status === 401 || err.status === 403) {
-          this.errorMessage = "Email o Password non valide.";
+          this.errorMessage = "Email o Password errate.";
         } else {
-          this.errorMessage = "Errore del server. Riprova più tardi.";
+          this.errorMessage = "Il server non risponde. Riprova più tardi.";
         }
-        console.error('Errore Login:', err);
       }
     });
   }
 
-  // Metodo rapido per andare alla registrazione
   goToRegister(): void {
-    this.router.navigate(['/register']);
+    // Navigazione verso la rotta 'Registrazione' (Case-Sensitive)
+    this.router.navigate(['/Registrazione']);
   }
 }
