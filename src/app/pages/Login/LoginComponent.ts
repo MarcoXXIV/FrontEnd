@@ -10,21 +10,15 @@ import { LoginRequest } from '../../models/LoginRequest';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './LoginComponent.html',
-  styleUrl: './LoginComponent.css' //
+  styleUrl: './LoginComponent.css'
 })
 export class LoginComponent {
-
   credentials: LoginRequest = {
     email: '',
     password: ''
   };
 
   showPassword = false;
-
-  togglePassword(): void {
-    this.showPassword = !this.showPassword;
-  }
-
   loading: boolean = false;
   errorMessage: string | null = null;
 
@@ -33,9 +27,13 @@ export class LoginComponent {
     private router: Router
   ) {}
 
+  togglePassword(): void {
+    this.showPassword = !this.showPassword;
+  }
+
   onLogin(): void {
     if (!this.credentials.email || !this.credentials.password) {
-      this.errorMessage = "Inserisci tutte le credenziali.";
+      this.errorMessage = 'Inserisci tutte le credenziali.';
       return;
     }
 
@@ -45,23 +43,40 @@ export class LoginComponent {
     this.authService.login(this.credentials).subscribe({
       next: (response) => {
         console.log('Login OK:', response);
+
+        localStorage.setItem('token', response.token);
+
+        const ruoloUpper = response.ruolo ? response.ruolo.toUpperCase() : 'USER';
+        localStorage.setItem('ruolo', ruoloUpper);
+
         this.loading = false;
-        // Navigazione verso la rotta definita in app.routes.ts
-        this.router.navigate(['/Home']);
+
+        if (ruoloUpper === 'ADMIN') {
+          console.log('Accesso Admin rilevato - Reindirizzamento alla Home');
+          this.router.navigate(['/Home']);
+        } else {
+          console.log('Accesso Utente standard - Reindirizzamento alla Home');
+          this.router.navigate(['/Home']);
+        }
       },
       error: (err) => {
         this.loading = false;
+        console.error('Errore login:', err);
+
         if (err.status === 401 || err.status === 403) {
-          this.errorMessage = "Email o Password errate.";
+          this.errorMessage = 'Email o Password errate.';
         } else {
-          this.errorMessage = "Il server non risponde. Riprova più tardi.";
+          this.errorMessage = 'Il server non risponde. Riprova più tardi.';
         }
       }
     });
   }
 
   goToRegister(): void {
-    // Navigazione verso la rotta 'Registrazione' (Case-Sensitive)
     this.router.navigate(['/Registrazione']);
+  }
+
+  vaiHome(): void {
+    this.router.navigate(['/Home']);
   }
 }

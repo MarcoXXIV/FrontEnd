@@ -15,12 +15,20 @@
   transition: opacity 0.5s;
 }
 
-.race-header h2 { color: white; font-weight: 800; }
+.race-header h2 {
+  color: white;
+  font-weight: 800;
+}
+
 .blue { color: #3b82f6; }
 .red { color: #ef4444; }
 
 /* La Pista */
 .track {
+  --finish-gap: 40px; /* Ridotto per far vedere meglio l'arrivo */
+  --finish-width: 30px;
+  --car-width: 100px; /* Larghezza fissa per precisione */
+
   height: 250px;
   background: repeating-linear-gradient(
     90deg,
@@ -37,88 +45,95 @@
   justify-content: space-around;
 }
 
-/* Linea di Partenza/Arrivo */
+/* Traguardo */
 .finish-line {
   position: absolute;
-  right: -50px;
+  right: var(--finish-gap);
   top: 0;
   bottom: 0;
-  width: 40px;
-  background: repeating-conic-gradient(#fff 0 25%, #000 0 50%) 0 0/20px 20px;
-  transition: right 3s linear;
+  width: var(--finish-width);
+  background: repeating-conic-gradient(#fff 0 25%, #000 0 50%) 0 0 / 15px 15px;
+  z-index: 2;
+  border-left: 2px solid gold;
 }
 
-.finish-line.show {
-  right: 50px;
-}
-
-/* Le Auto */
+/* Corsie */
 .lane {
   width: 100%;
   position: relative;
   height: 80px;
   display: flex;
   align-items: center;
-  border-bottom: 1px dashed rgba(255,255,255,0.1);
 }
 
+/* Auto */
 .car {
   position: absolute;
-  left: 20px;
+  left: 10px;
+  width: var(--car-width);
   font-size: 2.5rem;
   color: white;
-  transition: transform 0.1s linear;
   display: flex;
   flex-direction: column;
   align-items: center;
   z-index: 10;
+  transition: none;
 }
 
 .car-label {
+  width: 100%;
   font-size: 0.7rem;
   text-transform: uppercase;
   margin-top: 5px;
-  background: rgba(0,0,0,0.7);
-  padding: 2px 8px;
+  background: rgba(0,0,0,0.8);
+  padding: 2px 5px;
   border-radius: 4px;
+  text-align: center;
 }
 
 .blue-glow { filter: drop-shadow(0 0 10px #3b82f6); color: #3b82f6; }
 .red-glow { filter: drop-shadow(0 0 10px #ef4444); color: #ef4444; }
 
-/* Animazione di Corsa */
+/* ANIMAZIONE CORRETTA */
 .car.racing {
-  animation: moveForward linear forwards;
+  animation-name: moveForward;
+  animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1); /* Partenza lenta, arrivo veloce */
+  animation-fill-mode: forwards;
 }
 
 @keyframes moveForward {
-  0% { left: 20px; transform: scale(1); }
-  90% { left: calc(100% - 120px); transform: scale(1.1); }
-  100% { left: calc(100% - 100px); transform: scale(1); }
+  0% {
+    left: 10px;
+  }
+  100% {
+    /* Calcolo matematico: Fine pista - distanza traguardo - larghezza auto */
+    left: calc(100% - var(--finish-gap) - var(--car-width) + 10px);
+  }
 }
 
-/* Effetto Fiamma Turbo */
+/* Fiamma */
 .flame {
   position: absolute;
-  left: -20px;
-  top: 15px;
-  width: 30px;
-  height: 10px;
-  background: linear-gradient(to right, transparent, rgba(255,255,255,0.8));
-  filter: blur(5px);
+  left: 20px;
+  top: 18px;
+  width: 40px;
+  height: 12px;
+  background: linear-gradient(to left, #ff9d00, transparent);
+  filter: blur(4px);
   animation: flicker 0.1s infinite;
+  z-index: -1;
 }
 
 @keyframes flicker {
-  0% { opacity: 0.5; } 100% { opacity: 1; }
+  0%, 100% { opacity: 0.8; transform: scaleX(1); }
+  50% { opacity: 1; transform: scaleX(1.2); }
 }
 
-/* Overlay Vincitore */
 .winner-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.8);
-  backdrop-filter: blur(10px);
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -126,22 +141,15 @@
 }
 
 .winner-card {
-  background: #1a1a1a;
+  background: #111;
   padding: 40px;
   border-radius: 20px;
-  border: 2px solid #e74c3c;
+  border: 2px solid gold;
   text-align: center;
-  box-shadow: 0 0 50px rgba(231, 76, 60, 0.4);
 }
 
 .trophy { font-size: 4rem; color: #f1c40f; margin-bottom: 20px; animation: bounce 1s infinite; }
-.blue-text { color: #3b82f6; }
-.red-text { color: #ef4444; }
-.final-scores { font-family: monospace; font-size: 1.5rem; margin-top: 10px; opacity: 0.6; }
+.final-scores { font-family: monospace; font-size: 1.5rem; margin-top: 10px; color: #94a3b8; }
 
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); }
-}
-
-.fade-in { animation: fadeIn 0.8s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }

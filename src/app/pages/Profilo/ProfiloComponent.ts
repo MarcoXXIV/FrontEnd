@@ -1,155 +1,164 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+
 import { UtenteService } from '../../services/UtenteService';
 import { ConfrontoService } from '../../services/ConfrontoService';
-import { RecensioniService } from '../../services/RecensioniService'; // 1. Importa il service recensioni
+import { RecensioniService } from '../../services/RecensioniService';
+import { PreferitiService } from '../../services/PreferitiService';
 import { UtenteModel } from '../../models/UtenteModel';
 import { ConfrontoModel } from '../../models/ConfrontoModel';
-import { RecensioneModel } from '../../models/RecensioneModel'; // 2. Importa il modello recensioni
+import { RecensioneModel } from '../../models/RecensioneModel';
 
 @Component({
   selector: 'app-profilo',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './ProfiloComponent.html',
-  styleUrl: './ProfiloComponent.css'
+  styleUrls: ['./ProfiloComponent.css']
 })
 export class ProfiloComponent implements OnInit {
-
   utente?: UtenteModel;
-
-  // --- Dati Sfide ---
   mieisfide: ConfrontoModel[] = [];
-  totaleSfide: number = 0;
+  totaleSfide = 0;
+  totalePreferiti = 0;
+  mieRecensioni: RecensioneModel[] = [];
 
-  // --- Dati Recensioni ---
-  mieRecensioni: RecensioneModel[] = []; // 3. Variabile per la lista recensioni
+  vecchiaPsw = '';
+  nuovaPsw = '';
+  confermaNuovaPsw = '';
 
-  // Variabili cambio password
-  vecchiaPsw: string = '';
-  nuovaPsw: string = '';
-  confermaNuovaPsw: string = '';
+  showOldPsw = false;
+  showNewPsw = false;
 
-  loading: boolean = true;
-  messaggioOk: string | null = null;
-  messaggioErrore: string | null = null;
+  loading = true;
+
+  // Logica Pop-up Toast
+  showToast = false;
+  toastMsg = '';
+  toastType: 'success' | 'error' = 'success';
 
   constructor(
     private utenteService: UtenteService,
     private confrontoService: ConfrontoService,
-    private recensioniService: RecensioniService // 4. Iniettalo
-  ) { }
+    private recensioniService: RecensioniService,
+    private preferitiService: PreferitiService,
+    private router: Router,
+    private cd: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.caricaTutto();
   }
 
+  vaiHome(): void {
+    this.router.navigate(['/Home']);
+  }
+
   caricaTutto(): void {
     this.loading = true;
-
-    // 1. Carichiamo prima l'utente. Solo quando abbiamo l'utente, carichiamo il resto.
-    this.utenteService.getProfilo().subscribe({
-      next: (data) => {
-        this.utente = data;
-        console.log("DEBUG - Utente caricato:", this.utente);
-
-        // 2. Ora che abbiamo l'ID dell'utente, carichiamo le sue attività
-        this.caricaAttivita();
-
+    forkJoin({
+      utente: this.utenteService.getProfilo().pipe(catchError(() => of(null))),
+      sfide: this.confrontoService.getMieiConfronti().pipe(catchError(() => of([]))),
+      recensioni: this.recensioniService.getMieRecensioni().pipe(catchError(() => of([]))),
+      totaleSfide: this.confrontoService.getMioTotale().pipe(catchError(() => of(0))),
+      preferitiCount: this.preferitiService.getConteggio().pipe(catchError(() => of(0)))
+    }).subscribe({
+      next: (res) => {
+        this.utente = res.utente || undefined;
+        this.mieisfide = res.sfide;
+        this.mieRecensioni = res.recensioni;
+        this.totaleSfide = Number(res.totaleSfide);
+        this.totalePreferiti = Number(res.preferitiCount);
         this.loading = false;
+        this.cd.detectChanges();
       },
-      error: (err) => {
-        console.error("Errore nel caricamento profilo:", err);
+      error: () => {
         this.loading = false;
+        this.cd.detectChanges();
       }
     });
   }
 
-  private caricaAttivita() {
-    this.confrontoService.getMieiConfronti().subscribe(data => {
-      this.mieisfide = data;
-      console.log("DEBUG - Sfide caricate:", data);
-    });
-
-    this.recensioniService.getMieRecensioni().subscribe(data => {
-      this.mieRecensioni = data;
-      console.log("DEBUG - Recensioni caricate:", data);
-    });
-
-    this.confrontoService.getMioTotale().subscribe(count => this.totaleSfide = count);
-  }
-
-  private caricaDatiSecondari(): void {
-    // Carica Cronologia
-    this.confrontoService.getMieiConfronti().subscribe(data => this.mieisfide = data);
-    // Carica Totale
-    this.confrontoService.getMioTotale().subscribe(count => this.totaleSfide = count);
-    // Carica Recensioni
-    this.recensioniService.getMieRecensioni().subscribe(data => this.mieRecensioni = data);
-  }
-
-  /**
-   * Elimina una recensione specifica dal profilo
-   */
-  eliminaRecensione(confrontoId: number): void {
-    if (confirm("Vuoi eliminare questa recensione?")) {
+  eliminaRecensione(confrontoId?: number): void {
+    if (!confrontoId) return;
+    if (confirm('Sei sicuro di voler eliminare definitivamente questa recensione?')) {
       this.recensioniService.eliminaRecensione(confrontoId).subscribe({
         next: () => {
-          // Aggiorna la lista locale rimuovendo quella eliminata
           this.mieRecensioni = this.mieRecensioni.filter(r => r.confronto?.id !== confrontoId);
-          this.mostraFeedback("Recensione eliminata.", true);
+          this.triggerToast('Recensione eliminata con successo!', 'success');
+          this.cd.detectChanges();
         },
-        error: () => this.mostraFeedback("Errore nell'eliminazione.", false)
+        error: () => this.triggerToast('Errore nell\'eliminazione.', 'error')
       });
     }
   }
-
-  // --- METODI GESTIONE PROFILO (Già esistenti) ---
 
   salvaModificheBase(): void {
     if (!this.utente) return;
     this.utenteService.aggiornaProfilo(this.utente).subscribe({
       next: (updated) => {
         this.utente = updated;
-        this.mostraFeedback("Profilo aggiornato!", true);
+        this.triggerToast('Profilo aggiornato con successo!', 'success');
       },
-      error: () => this.mostraFeedback("Errore aggiornamento.", false)
+      error: () => this.triggerToast('Errore durante l\'aggiornamento.', 'error')
     });
   }
 
-  aggiornaPassword(): void {
-    if (this.nuovaPsw !== this.confermaNuovaPsw) {
-      this.mostraFeedback("Password non coincidenti.", false);
+  aggiornaPassword(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!this.vecchiaPsw || !this.nuovaPsw || !this.confermaNuovaPsw) {
+      this.triggerToast('Compila tutti i campi password.', 'error');
       return;
     }
+    if (this.nuovaPsw !== this.confermaNuovaPsw) {
+      this.triggerToast('Le nuove password non coincidono.', 'error');
+      return;
+    }
+
     this.utenteService.cambiaPassword(this.vecchiaPsw, this.nuovaPsw).subscribe({
       next: () => {
-        this.mostraFeedback("Password aggiornata!", true);
-        this.resetCampiPassword();
+        this.triggerToast('Password modificata correttamente!', 'success');
+        this.vecchiaPsw = ''; this.nuovaPsw = ''; this.confermaNuovaPsw = '';
+        this.cd.detectChanges();
       },
-      error: () => this.mostraFeedback("Errore: vecchia password errata.", false)
+      error: () => {
+        this.triggerToast('Errore: La vecchia password è errata.', 'error');
+      }
     });
   }
 
   pulisciCronologia(): void {
-    if (confirm("Eliminare tutta la cronologia?")) {
+    if (confirm('Vuoi eliminare tutta la cronologia delle sfide?')) {
       this.confrontoService.eliminaCronologia().subscribe({
-        next: (msg) => {
+        next: () => {
           this.mieisfide = [];
           this.totaleSfide = 0;
-          this.mostraFeedback(msg, true);
-        }
+          this.triggerToast('Cronologia resettata!', 'success');
+          this.cd.detectChanges();
+        },
+        error: () => this.triggerToast('Errore nella pulizia.', 'error')
       });
     }
   }
 
-  private mostraFeedback(msg: string, isOk: boolean): void {
-    if (isOk) this.messaggioOk = msg; else this.messaggioErrore = msg;
-    setTimeout(() => { this.messaggioOk = null; this.messaggioErrore = null; }, 3000);
+  private triggerToast(msg: string, type: 'success' | 'error'): void {
+    this.toastMsg = msg;
+    this.toastType = type;
+    this.showToast = true;
+    this.cd.detectChanges();
+    setTimeout(() => {
+      this.showToast = false;
+      this.cd.detectChanges();
+    }, 3500);
   }
 
-  private resetCampiPassword(): void {
-    this.vecchiaPsw = ''; this.nuovaPsw = ''; this.confermaNuovaPsw = '';
+  trackByRecensione(index: number, item: RecensioneModel): number {
+    return item.confronto?.id ?? index;
   }
 }

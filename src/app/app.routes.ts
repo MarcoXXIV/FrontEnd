@@ -19,6 +19,7 @@ export const routes: Routes = [
   { path: 'Login', component: LoginComponent },
   { path: 'Registrazione', component: RegistrazioneComponent },
 
+
   // --- ROTTE PROTETTE (Richiedono Login) ---
   {
     path: 'Profilo',
@@ -38,9 +39,10 @@ export const routes: Routes = [
 
   // --- ROTTE ADMIN (Richiedono Login + Ruolo ADMIN) ---
   {
-    path: 'AdminPanel',
+    path: 'Admin',
     component: AdminComponent,
     canActivate: [authGuard, adminGuard]
+
   },
 
   // --- REDIRECT E FALLBACK ---

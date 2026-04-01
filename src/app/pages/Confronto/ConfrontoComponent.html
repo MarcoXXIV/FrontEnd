@@ -1,34 +1,90 @@
 <div class="page-bg">
+  <div class="top-bar">
+    <button class="btn-home" (click)="tornaHome()">
+      <i class="fas fa-house"></i> Torna alla Home
+    </button>
+  </div>
+
   <div *ngIf="loading" class="loader-overlay">Caricamento...</div>
+
+  <div *ngIf="errore && !loading" class="error-box">
+    {{ errore }}
+  </div>
 
   <div *ngIf="!loading && auto1 && auto2" class="container fade-in">
     <header class="header-battle">
-      <div class="car-box left-side"><span>{{auto1.marca}}</span><h2>{{auto1.modello}}</h2></div>
-      <div class="vs-hex">VS</div>
-      <div class="car-box right-side"><span>{{auto2.marca}}</span><h2>{{auto2.modello}}</h2></div>
-    </header>
-
-    <div class="comparison-grid">
-      <div class="panel radar-panel">
-        <h3 class="panel-title">ANALISI PRESTAZIONI</h3>
-        <app-radar-chart [auto1]="auto1" [auto2]="auto2"></app-radar-chart>
+      <div class="car-box left-side">
+        <span>{{ auto1.marca }}</span>
+        <h2>{{ auto1.modello }}</h2>
       </div>
 
-      <div class="panel specs-panel">
+      <div class="vs-container">
+        <div class="vs-hex">VS</div>
+        <button
+          class="btn-fav"
+          (click)="togglePreferito($event)"
+          [class.active]="isPreferito"
+          title="Aggiungi ai preferiti">
+          <i [class.fas]="isPreferito" [class.far]="!isPreferito" class="fa-heart"></i>
+        </button>
+      </div>
+
+      <div class="car-box right-side">
+        <span>{{ auto2.marca }}</span>
+        <h2>{{ auto2.modello }}</h2>
+      </div>
+    </header>
+
+    <section class="score-strip">
+      <div class="score-card blue-side-card">
+        <p>Punteggio gara</p>
+        <h3>{{ score1 }}</h3>
+        <span>{{ auto1.marca }} {{ auto1.modello }}</span>
+      </div>
+
+      <div class="score-card red-side-card">
+        <p>Punteggio gara</p>
+        <h3>{{ score2 }}</h3>
+        <span>{{ auto2.marca }} {{ auto2.modello }}</span>
+      </div>
+    </section>
+
+    <div class="comparison-grid">
+      <div class="panel specs-panel full-width">
         <h3 class="panel-title">SPECIFICHE TECNICHE</h3>
+
         <div class="scroll-area">
           <div class="row-stat" *ngFor="let p of elencoParametri">
-            <div class="label-stat">{{p.label}}</div>
+            <div class="label-stat">{{ p.label }}</div>
+
             <div class="bar-system" *ngIf="!p.isText">
               <div class="side-a">
-                <span class="val blue">{{ getVal(auto1, p.key) }} <small>{{p.unit}}</small></span>
-                <div class="track"><div class="fill blue-bar" [style.width.%]="getPerc(getVal(auto1, p.key), p.key)"></div></div>
+                <span class="val blue">
+                  {{ getVal(auto1, p.key) }} <small>{{ p.unit }}</small>
+                </span>
+
+                <div class="track">
+                  <div
+                    class="fill blue-bar"
+                    [style.width.%]="getPerc(getVal(auto1, p.key), p.key, p.invert)">
+                  </div>
+                </div>
               </div>
+
               <div class="side-b">
-                <div class="track"><div class="fill red-bar" [style.width.%]="getPerc(getVal(auto2, p.key), p.key)"></div></div>
-                <span class="val red">{{ getVal(auto2, p.key) }} <small>{{p.unit}}</small></span>
+                <div class="track">
+                  <div
+                    class="fill red-bar"
+                    [style.width.%]="getPerc(getVal(auto2, p.key), p.key, p.invert)">
+                  </div>
+                </div>
+
+                <span class="val red">
+                  {{ getVal(auto2, p.key) }} <small>{{ p.unit }}</small>
+                </span>
               </div>
             </div>
+
             <div class="text-system" *ngIf="p.isText">
               <div class="txt-val blue-t">{{ getVal(auto1, p.key) }}</div>
               <div class="txt-val red-t">{{ getVal(auto2, p.key) }}</div>
@@ -40,12 +96,24 @@
 
     <section class="race-zone">
       <div class="trigger-box" *ngIf="!garaInCorso">
-        <button class="btn-race" (click)="startGara($event)">AVVIA GARA <i class="fas fa-bolt"></i></button>
+        <button class="btn-race" (click)="startGara($event)">
+          AVVIA GARA <i class="fas fa-bolt"></i>
+        </button>
       </div>
+
       <div class="active-race" *ngIf="garaInCorso">
-        <app-gara-animation [car1]="auto1" [car2]="auto2" [score1]="score1" [score2]="score2"></app-gara-animation>
+        <app-gara-animation
+          [car1]="auto1"
+          [car2]="auto2"
+          [score1]="score1"
+          [score2]="score2"
+          [trigger]="garaTrigger">
+        </app-gara-animation>
+
         <div class="race-footer">
-          <button class="btn-redo" (click)="resetGara($event)">RIVINCITA <i class="fas fa-redo"></i></button>
+          <button class="btn-redo" (click)="resetGara($event)">
+            RIGIOCA <i class="fas fa-redo"></i>
+          </button>
         </div>
       </div>
     </section>
@@ -54,18 +122,34 @@
       <div class="glass-card feedback-layout" *ngIf="!recensioneInviata">
         <div class="comment-side">
           <h3>VALUTAZIONE SFIDA</h3>
-          <textarea [(ngModel)]="commento" placeholder="Aggiungi un commento tecnico..."></textarea>
-          <button class="btn-send" (click)="inviaRecensione()">PUBBLICA</button>
+          <textarea
+            [(ngModel)]="commento"
+            placeholder="Aggiungi un commento tecnico...">
+          </textarea>
+
+          <button class="btn-send" (click)="inviaRecensione()">
+            PUBBLICA
+          </button>
         </div>
+
         <div class="stars-side">
           <p>Voto Tecnico</p>
           <div class="stars">
-            <i *ngFor="let i of [1,2,3,4,5]" (click)="setVoto(i, $event)" [class.fas]="voto >= i" [class.far]="voto < i" class="fa-star"></i>
+            <i
+              *ngFor="let i of [1,2,3,4,5]"
+              (click)="setVoto(i, $event)"
+              [class.fas]="voto >= i"
+              [class.far]="voto < i"
+              class="fa-star">
+            </i>
           </div>
         </div>
       </div>
+
       <div *ngIf="recensioneInviata" class="success-banner">
-        <i class="fas fa-check-circle"></i> Recensione inviata! <button (click)="tornaHome()" class="btn-redo">NUOVA SFIDA</button>
+        <i class="fas fa-check-circle"></i>
+        Recensione inviata!
+        <button (click)="tornaHome()" class="btn-redo">NUOVA SFIDA</button>
       </div>
     </footer>
   </div>

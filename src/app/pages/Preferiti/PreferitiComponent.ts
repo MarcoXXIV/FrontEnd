@@ -1,66 +1,85 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router'; // Aggiunto Router
 import { PreferitiService } from '../../services/PreferitiService';
 import { PreferitoModel } from '../../models/PreferitoModel';
-import { ConfrontoCardComponent } from '../../components/confronto-card/confronto-cardComponent';
 
 @Component({
   selector: 'app-preferiti',
   standalone: true,
-  imports: [CommonModule, ConfrontoCardComponent, RouterModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './PreferitiComponent.html',
-  styleUrl: './PreferitiComponent.css'
+  styleUrls: ['./PreferitiComponent.css']
 })
 export class PreferitiComponent implements OnInit {
-
   listaPreferiti: PreferitoModel[] = [];
-  totalePreferiti: number = 0;
-  loading: boolean = true;
-  messaggio: string = '';
+  totalePreferiti = 0;
+  loading = true;
 
-  constructor(private preferitiService: PreferitiService) {}
+  showBanner = false;
+  bannerMsg = '';
+
+  constructor(
+    private preferitiService: PreferitiService,
+    private cd: ChangeDetectorRef,
+    private router: Router // Iniettato per far funzionare vaiHome()
+  ) {}
 
   ngOnInit(): void {
     this.caricaPreferiti();
-    this.aggiornaConteggio();
   }
 
   caricaPreferiti(): void {
     this.loading = true;
     this.preferitiService.getMieiPreferiti().subscribe({
       next: (data) => {
-        this.listaPreferiti = data;
+        console.log('Preferiti ricevuti:', data);
+        this.listaPreferiti = Array.isArray(data) ? data : [];
+        this.totalePreferiti = this.listaPreferiti.length;
         this.loading = false;
-        if (this.listaPreferiti.length === 0) {
-          this.messaggio = "Il tuo garage è attualmente vuoto.";
-        }
+        this.cd.detectChanges();
       },
       error: (err) => {
+        console.error("Errore caricamento:", err);
         this.loading = false;
-        this.messaggio = "Errore nel recupero dei preferiti.";
-        console.error(err);
+        this.cd.detectChanges();
       }
     });
   }
 
-  aggiornaConteggio(): void {
-    this.preferitiService.getConteggio().subscribe({
-      next: (count) => this.totalePreferiti = count,
-      error: (err) => console.error("Errore conteggio:", err)
+  rimuoviPreferito(confrontoId?: number): void {
+    if (!confrontoId) return;
+
+    this.preferitiService.togglePreferito(confrontoId).subscribe({
+      next: () => {
+        // Rimuoviamo subito dalla lista per velocità visiva
+        this.listaPreferiti = this.listaPreferiti.filter(p => p.confronto?.id !== confrontoId);
+        this.totalePreferiti = this.listaPreferiti.length;
+
+        this.triggerBanner("Bolide rimosso dal garage!");
+        this.cd.detectChanges();
+      },
+      error: (err) => {
+        console.error("Errore:", err);
+        this.triggerBanner("Errore nella rimozione.");
+      }
     });
   }
 
-  rimuoviPreferito(confrontoId: number): void {
-    this.preferitiService.togglePreferito(confrontoId).subscribe({
-      next: () => {
-        this.listaPreferiti = this.listaPreferiti.filter(p => p.confronto?.id !== confrontoId);
-        this.aggiornaConteggio();
-        if (this.listaPreferiti.length === 0) {
-          this.messaggio = "Garage svuotato.";
-        }
-      },
-      error: (err) => console.error("Errore rimozione:", err)
-    });
+  private triggerBanner(msg: string) {
+    this.bannerMsg = msg;
+    this.showBanner = true;
+    setTimeout(() => {
+      this.showBanner = false;
+      this.cd.detectChanges();
+    }, 2500);
+  }
+
+  trackByPreferito(index: number, item: PreferitoModel): number {
+    return item.id ?? item.confronto?.id ?? index;
+  }
+
+  vaiHome(): void {
+    this.router.navigate(['/Home']);
   }
 }

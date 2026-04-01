@@ -1,4 +1,3 @@
-/* Container principale che copre tutta la pagina */
 .login-container {
   min-height: 100vh;
   display: flex;
@@ -9,7 +8,6 @@
   padding: 20px;
 }
 
-/* La Card con effetto vetro */
 .login-card {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(15px);
@@ -78,6 +76,7 @@ p {
 .input-wrapper input {
   width: 100%;
   padding: 14px 15px 14px 45px;
+  padding-right: 45px !important;
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
@@ -93,11 +92,21 @@ p {
   box-shadow: 0 0 15px rgba(231, 76, 60, 0.2);
 }
 
-.input-wrapper input:focus + i {
+.toggle-icon {
+  position: absolute;
+  right: 15px;
+  left: auto !important;
+  cursor: pointer;
+  color: #7f8c8d;
+  transition: color 0.3s;
+  z-index: 10;
+}
+
+.toggle-icon:hover {
   color: #e74c3c;
 }
 
-/* Bottone */
+/* Bottone login */
 .btn-login {
   margin-top: 10px;
   padding: 16px;
@@ -124,27 +133,7 @@ p {
   cursor: not-allowed;
 }
 
-/* Posiziona l'icona dell'occhio a destra */
-.toggle-icon {
-  position: absolute;
-  right: 15px; /* Distanza dal bordo destro */
-  left: auto !important; /* Sovrascrive la posizione dell'icona a sinistra */
-  cursor: pointer;
-  color: #7f8c8d;
-  transition: color 0.3s;
-  z-index: 10;
-}
-
-.toggle-icon:hover {
-  color: #e74c3c; /* Colore rosso al passaggio del mouse */
-}
-
-/* Assicurati che l'input abbia spazio a destra per non coprire il testo */
-.input-wrapper input {
-  padding-right: 45px !important;
-}
-
-/* Alert Errore */
+/* Alert errore */
 .error-banner {
   background: rgba(231, 76, 60, 0.15);
   border-left: 4px solid #e74c3c;
@@ -174,6 +163,27 @@ p {
   text-decoration: underline;
 }
 
+.btn-home-link {
+  margin-top: 15px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ecf0f1;
+  padding: 12px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-home-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-color: #e74c3c;
+}
+
 /* Spinner caricamento */
 .spinner {
   width: 20px;
@@ -184,10 +194,26 @@ p {
   animation: spin 1s ease-in-out infinite;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 /* Responsive */
 @media (max-width: 480px) {
-  .login-card { padding: 30px 20px; }
+  .login-card {
+    padding: 30px 20px;
+  }
 }

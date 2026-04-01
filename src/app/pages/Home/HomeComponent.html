@@ -1,19 +1,39 @@
+<app-navbar></app-navbar>
+
 <div class="home-container">
   <header class="hero-section">
+
     <h1>Trova il tuo prossimo <span class="highlight">Bolide</span></h1>
-    <p>Confronta le prestazioni e scegli la velocità pura.</p>
+
+    <p>
+      Esplora il catalogo liberamente. Per confrontare 2 auto, salvare preferiti e lasciare recensioni devi accedere.
+    </p>
 
     <div class="search-bar">
       <div class="input-group">
         <i class="fas fa-search"></i>
-        <input type="text" [(ngModel)]="filtroMarca" placeholder="Marca (es. Ferrari)">
+        <input
+          type="text"
+          [(ngModel)]="filtroMarca"
+          placeholder="Marca (es. Ferrari)"
+        >
       </div>
+
       <div class="input-group">
         <i class="fas fa-car"></i>
-        <input type="text" [(ngModel)]="filtroModello" placeholder="Modello">
+        <input
+          type="text"
+          [(ngModel)]="filtroModello"
+          placeholder="Modello"
+        >
       </div>
+
       <button class="btn-search" (click)="eseguiRicerca()">
         Cerca <i class="fas fa-bolt"></i>
+      </button>
+
+      <button class="btn-reset" (click)="resetRicerca()">
+        Reset
       </button>
     </div>
   </header>
@@ -22,18 +42,24 @@
     <button class="chip" (click)="caricaCatalogo()">
       <i class="fas fa-random"></i> Random
     </button>
+
     <button class="chip" (click)="caricaTopAccelerazione()">
-      <i class="fas fa-tachometer-alt"></i> Top Speed
+      <i class="fas fa-tachometer-alt"></i> Top Accelerazione
     </button>
+
     <button class="chip" (click)="caricaTopGreen()">
       <i class="fas fa-leaf"></i> Eco Friendly
     </button>
+
     <select class="chip select-chip" (change)="caricaPerCategoria($any($event.target).value)">
       <option value="">Tutte le Categorie</option>
       <option value="Supercar">Supercar</option>
       <option value="Sportiva">Sportiva</option>
       <option value="Berlina">Berlina</option>
+      <option value="SUV">SUV</option>
+      <option value="Hypercar">Hypercar</option>
     </select>
+
   </div>
 
   <div class="status-info" *ngIf="messaggio || loading">
@@ -42,9 +68,11 @@
   </div>
 
   <div class="auto-grid" *ngIf="!loading">
-    <div class="card-wrapper" *ngFor="let auto of autoFiltrate"
-         [class.selected]="autoSelezionate.includes(auto.id!)">
-
+    <div
+      class="card-wrapper"
+      *ngFor="let auto of autoFiltrate; trackBy: trackByAutoId"
+      [class.selected]="autoSelezionate.includes(auto.id!)"
+    >
       <app-auto-card
         [auto]="auto"
         (seleziona)="gestisciSelezione($event)">
@@ -56,8 +84,20 @@
     </div>
   </div>
 
+  <div class="empty-state" *ngIf="!loading && autoFiltrate.length === 0">
+    <i class="fas fa-car-crash"></i>
+    <h3>Nessun risultato disponibile</h3>
+    <p>Prova a cambiare filtro o ricaricare il catalogo.</p>
+    <button class="btn-search" (click)="caricaCatalogo()">Ricarica catalogo</button>
+  </div>
+
   <div class="comparison-bar" *ngIf="autoSelezionate.length > 0">
-    <p>Veicoli selezionati per la sfida: <strong>{{ autoSelezionate.length }} / 2</strong></p>
+    <p>
+      Veicoli selezionati:
+      <strong>{{ autoSelezionate.length }} / 2</strong>
+      <span *ngIf="!utenteLoggato"> — login richiesto per la sfida</span>
+    </p>
+
     <div class="dots">
       <span class="dot" [class.active]="autoSelezionate.length >= 1"></span>
       <span class="dot" [class.active]="autoSelezionate.length === 2"></span>

@@ -1,80 +1,274 @@
-<div class="admin-container">
-  <header class="admin-header">
-    <h1><i class="fas fa-tools"></i> Pannello di Controllo</h1>
-  </header>
+<div class="admin-page">
+  <div class="admin-container fade-in">
+    <header class="admin-header">
+      <div class="title-group">
+        <h1><i class="fas fa-user-shield"></i> Dashboard Admin</h1>
+        <p>Gestione globale del sistema e del catalogo</p>
+      </div>
 
-  <div class="admin-content-wrapper">
-    <nav class="admin-nav">
-      <button [class.active]="sezioneAttiva === 'utenti'" (click)="setSezione('utenti')">👥 Gestione Utenti</button>
-      <button [class.active]="sezioneAttiva === 'nuova-auto'" (click)="setSezione('nuova-auto')">➕ Aggiungi Nuova Auto</button>
-    </nav>
+      <div class="header-actions">
+        <div class="quick-stats">
+          <div class="stat-card">
+            <span class="stat-label">Utenti</span>
+            <span class="stat-value">{{ listaUtenti.length }}</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Auto</span>
+            <span class="stat-value">{{ listaAuto.length }}</span>
+          </div>
+        </div>
 
-    <main class="admin-main">
-      <section *ngIf="sezioneAttiva === 'utenti'" class="fade-in">
-        <h2>Utenti Registrati</h2>
-        <table>
-          <thead><tr><th>Nome</th><th>Email</th><th>Azione</th></tr></thead>
-          <tbody>
-          <tr *ngFor="let u of listaUtenti">
-            <td><strong>{{u.nome}}</strong></td>
-            <td>{{u.email}}</td>
-            <td><button class="btn-delete" (click)="eliminaUtente(u.id)">Elimina</button></td>
-          </tr>
-          </tbody>
-        </table>
-      </section>
+        <button class="btn-home" (click)="vaiHome()">
+          <i class="fas fa-house"></i> Home
+        </button>
+      </div>
+    </header>
 
-      <section *ngIf="sezioneAttiva === 'nuova-auto'" class="fade-in">
-        <h2>Nuovo Veicolo</h2>
-        <form (ngSubmit)="aggiungiAuto()" class="auto-form">
+    <div class="admin-content-wrapper">
+      <nav class="admin-nav">
+        <button [class.active]="sezioneAttiva === 'utenti'" (click)="setSezione('utenti')">
+          <i class="fas fa-users"></i> Gestione Utenti
+        </button>
 
-          <div class="form-section">
-            <h3>Dati di Base</h3>
-            <div class="form-grid">
-              <div class="form-group"><label>Marca</label><input type="text" [(ngModel)]="nuovaAuto.marca" name="marca"></div>
-              <div class="form-group"><label>Modello</label><input type="text" [(ngModel)]="nuovaAuto.modello" name="modello"></div>
-              <div class="form-group"><label>Anno</label><input type="number" [(ngModel)]="nuovaAuto.anno" name="anno"></div>
-              <div class="form-group"><label>Prezzo (€)</label><input type="number" [(ngModel)]="nuovaAuto.prezzo" name="prezzo"></div>
-              <div class="form-group"><label>Categoria</label><input type="text" [(ngModel)]="nuovaAuto.categoria" name="cat"></div>
-              <div class="form-group"><label>Codice</label><input type="text" [(ngModel)]="nuovaAuto.codice" name="codice"></div>
-            </div>
+        <button [class.active]="sezioneAttiva === 'gestione-auto'" (click)="setSezione('gestione-auto')">
+          <i class="fas fa-car"></i> Catalogo Auto
+        </button>
+
+        <button [class.active]="sezioneAttiva === 'nuova-auto'" (click)="setSezione('nuova-auto')">
+          <i class="fas fa-plus-circle"></i> Aggiungi Auto
+        </button>
+      </nav>
+
+      <main class="admin-main">
+        <section *ngIf="sezioneAttiva === 'utenti'" class="table-section fade-in">
+          <div class="section-header">
+            <h2>Utenti Registrati</h2>
+            <button class="btn-refresh" (click)="caricaUtenti()" title="Aggiorna utenti">
+              <i class="fas fa-sync"></i>
+            </button>
           </div>
 
-          <div class="form-section">
-            <h3>Motore e Meccanica</h3>
-            <div class="form-grid">
-              <div class="form-group"><label>Cavalli (CV)</label><input type="number" [(ngModel)]="nuovaAuto.cv" name="cv"></div>
-              <div class="form-group"><label>Cilindrata</label><input type="number" [(ngModel)]="nuovaAuto.cilindrata" name="cili"></div>
-              <div class="form-group"><label>Cilindri</label><input type="number" [(ngModel)]="nuovaAuto.cilindri" name="cilindri"></div>
-              <div class="form-group"><label>Coppia (Nm)</label><input type="number" [(ngModel)]="nuovaAuto.coppia" name="coppia"></div>
-              <div class="form-group"><label>Trazione</label><input type="text" [(ngModel)]="nuovaAuto.trazione" name="traz"></div>
-              <div class="form-group"><label>Alimentazione</label><input type="text" [(ngModel)]="nuovaAuto.alimentazione" name="ali"></div>
-            </div>
+          <div class="table-container">
+            <table>
+              <thead>
+              <tr>
+                <th>Utente</th>
+                <th>Email</th>
+                <th>Ruolo Attuale</th>
+                <th>Cambia Ruolo</th>
+                <th class="text-right">Azioni</th>
+              </tr>
+              </thead>
+
+              <tbody>
+              <tr *ngFor="let u of listaUtenti" class="row-hover">
+                <td>
+                  <div class="user-info">
+                    <div class="user-avatar">{{ u.nome.charAt(0) }}</div>
+                    <strong>{{ u.nome }} {{ u.cognome }}</strong>
+                  </div>
+                </td>
+
+                <td>
+                  <span class="email-text">{{ u.email }}</span>
+                </td>
+
+                <td>
+                    <span class="role-badge" [ngClass]="u.ruolo?.toLowerCase()">
+                      {{ u.ruolo }}
+                    </span>
+                </td>
+
+                <td>
+                  <select class="select-role" #roleSelect (change)="modificaRuolo(u.id, roleSelect.value)">
+                    <option value="" disabled selected>Seleziona...</option>
+                    <option value="USER">USER</option>
+                    <option value="ADMIN">ADMIN</option>
+                  </select>
+                </td>
+
+                <td class="text-right">
+                  <button class="btn-action-delete" (click)="eliminaUtente(u.id)" title="Elimina Utente">
+                    <i class="fas fa-user-minus"></i> Elimina
+                  </button>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section *ngIf="sezioneAttiva === 'gestione-auto'" class="table-section fade-in">
+          <div class="section-header">
+            <h2>Gestione Catalogo</h2>
+            <button class="btn-refresh" (click)="caricaAuto()" title="Aggiorna auto">
+              <i class="fas fa-sync"></i>
+            </button>
           </div>
 
-          <div class="form-section">
-            <h3>Performance</h3>
-            <div class="form-grid">
-              <div class="form-group"><label>Velocità Max</label><input type="number" [(ngModel)]="nuovaAuto.velocitaMax" name="vmax"></div>
-              <div class="form-group"><label>0-100 km/h</label><input type="number" step="0.1" [(ngModel)]="nuovaAuto.accelerazione0100" name="a1"></div>
-              <div class="form-group"><label>100-200 km/h</label><input type="number" step="0.1" [(ngModel)]="nuovaAuto.accelerazione100200" name="a2"></div>
-              <div class="form-group"><label>Peso (Kg)</label><input type="number" [(ngModel)]="nuovaAuto.pesoKg" name="peso"></div>
-              <div class="form-group"><label>Rapporto P/P</label><input type="number" step="0.01" [(ngModel)]="nuovaAuto.rapportoPesoPotenza" name="rpp"></div>
-            </div>
-          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+              <tr>
+                <th>Marca/Modello</th>
+                <th>Codice</th>
+                <th>Prezzo</th>
+                <th class="text-right">Azioni</th>
+              </tr>
+              </thead>
 
-          <div class="form-section">
-            <h3>Ecologia</h3>
-            <div class="form-grid">
-              <div class="form-group"><label>Euro</label><input type="text" [(ngModel)]="nuovaAuto.euro" name="euro"></div>
-              <div class="form-group"><label>CO2</label><input type="number" [(ngModel)]="nuovaAuto.co2" name="co2"></div>
-              <div class="form-group"><label>Consumo Medio</label><input type="number" step="0.1" [(ngModel)]="nuovaAuto.consumoMedio" name="cons"></div>
-            </div>
+              <tbody>
+              <tr *ngFor="let a of listaAuto" class="row-hover">
+                <td><strong>{{ a.marca }}</strong> {{ a.modello }}</td>
+                <td><code>{{ a.codice }}</code></td>
+                <td>{{ a.prezzo | currency:'EUR' }}</td>
+                <td class="text-right">
+                  <button class="btn-action-delete" (click)="eliminaAuto(a.id)">
+                    <i class="fas fa-trash-alt"></i> Rimuovi
+                  </button>
+                </td>
+              </tr>
+              </tbody>
+            </table>
           </div>
+        </section>
 
-          <button type="submit" class="btn-save">🚀 Salva nel Database</button>
-        </form>
-      </section>
-    </main>
+        <section *ngIf="sezioneAttiva === 'nuova-auto'" class="form-section-wrapper fade-in">
+          <header class="form-header">
+            <h2>Inserimento Nuovo Veicolo</h2>
+            <p>Compila tutti i parametri tecnici per il confronto</p>
+          </header>
+
+          <form (ngSubmit)="aggiungiAuto()" class="auto-form">
+            <div class="form-card">
+              <div class="card-title"><i class="fas fa-id-card"></i> Identità del Veicolo</div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Marca</label>
+                  <input type="text" [(ngModel)]="nuovaAuto.marca" name="marca" placeholder="es. Lamborghini" required>
+                </div>
+
+                <div class="form-group">
+                  <label>Modello</label>
+                  <input type="text" [(ngModel)]="nuovaAuto.modello" name="modello" placeholder="es. Huracán" required>
+                </div>
+
+                <div class="form-group">
+                  <label>Anno</label>
+                  <input type="number" [(ngModel)]="nuovaAuto.anno" name="anno" placeholder="es. 2024">
+                </div>
+
+                <div class="form-group">
+                  <label>Categoria</label>
+                  <input type="text" [(ngModel)]="nuovaAuto.categoria" name="categoria" placeholder="es. Supercar">
+                </div>
+
+                <div class="form-group">
+                  <label>Codice Univoco</label>
+                  <input type="text" [(ngModel)]="nuovaAuto.codice" name="codice" placeholder="es. LH-2024-V10">
+                </div>
+
+                <div class="form-group">
+                  <label>Prezzo (€)</label>
+                  <input type="number" [(ngModel)]="nuovaAuto.prezzo" name="prezzo" placeholder="es. 250000">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-card">
+              <div class="card-title"><i class="fas fa-cogs"></i> Specifiche Tecniche</div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Cilindri</label>
+                  <input type="number" [(ngModel)]="nuovaAuto.cilindri" name="cilindri" placeholder="es. 10">
+                </div>
+
+                <div class="form-group">
+                  <label>Potenza (CV)</label>
+                  <input type="number" [(ngModel)]="nuovaAuto.cv" name="cv" placeholder="es. 640">
+                </div>
+
+                <div class="form-group">
+                  <label>Cilindrata (cc)</label>
+                  <input type="number" [(ngModel)]="nuovaAuto.cilindrata" name="cilindrata" placeholder="es. 5204">
+                </div>
+
+                <div class="form-group">
+                  <label>Coppia (Nm)</label>
+                  <input type="number" [(ngModel)]="nuovaAuto.coppia" name="coppia" placeholder="es. 600">
+                </div>
+
+                <div class="form-group">
+                  <label>Trazione</label>
+                  <input type="text" [(ngModel)]="nuovaAuto.trazione" name="trazione" placeholder="es. Integrale / Posteriore">
+                </div>
+
+                <div class="form-group">
+                  <label>Alimentazione</label>
+                  <input type="text" [(ngModel)]="nuovaAuto.alimentazione" name="alimentazione" placeholder="es. Benzina / Ibrida">
+                </div>
+
+                <div class="form-group">
+                  <label>Classe Euro</label>
+                  <input type="text" [(ngModel)]="nuovaAuto.euro" name="euro" placeholder="es. Euro 6d-Temp">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-card">
+              <div class="card-title"><i class="fas fa-tachometer-alt"></i> Prestazioni e Peso</div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Velocità Max (km/h)</label>
+                  <input type="number" [(ngModel)]="nuovaAuto.velocitaMax" name="vMax" placeholder="es. 325">
+                </div>
+
+                <div class="form-group">
+                  <label>0-100 km/h (s)</label>
+                  <input type="number" step="0.1" [(ngModel)]="nuovaAuto.accelerazione0100" name="acc0100" placeholder="es. 2.9">
+                </div>
+
+                <div class="form-group">
+                  <label>100-200 km/h (s)</label>
+                  <input type="number" step="0.1" [(ngModel)]="nuovaAuto.accelerazione100200" name="acc100200" placeholder="es. 8.9">
+                </div>
+
+                <div class="form-group">
+                  <label>80-140 km/h (s)</label>
+                  <input type="number" step="0.1" [(ngModel)]="nuovaAuto.accelerazione80140" name="acc80140" placeholder="es. 5.2">
+                </div>
+
+                <div class="form-group">
+                  <label>Peso (kg)</label>
+                  <input type="number" [(ngModel)]="nuovaAuto.pesoKg" name="peso" placeholder="es. 1379">
+                </div>
+
+                <div class="form-group">
+                  <label>Rapporto Peso/Potenza</label>
+                  <input type="number" step="0.01" [(ngModel)]="nuovaAuto.rapportoPesoPotenza" name="rpp" placeholder="es. 2.15">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-card">
+              <div class="card-title"><i class="fas fa-leaf"></i> Consumi ed Emissioni</div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Consumo Medio (l/100km)</label>
+                  <input type="number" step="0.1" [(ngModel)]="nuovaAuto.consumoMedio" name="consumo" placeholder="es. 13.7">
+                </div>
+
+                <div class="form-group">
+                  <label>Emissioni CO2 (g/km)</label>
+                  <input type="number" [(ngModel)]="nuovaAuto.co2" name="co2" placeholder="es. 332">
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-save-glow">🚀 PUBBLICA NEL CATALOGO</button>
+          </form>
+        </section>
+      </main>
+    </div>
   </div>
 </div>

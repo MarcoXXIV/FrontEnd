@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -12,7 +12,7 @@ import { RegisterRequest } from '../../models/RegisterRequest';
   templateUrl: './RegistrazioneComponent.html',
   styleUrl: './RegistrazioneComponent.css'
 })
-export class RegistrazioneComponent {
+export class RegistrazioneComponent implements OnInit {
 
   user: RegisterRequest = {
     nome: '',
@@ -21,23 +21,37 @@ export class RegistrazioneComponent {
     password: ''
   };
 
+  confermaPassword: string = '';
   showPassword = false;
+  loading: boolean = false;
+  errorMessage: string | null = null;
+
+  // Statistica fittizia o reale per l'header stile Admin
+  pilotiIscritti: number = 1240;
+
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private cd: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    // Eventuale logica di inizializzazione
+  }
 
   togglePassword(): void {
     this.showPassword = !this.showPassword;
   }
 
-  confermaPassword: string = '';
-  loading: boolean = false;
-  errorMessage: string | null = null;
+  vaiHome(): void {
+    this.router.navigate(['/Home']);
+  }
 
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {}
+  goToLogin(): void {
+    this.router.navigate(['/Login']);
+  }
 
   onRegister(): void {
-    // Validazione base lato client
     if (this.user.password !== this.confermaPassword) {
       this.errorMessage = "Le password non coincidono!";
       return;
@@ -53,25 +67,18 @@ export class RegistrazioneComponent {
 
     this.authService.register(this.user).subscribe({
       next: (res) => {
-        console.log('Utente creato con successo:', res);
         this.loading = false;
-        // Dopo la registrazione l'AuthService ha già salvato il token,
-        // quindi possiamo mandare l'utente direttamente in Home.
         this.router.navigate(['/Home']);
       },
       error: (err) => {
         this.loading = false;
-        // Gestione errore email duplicata (solitamente 400 o 409 dal backend)
         if (err.status === 400 || err.status === 409) {
           this.errorMessage = "Questa email è già associata a un account.";
         } else {
           this.errorMessage = "Errore durante la creazione dell'account.";
         }
+        this.cd.detectChanges();
       }
     });
-  }
-
-  goToLogin(): void {
-    this.router.navigate(['/Login']);
   }
 }

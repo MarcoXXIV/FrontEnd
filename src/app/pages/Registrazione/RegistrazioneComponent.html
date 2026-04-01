@@ -1,71 +1,94 @@
 <div class="register-container">
-  <div class="register-card">
-    <div class="card-header">
-      <div class="logo">
-        <i class="fas fa-id-card"></i>
+
+  <div class="register-content-wrapper fade-in">
+
+    <header class="admin-header-style">
+      <div class="title-group">
+        <h1><i class="fas fa-flag-checkered"></i> Pit Lane</h1>
+        <p>Crea il tuo profilo pilota e scendi in pista</p>
       </div>
-      <h1>Crea il tuo Profilo</h1>
-      <p>Entra nel circuito e sfida i migliori piloti</p>
-    </div>
 
-    <form (ngSubmit)="onRegister()" #registerForm="ngForm" class="register-form">
+      <div class="header-actions">
+        <div class="quick-stats-row">
+          <div class="stat-card-mini">
+            <span class="stat-label-mini">Piloti</span>
+            <span class="stat-value-mini">{{ pilotiIscritti }}</span>
+          </div>
+        </div>
 
-      <div class="row">
-        <div class="input-group">
-          <label for="nome">Nome</label>
-          <div class="input-wrapper">
-            <i class="fas fa-user"></i>
-            <input type="text" id="nome" name="nome" [(ngModel)]="user.nome" placeholder="Mario" required>
+        <button class="btn-home-green" (click)="vaiHome()">
+          <i class="fas fa-house"></i> Home
+        </button>
+      </div>
+    </header>
+
+    <div class="register-card">
+      <div class="card-header">
+        <div class="logo">
+          <i class="fas fa-user-plus"></i>
+        </div>
+        <h2>Registrazione Nuovo Utente</h2>
+      </div>
+
+      <form (ngSubmit)="onRegister()" #registerForm="ngForm" class="register-form">
+
+        <div class="row">
+          <div class="input-group">
+            <label>Nome</label>
+            <div class="input-wrapper">
+              <i class="fas fa-user"></i>
+              <input type="text" name="nome" [(ngModel)]="user.nome" placeholder="Mario" required>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>Cognome</label>
+            <div class="input-wrapper">
+              <i class="fas fa-user-tag"></i>
+              <input type="text" name="cognome" [(ngModel)]="user.cognome" placeholder="Rossi" required>
+            </div>
           </div>
         </div>
 
         <div class="input-group">
-          <label for="cognome">Cognome</label>
+          <label>Email</label>
           <div class="input-wrapper">
-            <i class="fas fa-user-tag"></i>
-            <input type="text" id="cognome" name="cognome" [(ngModel)]="user.cognome" placeholder="Rossi" required>
+            <i class="fas fa-envelope"></i>
+            <input type="email" name="email" [(ngModel)]="user.email" placeholder="mario.rossi@mail.it" required>
           </div>
         </div>
-      </div>
 
-      <div class="input-group">
-        <label for="email">Email</label>
-        <div class="input-wrapper">
-          <i class="fas fa-envelope"></i>
-          <input type="email" id="email" name="email" [(ngModel)]="user.email" placeholder="mario.rossi@mail.it" required>
+        <div class="input-group">
+          <label>Password</label>
+          <div class="input-wrapper">
+            <i class="fas fa-lock"></i>
+            <input [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="user.password" placeholder="••••••••" required>
+            <i class="fas toggle-icon" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'" (click)="togglePassword()"></i>
+          </div>
         </div>
-      </div>
 
-      <div class="input-group">
-        <label for="password">Password</label>
-        <div class="input-wrapper">
-          <i class="fas fa-lock"></i>
-          <input [type]="showPassword ? 'text' : 'password'" id="password" name="password" [(ngModel)]="user.password" placeholder="••••••••" required>
-          <i class="fas toggle-icon" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'" (click)="togglePassword()"></i>
+        <div class="input-group">
+          <label>Conferma Password</label>
+          <div class="input-wrapper">
+            <i class="fas fa-shield-alt"></i>
+            <input [type]="showPassword ? 'text' : 'password'" name="conferma" [(ngModel)]="confermaPassword" placeholder="••••••••" required>
+          </div>
         </div>
-      </div>
 
-      <div class="input-group">
-        <label for="conferma">Conferma Password</label>
-        <div class="input-wrapper">
-          <i class="fas fa-shield-alt"></i>
-          <input [type]="showPassword ? 'text' : 'password'" id="conferma" name="conferma" [(ngModel)]="confermaPassword" placeholder="••••••••" required>
+        <div class="error-banner" *ngIf="errorMessage">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>{{ errorMessage }}</span>
         </div>
+
+        <button type="submit" class="btn-register-glow" [disabled]="loading">
+          <span *ngIf="!loading">UNISCITI AL TEAM <i class="fas fa-bolt"></i></span>
+          <div class="spinner" *ngIf="loading"></div>
+        </button>
+      </form>
+
+      <div class="card-footer">
+        <p>Hai già un account? <a (click)="goToLogin()">Accedi qui</a></p>
       </div>
-
-      <div class="error-banner" *ngIf="errorMessage">
-        <i class="fas fa-exclamation-triangle"></i>
-        <span>{{ errorMessage }}</span>
-      </div>
-
-      <button type="submit" class="btn-register" [disabled]="loading">
-        <span *ngIf="!loading">Registrati ora <i class="fas fa-flag-checkered"></i></span>
-        <div class="spinner" *ngIf="loading"></div>
-      </button>
-    </form>
-
-    <div class="card-footer">
-      <p>Hai già un account? <a (click)="goToLogin()">Accedi qui</a></p>
     </div>
   </div>
 </div>

@@ -1,28 +1,35 @@
 <div class="race-track-container">
   <div class="race-header" [class.fade-out]="mostraVincitore">
-    <h2>DRAG RACE: <span class="blue">{{car1?.marca}}</span> vs <span class="red">{{car2?.marca}}</span></h2>
+    <h2>
+      DRAG RACE:
+      <span class="blue">{{ car1?.modello }}</span>
+      vs
+      <span class="red">{{ car2?.modello }}</span>
+    </h2>
     <p>Il semaforo è verde! Chi dominerà il quarto di miglio?</p>
   </div>
 
   <div class="track">
-    <div class="finish-line" [class.show]="animazioneIniziata"></div>
+    <div class="finish-line"></div>
 
     <div class="lane">
-      <div class="car blue-glow"
-           [class.racing]="animazioneIniziata"
-           [style.animation-duration]="(4 - (score1/100)) + 's'">
+      <div
+        class="car blue-glow"
+        [class.racing]="animazioneIniziata"
+        [style.animation-duration]="getDurata(score1) + 's'">
         <i class="fas fa-car-side"></i>
-        <div class="car-label">{{car1?.modello}}</div>
+        <div class="car-label">{{ car1?.modello }}</div>
         <div class="flame" *ngIf="animazioneIniziata"></div>
       </div>
     </div>
 
     <div class="lane">
-      <div class="car red-glow"
-           [class.racing]="animazioneIniziata"
-           [style.animation-duration]="(4 - (score2/100)) + 's'">
+      <div
+        class="car red-glow"
+        [class.racing]="animazioneIniziata"
+        [style.animation-duration]="getDurata(score2) + 's'">
         <i class="fas fa-car-side"></i>
-        <div class="car-label">{{car2?.modello}}</div>
+        <div class="car-label">{{ car2?.modello }}</div>
         <div class="flame" *ngIf="animazioneIniziata"></div>
       </div>
     </div>
@@ -36,7 +43,7 @@
         {{ vincitoreNome }}
       </h2>
       <div class="final-scores">
-        {{score1}} pts - {{score2}} pts
+        {{ score1 }} pts - {{ score2 }} pts
       </div>
     </div>
   </div>
