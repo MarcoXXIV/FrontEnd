@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 
@@ -10,29 +10,45 @@ import { RecensioniService } from '../../services/RecensioniService';
 import { ConfrontoService } from '../../services/ConfrontoService';
 
 import { AutoModel } from '../../models/AutoModel';
+import { RecensioneModel } from '../../models/RecensioneModel';
 import { GaraAnimationComponent } from '../../components/gara/garaComponent';
+
+interface ParametroConfronto {
+  label: string;
+  key: keyof AutoModel;
+  unit?: string;
+  invert?: boolean;
+  isText?: boolean;
+}
 
 @Component({
   selector: 'app-confronto',
   standalone: true,
-  imports: [CommonModule, FormsModule, GaraAnimationComponent],
+  imports: [CommonModule, FormsModule, GaraAnimationComponent, RouterModule],
   templateUrl: './ConfrontoComponent.html',
-  styleUrl: './ConfrontoComponent.css'
+  styleUrls: ['./ConfrontoComponent.css']
 })
 export class ConfrontoComponent implements OnInit {
   auto1?: AutoModel;
   auto2?: AutoModel;
 
-  loading: boolean = true;
-  garaInCorso: boolean = false;
-  garaTrigger: number = 0;
+  recensioniCoppia: RecensioneModel[] = [];
+  mediaRecensioni: number | null = null;
 
-  isPreferito: boolean = false;
+  loading = true;
+  garaInCorso = false;
+  garaTrigger = 0;
+  isPreferito = false;
   idConfronto?: number;
+  errore = '';
 
-  errore: string = '';
+  score1 = 0;
+  score2 = 0;
+  voto = 5;
+  commento = '';
+  recensioneInviata = false;
 
-  soglieMax: { [key: string]: number } = {
+  soglieMax: Record<string, number> = {
     cv: 1000,
     velocitaMax: 450,
     accelerazione0100: 10,
@@ -47,7 +63,7 @@ export class ConfrontoComponent implements OnInit {
     co2: 450
   };
 
-  elencoParametri: any[] = [
+  elencoParametri: ParametroConfronto[] = [
     { label: 'Potenza', key: 'cv', unit: 'CV', invert: false },
     { label: 'Velocità Max', key: 'velocitaMax', unit: 'km/h', invert: false },
     { label: '0-100 km/h', key: 'accelerazione0100', unit: 's', invert: true },
@@ -60,18 +76,11 @@ export class ConfrontoComponent implements OnInit {
     { label: 'Consumo Medio', key: 'consumoMedio', unit: 'l/100km', invert: true },
     { label: 'Emissioni CO2', key: 'co2', unit: 'g/km', invert: true },
     { label: 'Prezzo', key: 'prezzo', unit: '€', invert: true },
-    { label: 'Alimentazione', key: 'alimentazione', unit: '', isText: true },
-    { label: 'Trazione', key: 'trazione', unit: '', isText: true },
-    { label: 'Categoria', key: 'categoria', unit: '', isText: true },
-    { label: 'Classe Euro', key: 'euro', unit: '', isText: true }
+    { label: 'Alimentazione', key: 'alimentazione', isText: true },
+    { label: 'Trazione', key: 'trazione', isText: true },
+    { label: 'Categoria', key: 'categoria', isText: true },
+    { label: 'Classe Euro', key: 'euro', isText: true }
   ];
-
-  score1: number = 0;
-  score2: number = 0;
-
-  voto: number = 5;
-  commento: string = '';
-  recensioneInviata: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -90,7 +99,7 @@ export class ConfrontoComponent implements OnInit {
 
       if (!id1 || !id2) {
         this.loading = false;
-        this.errore = 'Parametri confronto non validi.';
+        this.errore = 'Parametri non validi.';
         this.cd.detectChanges();
         return;
       }
@@ -108,19 +117,20 @@ export class ConfrontoComponent implements OnInit {
       a2: this.autoService.getAutoById(id2),
       confronto: this.confrontoService.eseguiBattaglia(id1, id2)
     }).subscribe({
-      next: (res) => {
+      next: res => {
         this.auto1 = res.a1;
         this.auto2 = res.a2;
         this.idConfronto = res.confronto?.id;
 
         this.calcolaPunteggi();
-        this.loading = false;
-
+        this.caricaRecensioniCoppia();
+        this.caricaMediaRecensioni();
         this.checkStatoPreferito(id1, id2);
+
+        this.loading = false;
         this.cd.detectChanges();
       },
-      error: (err) => {
-        console.error(err);
+      error: () => {
         this.loading = false;
         this.errore = 'Errore nel caricamento del confronto.';
         this.cd.detectChanges();
@@ -128,27 +138,123 @@ export class ConfrontoComponent implements OnInit {
     });
   }
 
-  checkStatoPreferito(id1: number, id2: number): void {
-    this.preferitiService.getMieiPreferiti().subscribe({
-      next: (preferiti) => {
-        const trovato = preferiti.find(p =>
-          p.confronto?.id === this.idConfronto ||
-          (
-            (p.confronto?.auto1?.id === id1 && p.confronto?.auto2?.id === id2) ||
-            (p.confronto?.auto1?.id === id2 && p.confronto?.auto2?.id === id1)
-          )
-        );
+  private getAutoIds(): { auto1Id: number; auto2Id: number } | null {
+    if (this.auto1?.id == null || this.auto2?.id == null) {
+      return null;
+    }
 
-        this.isPreferito = !!trovato;
+    return {
+      auto1Id: this.auto1.id,
+      auto2Id: this.auto2.id
+    };
+  }
 
-        if (trovato?.confronto?.id) {
-          this.idConfronto = trovato.confronto.id;
-        }
+  caricaRecensioniCoppia(): void {
+    const ids = this.getAutoIds();
+    if (!ids) return;
 
+    this.recensioniService.getPerCoppia(ids.auto1Id, ids.auto2Id).subscribe({
+      next: data => {
+        this.recensioniCoppia = data ?? [];
         this.cd.detectChanges();
       },
-      error: (err) => {
-        console.error('Errore controllo preferito:', err);
+      error: () => {
+        this.recensioniCoppia = [];
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  caricaMediaRecensioni(): void {
+    const ids = this.getAutoIds();
+    if (!ids) return;
+
+    this.recensioniService.getMedia(ids.auto1Id, ids.auto2Id).subscribe({
+      next: media => {
+        this.mediaRecensioni = media ?? 0;
+        this.cd.detectChanges();
+      },
+      error: () => {
+        this.mediaRecensioni = 0;
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  inviaRecensione(): void {
+    const ids = this.getAutoIds();
+    if (!ids || !this.commento.trim()) return;
+
+    const testo = this.commento.trim();
+    const votoCorrente = this.voto;
+
+    this.recensioniService
+      .aggiungiRecensione(ids.auto1Id, ids.auto2Id, votoCorrente, testo)
+      .subscribe({
+        next: () => {
+          this.recensioneInviata = true;
+          this.commento = '';
+          this.voto = 5;
+
+          this.caricaRecensioniCoppia();
+          this.caricaMediaRecensioni();
+          this.cd.detectChanges();
+
+          setTimeout(() => {
+            this.recensioneInviata = false;
+            this.cd.detectChanges();
+          }, 2000);
+        },
+        error: err => {
+          if (err.status === 400 || err.status === 404) {
+            alert(err.error);
+          } else {
+            alert("Si è verificato un errore durante l'invio della recensione.");
+          }
+
+          console.warn('Errore recensione:', err);
+          this.cd.detectChanges();
+        }
+      });
+  }
+
+  eliminaRecensione(): void {
+    const ids = this.getAutoIds();
+    if (!ids) return;
+
+    this.recensioniService.eliminaRecensione(ids.auto1Id, ids.auto2Id).subscribe({
+      next: () => {
+        this.caricaRecensioniCoppia();
+        this.caricaMediaRecensioni();
+        this.cd.detectChanges();
+      },
+      error: err => {
+        console.warn('Errore eliminazione recensione:', err);
+        alert('Impossibile eliminare la recensione.');
+      }
+    });
+  }
+
+  trackByRecensione(index: number, item: RecensioneModel): number | string {
+    return item.id ?? `${item.commento}-${item.voto}-${index}`;
+  }
+
+  checkStatoPreferito(id1: number, id2: number): void {
+    this.preferitiService.getMieiPreferiti().subscribe({
+      next: preferiti => {
+        this.isPreferito = preferiti.some(
+          p =>
+            p.confronto?.id === this.idConfronto ||
+            (
+              (p.confronto?.auto1?.id === id1 && p.confronto?.auto2?.id === id2) ||
+              (p.confronto?.auto1?.id === id2 && p.confronto?.auto2?.id === id1)
+            )
+        );
+        this.cd.detectChanges();
+      },
+      error: () => {
+        this.isPreferito = false;
+        this.cd.detectChanges();
       }
     });
   }
@@ -156,122 +262,65 @@ export class ConfrontoComponent implements OnInit {
   togglePreferito(event: Event): void {
     event.stopPropagation();
 
-    if (!this.idConfronto) {
-      console.error('idConfronto non disponibile');
-      return;
-    }
+    if (!this.idConfronto) return;
 
     this.preferitiService.togglePreferito(this.idConfronto).subscribe({
-      next: (res) => {
-        const risposta = (res || '').toLowerCase();
-
-        if (risposta.includes('aggiunto')) {
-          this.isPreferito = true;
-        } else if (risposta.includes('rimosso')) {
-          this.isPreferito = false;
-        } else {
-          this.isPreferito = !this.isPreferito;
-        }
-
+      next: res => {
+        this.isPreferito = res.toLowerCase().includes('aggiunto');
         this.cd.detectChanges();
       },
-      error: (err) => {
-        console.error('Errore toggle preferito:', err);
+      error: () => {
+        alert('Errore durante il salvataggio nei preferiti.');
       }
     });
   }
 
-  getPerc(valore: any, chiave: string, invert: boolean = false): number {
-    const max = this.soglieMax[chiave] || 1000;
+  getPerc(valore: unknown, chiave: keyof AutoModel, invert = false): number {
+    const max = this.soglieMax[String(chiave)] || 1000;
     const v = Number(valore) || 0;
+    const p = invert ? (1 - v / max) * 100 : (v / max) * 100;
+    return Math.min(100, Math.max(0, p));
+  }
 
-    let percentuale = invert
-      ? (1 - (v / max)) * 100
-      : (v / max) * 100;
-
-    if (percentuale < 0) percentuale = 0;
-    if (percentuale > 100) percentuale = 100;
-
-    return percentuale;
+  getBarWidth(auto: AutoModel, parametro: ParametroConfronto): number {
+    return this.getPerc(this.getVal(auto, parametro.key), parametro.key, !!parametro.invert);
   }
 
   calcolaPunteggi(): void {
     if (!this.auto1 || !this.auto2) return;
 
-    const calcola = (auto: AutoModel): number => {
-      const cv = Number(auto.cv) || 0;
-      const velMax = Number(auto.velocitaMax) || 0;
-      const acc0100 = Number(auto.accelerazione0100) || 99;
-      const acc100200 = Number(auto.accelerazione100200) || 99;
-      const acc80140 = Number(auto.accelerazione80140) || 99;
-      const coppia = Number(auto.coppia) || 0;
-      const peso = Number(auto.pesoKg) || 0;
-
-      const score =
-        (cv / 6) +
-        (velMax / 5) +
-        (coppia / 40) +
-        Math.max(0, 12 - acc0100) * 8 +
-        Math.max(0, 30 - acc100200) * 3 +
-        Math.max(0, 18 - acc80140) * 4 -
-        (peso / 120);
-
-      return Math.max(1, Math.round(score));
-    };
+    const calcola = (auto: AutoModel) =>
+      Math.round(
+        Number(auto.cv) / 6 +
+        Number(auto.velocitaMax) / 5 +
+        Number(auto.coppia) / 40
+      );
 
     this.score1 = calcola(this.auto1);
     this.score2 = calcola(this.auto2);
   }
 
-  startGara(event: Event): void {
-    event.stopPropagation();
-
-    if (!this.auto1 || !this.auto2) return;
-
+  startGara(event?: Event): void {
+    if (event) event.stopPropagation();
     this.garaInCorso = true;
     this.garaTrigger++;
     this.cd.detectChanges();
   }
 
-  resetGara(event: Event): void {
-    event.stopPropagation();
-
-    if (!this.auto1 || !this.auto2) return;
-
-    this.garaInCorso = true;
+  resetGara(event?: Event): void {
+    if (event) event.stopPropagation();
     this.garaTrigger++;
     this.cd.detectChanges();
   }
 
-  setVoto(n: number, event: Event): void {
-    event.stopPropagation();
+  setVoto(n: number, event?: Event): void {
+    if (event) event.stopPropagation();
     this.voto = n;
     this.cd.detectChanges();
   }
 
-  getVal(auto: AutoModel, key: keyof AutoModel): any {
+  getVal(auto: AutoModel, key: keyof AutoModel): unknown {
     return auto[key];
-  }
-
-  inviaRecensione(): void {
-    if (!this.idConfronto) {
-      console.error('Impossibile inviare recensione: idConfronto assente');
-      return;
-    }
-
-    this.recensioniService.aggiungiRecensione(
-      this.idConfronto,
-      this.voto,
-      this.commento.trim()
-    ).subscribe({
-      next: () => {
-        this.recensioneInviata = true;
-        this.cd.detectChanges();
-      },
-      error: (err) => {
-        console.error('Errore invio recensione:', err);
-      }
-    });
   }
 
   tornaHome(): void {

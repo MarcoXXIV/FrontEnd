@@ -33,7 +33,6 @@ export class ProfiloComponent implements OnInit {
 
   showOldPsw = false;
   showNewPsw = false;
-
   loading = true;
 
   // Logica Pop-up Toast
@@ -83,16 +82,26 @@ export class ProfiloComponent implements OnInit {
     });
   }
 
-  eliminaRecensione(confrontoId?: number): void {
-    if (!confrontoId) return;
-    if (confirm('Sei sicuro di voler eliminare definitivamente questa recensione?')) {
-      this.recensioniService.eliminaRecensione(confrontoId).subscribe({
+  eliminaRecensione(recensione: RecensioneModel): void {
+    const idA1 = recensione.auto1?.id;
+    const idA2 = recensione.auto2?.id;
+
+    if (!idA1 || !idA2) {
+      this.triggerToast('Dati auto mancanti per l\'eliminazione', 'error');
+      return;
+    }
+
+    if (confirm(`Vuoi eliminare la recensione per ${recensione.auto1?.marca} vs ${recensione.auto2?.marca}?`)) {
+      this.recensioniService.eliminaRecensione(idA1, idA2).subscribe({
         next: () => {
-          this.mieRecensioni = this.mieRecensioni.filter(r => r.confronto?.id !== confrontoId);
+          // Filtriamo la lista usando gli ID delle auto per rimuoverla dalla vista
+          this.mieRecensioni = this.mieRecensioni.filter(r =>
+            !(r.auto1?.id === idA1 && r.auto2?.id === idA2)
+          );
           this.triggerToast('Recensione eliminata con successo!', 'success');
           this.cd.detectChanges();
         },
-        error: () => this.triggerToast('Errore nell\'eliminazione.', 'error')
+        error: () => this.triggerToast('Errore durante l\'eliminazione.', 'error')
       });
     }
   }
@@ -110,8 +119,6 @@ export class ProfiloComponent implements OnInit {
 
   aggiornaPassword(event: Event): void {
     event.preventDefault();
-    event.stopPropagation();
-
     if (!this.vecchiaPsw || !this.nuovaPsw || !this.confermaNuovaPsw) {
       this.triggerToast('Compila tutti i campi password.', 'error');
       return;
@@ -127,9 +134,7 @@ export class ProfiloComponent implements OnInit {
         this.vecchiaPsw = ''; this.nuovaPsw = ''; this.confermaNuovaPsw = '';
         this.cd.detectChanges();
       },
-      error: () => {
-        this.triggerToast('Errore: La vecchia password è errata.', 'error');
-      }
+      error: () => this.triggerToast('Errore: La vecchia password è errata.', 'error')
     });
   }
 
@@ -158,7 +163,8 @@ export class ProfiloComponent implements OnInit {
     }, 3500);
   }
 
+  // TrackBy aggiornato per usare l'ID della recensione
   trackByRecensione(index: number, item: RecensioneModel): number {
-    return item.confronto?.id ?? index;
+    return item.id ?? index;
   }
 }

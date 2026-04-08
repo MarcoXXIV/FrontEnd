@@ -1,10 +1,11 @@
 import { UtenteModel } from './UtenteModel';
-import { ConfrontoModel } from './ConfrontoModel';
+import { AutoModel } from './AutoModel';
 
 export interface RecensioneModel {
   id?: number;
   utente?: UtenteModel;
-  confronto?: ConfrontoModel;
+  auto1?: AutoModel;
+  auto2?: AutoModel;
   voto: number;
   commento: string;
   dataRecensione?: Date | string;

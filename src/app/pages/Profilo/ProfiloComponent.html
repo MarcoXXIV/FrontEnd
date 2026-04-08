@@ -83,9 +83,9 @@
         <div class="challenges-grid" *ngIf="mieisfide.length > 0; else noChallenges">
           <div class="challenge-card" *ngFor="let s of mieisfide">
             <div class="challenge-cars">
-              <span>{{ s.auto1.modello }}</span>
+              <span>{{ s.auto1.marca }}</span>
               <span class="vs-text">VS</span>
-              <span>{{ s.auto2.modello }}</span>
+              <span>{{ s.auto2.marca }}</span>
             </div>
             <div class="challenge-date">{{ s.dataConfronto | date:'dd/MM/yyyy HH:mm' }}</div>
             <a class="btn-view-challenge" [routerLink]="['/Confronto']" [queryParams]="{idAuto1: s.auto1.id, idAuto2: s.auto2.id}">
@@ -129,14 +129,16 @@
         <h3><i class="fas fa-star"></i> Le Tue Opinioni</h3>
         <div class="review-list" *ngIf="mieRecensioni.length > 0; else noReviews">
           <div class="review-item review-card-relative" *ngFor="let r of mieRecensioni; trackBy: trackByRecensione">
-            <button class="btn-delete-animated" (click)="eliminaRecensione(r.confronto?.id)" title="Elimina">
+
+            <button class="btn-delete-animated" (click)="eliminaRecensione(r)" title="Elimina">
               <div class="trash-container">
                 <i class="fas fa-trash-alt lid"></i>
                 <i class="fas fa-trash trash-body"></i>
               </div>
             </button>
+
             <div class="review-info">
-              <span class="review-car">{{ r.confronto?.auto1?.modello }} vs {{ r.confronto?.auto2?.modello }}</span>
+              <span class="review-car">{{ r.auto1?.marca }} vs {{ r.auto2?.marca }}</span>
               <div class="stars">
                 <i class="fas fa-star" *ngFor="let s of [1,2,3,4,5]" [class.filled]="s <= r.voto"></i>
                 <span class="voto">{{ r.voto }}/5</span>
@@ -146,7 +148,7 @@
           </div>
         </div>
         <ng-template #noReviews>
-          <div class="empty-state"><i class="fas fa-comment-slash"></i><p>Nessuna recensione.</p></div>
+          <div class="empty-state"><i class="fas fa-comment-slash"></i><p>Nessuna recensione pubblicata.</p></div>
         </ng-template>
       </section>
     </main>

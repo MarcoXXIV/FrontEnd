@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { environment } from '../environments/environment';
 import { Observable } from 'rxjs';
+import { environment } from '../environments/environment';
 import { RecensioneModel } from '../models/RecensioneModel';
 
 @Injectable({
@@ -10,29 +10,48 @@ import { RecensioneModel } from '../models/RecensioneModel';
 export class RecensioniService {
   private apiUrl = `${environment.apiUrl}/recensioni`;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
-  aggiungiRecensione(confrontoId: number, voto: number, commento: string): Observable<RecensioneModel> {
+  aggiungiRecensione(
+    auto1Id: number,
+    auto2Id: number,
+    voto: number,
+    commento: string
+  ): Observable<RecensioneModel> {
     const params = new HttpParams()
+      .set('auto1', auto1Id.toString())
+      .set('auto2', auto2Id.toString())
       .set('voto', voto.toString())
       .set('commento', commento);
-    return this.http.post<RecensioneModel>(`${this.apiUrl}/aggiungi/${confrontoId}`, {}, { params });
+
+    return this.http.post<RecensioneModel>(`${this.apiUrl}/aggiungi`, null, { params });
   }
 
-  getPerSfida(confrontoId: number): Observable<RecensioneModel[]> {
-    return this.http.get<RecensioneModel[]>(`${this.apiUrl}/sfida/${confrontoId}`);
+  getPerCoppia(auto1Id: number, auto2Id: number): Observable<RecensioneModel[]> {
+    const params = new HttpParams()
+      .set('auto1Id', auto1Id.toString())
+      .set('auto2Id', auto2Id.toString());
+
+    return this.http.get<RecensioneModel[]>(`${this.apiUrl}/coppia`, { params });
   }
 
-  getMedia(confrontoId: number): Observable<number> {
-    return this.http.get<number>(`${this.apiUrl}/media/${confrontoId}`);
+  getMedia(auto1Id: number, auto2Id: number): Observable<number> {
+    const params = new HttpParams()
+      .set('auto1Id', auto1Id.toString())
+      .set('auto2Id', auto2Id.toString());
+
+    return this.http.get<number>(`${this.apiUrl}/media`, { params });
   }
 
   getMieRecensioni(): Observable<RecensioneModel[]> {
     return this.http.get<RecensioneModel[]>(`${this.apiUrl}/mie`);
   }
 
-  eliminaRecensione(confrontoId: number): Observable<void> {
-    // Ora usa correttamente il metodo DELETE
-    return this.http.delete<void>(`${this.apiUrl}/elimina/${confrontoId}`);
+  eliminaRecensione(auto1Id: number, auto2Id: number): Observable<void> {
+    const params = new HttpParams()
+      .set('auto1Id', auto1Id.toString())
+      .set('auto2Id', auto2Id.toString());
+
+    return this.http.delete<void>(`${this.apiUrl}/elimina`, { params });
   }
 }

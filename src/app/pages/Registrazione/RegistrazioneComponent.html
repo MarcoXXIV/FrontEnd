@@ -9,12 +9,6 @@
       </div>
 
       <div class="header-actions">
-        <div class="quick-stats-row">
-          <div class="stat-card-mini">
-            <span class="stat-label-mini">Piloti</span>
-            <span class="stat-value-mini">{{ pilotiIscritti }}</span>
-          </div>
-        </div>
 
         <button class="btn-home-green" (click)="vaiHome()">
           <i class="fas fa-house"></i> Home
@@ -23,12 +17,6 @@
     </header>
 
     <div class="register-card">
-      <div class="card-header">
-        <div class="logo">
-          <i class="fas fa-user-plus"></i>
-        </div>
-        <h2>Registrazione Nuovo Utente</h2>
-      </div>
 
       <form (ngSubmit)="onRegister()" #registerForm="ngForm" class="register-form">
 
