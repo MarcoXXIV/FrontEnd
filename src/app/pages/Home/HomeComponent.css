@@ -40,15 +40,20 @@
   background: #ffd84d;
 }
 
-h1 {
+.hero-title {
   font-size: 3rem;
   margin-bottom: 10px;
   font-weight: 800;
+  line-height: 1.1;
 }
 
 .highlight {
   color: #e74c3c;
   text-transform: uppercase;
+  display: inline-block;
+  font-size: 0.82em;
+  letter-spacing: 0.5px;
+  transform: translateY(-1px);
 }
 
 .hero-section p {
@@ -114,6 +119,7 @@ h1 {
   position: relative;
   display: flex;
   align-items: center;
+  min-width: 0;
 }
 
 .input-group i {
@@ -236,6 +242,7 @@ h1 {
 .card-wrapper {
   position: relative;
   transition: 0.3s;
+  min-width: 0;
 }
 
 .card-wrapper.selected {
@@ -349,16 +356,35 @@ h1 {
   100% { transform: rotate(360deg); }
 }
 
+/* Tablet */
+@media (max-width: 992px) {
+  .auto-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+}
+
 /* Mobile */
 @media (max-width: 768px) {
   .home-container {
     padding: 24px 16px 100px;
   }
 
+  .hero-title {
+    font-size: 2rem;
+    line-height: 1.15;
+  }
+
+  .hero-title .highlight {
+    font-size: 0.72em;
+    letter-spacing: 0.3px;
+  }
+
   .search-bar {
     flex-direction: column;
     border-radius: 20px;
     align-items: stretch;
+    padding: 16px;
   }
 
   .input-group {
@@ -369,8 +395,38 @@ h1 {
     width: 100%;
   }
 
-  h1 {
-    font-size: 2rem;
+  .btn-search,
+  .btn-reset {
+    width: 100%;
+  }
+
+  .quick-actions {
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .chip,
+  .select-chip {
+    flex: 1 1 calc(50% - 10px);
+    text-align: center;
+    min-width: 0;
+  }
+
+  .auto-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .card-wrapper.selected {
+    transform: none;
+  }
+
+  .selection-badge {
+    top: 8px;
+    right: 8px;
+    font-size: 0.68rem;
+    padding: 4px 8px;
+    border-radius: 12px;
   }
 
   .comparison-bar {
@@ -378,5 +434,40 @@ h1 {
     bottom: 16px;
     padding: 14px 20px;
     justify-content: space-between;
+    gap: 12px;
+  }
+
+  .comparison-bar p {
+    font-size: 0.9rem;
+    margin: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-container {
+    padding: 18px 12px 96px;
+  }
+
+  .hero-title {
+    font-size: 1.75rem;
+  }
+
+  .hero-title .highlight {
+    font-size: 0.68em;
+  }
+
+  .auto-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .quick-actions {
+    gap: 8px;
+  }
+
+  .chip,
+  .select-chip {
+    font-size: 0.82rem;
+    padding: 9px 12px;
   }
 }
