@@ -1,23 +1,27 @@
 <div class="card-container" (click)="onCardClick()">
   <div class="card-overlay"></div>
 
-  <div class="auto-content">
-    <div class="auto-details">
-      <span class="brand">{{ auto.marca }}</span>
-      <h3 class="model">{{ auto.modello }}</h3>
-      <div class="specs">
-        <span><i class="fas fa-horse-head"></i> {{ auto.cv }} CV</span>
-        <span><i class="fas fa-tachometer-alt"></i> {{ auto.velocitaMax }} km/h</span>
-      </div>
-    </div>
+  <div class="auto-info">
+    <span class="brand">{{ auto.marca }}</span>
+    <h3 class="model">{{ auto.modello }}</h3>
 
-    <div class="action-hint">
-      <span>Seleziona per sfida</span>
-      <i class="fas fa-plus-circle"></i>
+    <div class="specs-preview">
+      <span><i class="fas fa-horse-head"></i> {{ auto.cv }} CV</span>
+      <span><i class="fas fa-tachometer-alt"></i> {{ auto.velocitaMax }} km/h</span>
     </div>
   </div>
 
   <div class="card-footer">
-    <span class="price">{{ auto.prezzo | currency:'EUR':'symbol':'1.0-0' }}</span>
+    <span class="price-tag">
+      {{ auto.prezzo | currency:'EUR':'symbol':'1.0-0' }}
+    </span>
+
+    <button
+      type="button"
+      class="add-compare-btn"
+      (click)="onAggiungiAlConfronto($event)">
+      <i class="fas fa-plus-circle"></i>
+      Aggiungi al confronto
+    </button>
   </div>
 </div>

@@ -148,6 +148,13 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
+  apriInfoAuto(idAuto: number): void {
+    console.log('Navigo verso info auto con id:', idAuto);
+    if (!idAuto) return;
+    this.router.navigate(['/info-auto', idAuto]);
+  }
+
+
   caricaPerCategoria(categoria: string): void {
     if (!categoria) {
       this.caricaCatalogo();

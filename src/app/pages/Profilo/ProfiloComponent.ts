@@ -9,6 +9,7 @@ import { UtenteService } from '../../services/UtenteService';
 import { ConfrontoService } from '../../services/ConfrontoService';
 import { RecensioniService } from '../../services/RecensioniService';
 import { PreferitiService } from '../../services/PreferitiService';
+import { AuthService } from '../../services/AuthService';
 import { UtenteModel } from '../../models/UtenteModel';
 import { ConfrontoModel } from '../../models/ConfrontoModel';
 import { RecensioneModel } from '../../models/RecensioneModel';
@@ -35,7 +36,6 @@ export class ProfiloComponent implements OnInit {
   showNewPsw = false;
   loading = true;
 
-  // Logica Pop-up Toast
   showToast = false;
   toastMsg = '';
   toastType: 'success' | 'error' = 'success';
@@ -45,6 +45,7 @@ export class ProfiloComponent implements OnInit {
     private confrontoService: ConfrontoService,
     private recensioniService: RecensioniService,
     private preferitiService: PreferitiService,
+    private authService: AuthService,
     private router: Router,
     private cd: ChangeDetectorRef
   ) {}
@@ -54,6 +55,12 @@ export class ProfiloComponent implements OnInit {
   }
 
   vaiHome(): void {
+    this.router.navigate(['/Home']);
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.cd.detectChanges();
     this.router.navigate(['/Home']);
   }
 
@@ -94,7 +101,6 @@ export class ProfiloComponent implements OnInit {
     if (confirm(`Vuoi eliminare la recensione per ${recensione.auto1?.marca} vs ${recensione.auto2?.marca}?`)) {
       this.recensioniService.eliminaRecensione(idA1, idA2).subscribe({
         next: () => {
-          // Filtriamo la lista usando gli ID delle auto per rimuoverla dalla vista
           this.mieRecensioni = this.mieRecensioni.filter(r =>
             !(r.auto1?.id === idA1 && r.auto2?.id === idA2)
           );
@@ -108,6 +114,7 @@ export class ProfiloComponent implements OnInit {
 
   salvaModificheBase(): void {
     if (!this.utente) return;
+
     this.utenteService.aggiornaProfilo(this.utente).subscribe({
       next: (updated) => {
         this.utente = updated;
@@ -119,10 +126,12 @@ export class ProfiloComponent implements OnInit {
 
   aggiornaPassword(event: Event): void {
     event.preventDefault();
+
     if (!this.vecchiaPsw || !this.nuovaPsw || !this.confermaNuovaPsw) {
       this.triggerToast('Compila tutti i campi password.', 'error');
       return;
     }
+
     if (this.nuovaPsw !== this.confermaNuovaPsw) {
       this.triggerToast('Le nuove password non coincidono.', 'error');
       return;
@@ -131,7 +140,9 @@ export class ProfiloComponent implements OnInit {
     this.utenteService.cambiaPassword(this.vecchiaPsw, this.nuovaPsw).subscribe({
       next: () => {
         this.triggerToast('Password modificata correttamente!', 'success');
-        this.vecchiaPsw = ''; this.nuovaPsw = ''; this.confermaNuovaPsw = '';
+        this.vecchiaPsw = '';
+        this.nuovaPsw = '';
+        this.confermaNuovaPsw = '';
         this.cd.detectChanges();
       },
       error: () => this.triggerToast('Errore: La vecchia password è errata.', 'error')
@@ -157,13 +168,13 @@ export class ProfiloComponent implements OnInit {
     this.toastType = type;
     this.showToast = true;
     this.cd.detectChanges();
+
     setTimeout(() => {
       this.showToast = false;
       this.cd.detectChanges();
     }, 3500);
   }
 
-  // TrackBy aggiornato per usare l'ID della recensione
   trackByRecensione(index: number, item: RecensioneModel): number {
     return item.id ?? index;
   }

@@ -76,8 +76,7 @@
 }
 
 .btn-login,
-.btn-register,
-.btn-logout {
+.btn-register {
   padding: 0.55rem 1rem;
   border-radius: 8px;
   cursor: pointer;
@@ -103,34 +102,6 @@
 
 .btn-register:hover {
   background: #c0392b;
-}
-
-.btn-logout {
-  background: #444;
-  border: none;
-  color: white;
-}
-
-.btn-logout:hover {
-  background: #c0392b;
-}
-
-.user-section {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.user-email {
-  font-size: 0.95rem;
-  cursor: pointer;
-  border-bottom: 1px solid transparent;
-  transition: 0.2s;
-  white-space: nowrap;
-}
-
-.user-email:hover {
-  border-bottom: 1px solid white;
 }
 
 @media (max-width: 900px) {
@@ -164,8 +135,7 @@
   }
 
   .btn-login,
-  .btn-register,
-  .btn-logout {
+  .btn-register {
     padding: 0.5rem 0.85rem;
     font-size: 0.9rem;
   }

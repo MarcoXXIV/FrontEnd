@@ -1,0 +1,82 @@
+<app-navbar></app-navbar>
+
+<div class="info-auto-page">
+  <div class="info-shell">
+
+    <div class="content-wrapper" *ngIf="!loading && auto; else statoPagina">
+      <div class="top-bar">
+        <button type="button" class="btn-back" (click)="tornaAllaHome()">
+          <i class="fas fa-arrow-left"></i>
+          Torna alla HOME
+        </button>
+      </div>
+
+      <section class="hero-info">
+        <div class="hero-overlay"></div>
+        <div class="hero-left">
+          <span class="hero-brand">{{ auto.marca }}</span>
+          <h1 class="hero-title">{{ auto.modello }}</h1>
+
+          <div class="hero-chips">
+            <span class="chip">
+              <i class="fas fa-layer-group"></i>
+              {{ categoria }}
+            </span>
+
+            <span class="chip">
+              <i class="fas fa-gas-pump"></i>
+              {{ alimentazione }}
+            </span>
+          </div>
+        </div>
+
+        <div class="hero-price-box">
+          <span class="price-label">Prezzo: </span>
+          <strong class="price-value">{{ prezzo }}</strong>
+        </div>
+      </section>
+
+      <section class="details-section">
+        <div class="section-heading">
+          <h2>Scheda Tecnica Completa</h2>
+        </div>
+
+        <div class="details-grid" *ngIf="caratteristicheComplete.length > 0; else noDetails">
+          <div class="detail-card" *ngFor="let item of caratteristicheComplete">
+            <div class="detail-icon">
+              <i [class]="item.icon"></i>
+            </div>
+
+            <div class="detail-text">
+              <span class="detail-label">{{ item.label }}</span>
+              <strong class="detail-value">{{ item.value }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noDetails>
+          <div class="empty-box">
+            <i class="fas fa-circle-exclamation"></i>
+            <h3>Dati non disponibili</h3>
+            <p>Non sono presenti specifiche tecniche per questo modello.</p>
+          </div>
+        </ng-template>
+      </section>
+    </div>
+
+    <ng-template #statoPagina>
+      <div class="status-box" *ngIf="loading">
+        <div class="loader"></div>
+        <p>Analisi database in corso...</p>
+      </div>
+
+      <div class="empty-box" *ngIf="!loading && errore">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h3>Ops!</h3>
+        <p>{{ errore }}</p>
+        <button class="btn-back" (click)="tornaAllaHome()">Indietro</button>
+      </div>
+    </ng-template>
+
+  </div>
+</div>

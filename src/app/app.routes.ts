@@ -12,12 +12,14 @@ import { ProfiloComponent } from './pages/Profilo/ProfiloComponent';
 import { ConfrontoComponent } from './pages/Confronto/ConfrontoComponent';
 import { PreferitiComponent } from './pages/Preferiti/PreferitiComponent';
 import { AdminComponent } from './pages/Admin/AdminComponent';
+import { InfoAutoComponent} from './pages/InfoAuto/InfoAutoComponent';
 
 export const routes: Routes = [
   // --- ROTTE PUBBLICHE (Accessibili a tutti) ---
   { path: 'Home', component: HomeComponent },
   { path: 'Login', component: LoginComponent },
   { path: 'Registrazione', component: RegistrazioneComponent },
+  { path: 'info-auto/:id', component: InfoAutoComponent },
 
 
   // --- ROTTE PROTETTE (Richiedono Login) ---
@@ -26,6 +28,7 @@ export const routes: Routes = [
     component: ProfiloComponent,
     canActivate: [authGuard]
   },
+
   {
     path: 'Confronto',
     component: ConfrontoComponent,

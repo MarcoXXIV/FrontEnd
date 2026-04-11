@@ -20,15 +20,9 @@
       </li>
     </ul>
 
-    <div class="nav-auth">
-      <ng-container *ngIf="!loggedIn">
-        <button class="btn-login" (click)="vaiLogin()">Accedi</button>
-        <button class="btn-register" (click)="vaiRegistrazione()">Registrati</button>
-      </ng-container>
-
-      <div class="user-section" *ngIf="loggedIn">
-        <button class="btn-logout" (click)="logout()">Logout</button>
-      </div>
+    <div class="nav-auth" *ngIf="!loggedIn">
+      <button class="btn-login" (click)="vaiLogin()">Accedi</button>
+      <button class="btn-register" (click)="vaiRegistrazione()">Registrati</button>
     </div>
   </div>
 </nav>

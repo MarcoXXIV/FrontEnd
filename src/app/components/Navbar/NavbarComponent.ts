@@ -77,12 +77,4 @@ export class NavbarComponent implements OnInit, OnDestroy {
   vaiAdmin(): void {
     this.router.navigate(['/Admin']);
   }
-
-  logout(): void {
-    this.authService.logout();
-    this.loggedIn = false;
-    this.admin = false;
-    this.cd.detectChanges();
-    this.router.navigate(['/Home']);
-  }
 }
