@@ -1,12 +1,19 @@
 <nav class="navbar">
   <div class="nav-container">
-    <div class="logo" (click)="vaiHome()">🏎️ ARENA<span>AUTO</span></div>
+    <a routerLink="/Home"
+       routerLinkActive="active"
+       [routerLinkActiveOptions]="{exact: true}"
+       class="logo-wrapper"
+       title="Torna alla Home">
+      <img
+        src="assets/img/SPECBATTLE.png"
+        alt="Arena Auto - Icona"
+        class="logo-img"
+      />
+      <span class="logo-text">SPEC<span>BATTLE</span></span>
+    </a>
 
     <ul class="nav-menu">
-      <li>
-        <a routerLink="/Home" routerLinkActive="active">Catalogo</a>
-      </li>
-
       <li *ngIf="loggedIn">
         <a routerLink="/Preferiti" routerLinkActive="active">❤️ Preferiti</a>
       </li>

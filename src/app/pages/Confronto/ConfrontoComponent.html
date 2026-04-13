@@ -1,21 +1,36 @@
 <div class="page-bg">
+  <div class="toast-notification" [class.active]="showToast" [ngClass]="toastType">
+    <div class="toast-content">
+      <i
+        class="fas"
+        [ngClass]="toastType === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'">
+      </i>
+      <span>{{ toastMsg }}</span>
+    </div>
+    <div class="toast-progress" [class.running]="showToast"></div>
+  </div>
+
   <div class="top-bar">
     <button class="btn-home" (click)="tornaHome()">
       <i class="fas fa-house"></i> Torna alla Home
     </button>
   </div>
 
-  <div *ngIf="loading" class="loader-overlay">Caricamento in corso...</div>
-
-  <div *ngIf="!loading && errore" class="loader-overlay">
-    {{ errore }}
+  <div *ngIf="loading" class="loader-overlay">
+    <div class="spinner"></div>
+    <p>Sincronizzando i motori...</p>
   </div>
 
   <div *ngIf="!loading && auto1 && auto2 && !errore" class="container fade-in">
     <header class="header-battle">
       <div class="car-box left-side">
-        <span>{{ auto1.marca }}</span>
-        <h2>{{ auto1.modello }}</h2>
+        <div class="car-img-wrapper">
+          <img [src]="immagineSrc1" (error)="onImageError(1)" [alt]="auto1.modello">
+        </div>
+        <div class="car-info">
+          <span>{{ auto1.marca }}</span>
+          <h2>{{ auto1.modello }}</h2>
+        </div>
       </div>
 
       <div class="vs-container">
@@ -26,42 +41,36 @@
       </div>
 
       <div class="car-box right-side">
-        <span>{{ auto2.marca }}</span>
-        <h2>{{ auto2.modello }}</h2>
+        <div class="car-img-wrapper">
+          <img [src]="immagineSrc2" (error)="onImageError(2)" [alt]="auto2.modello">
+        </div>
+        <div class="car-info">
+          <span>{{ auto2.marca }}</span>
+          <h2>{{ auto2.modello }}</h2>
+        </div>
       </div>
     </header>
 
     <section class="comparison-grid">
-      <div class="panel specs-panel full-width">
-        <h3 class="panel-title">SPECIFICHE TECNICHE</h3>
-
+      <div class="panel specs-panel">
+        <h3 class="panel-title">CONFRONTO PRESTAZIONI</h3>
         <div class="specs-grid">
           <div class="spec-card" *ngFor="let p of elencoParametri">
             <div class="label-stat">{{ p.label }}</div>
 
             <div class="bar-system" *ngIf="!p.isText">
               <div class="side-a">
-                <span class="val blue">
-                  {{ getVal(auto1, p.key) }} <small>{{ p.unit }}</small>
-                </span>
+                <span class="val blue">{{ getVal(auto1, p.key) }} <small>{{ p.unit }}</small></span>
                 <div class="track">
-                  <div
-                    class="fill blue-bar"
-                    [style.width.%]="getBarWidth(auto1, p)">
-                  </div>
+                  <div class="fill blue-bar" [style.width.%]="getBarWidth(auto1, p)"></div>
                 </div>
               </div>
 
               <div class="side-b">
                 <div class="track">
-                  <div
-                    class="fill red-bar"
-                    [style.width.%]="getBarWidth(auto2, p)">
-                  </div>
+                  <div class="fill red-bar" [style.width.%]="getBarWidth(auto2, p)"></div>
                 </div>
-                <span class="val red">
-                  {{ getVal(auto2, p.key) }} <small>{{ p.unit }}</small>
-                </span>
+                <span class="val red">{{ getVal(auto2, p.key) }} <small>{{ p.unit }}</small></span>
               </div>
             </div>
 
@@ -121,44 +130,34 @@
         </div>
 
         <div class="comment-side">
-          <h3>VALUTAZIONE TECNICA</h3>
+          <h3>LASCIACI UN COMMENTO</h3>
 
           <div *ngIf="!recensioneInviata" class="form-inner">
-            <textarea
-              [(ngModel)]="commento"
-              placeholder="Racconta la tua opinione su questa sfida...">
-            </textarea>
-            <button class="btn-send" (click)="inviaRecensione()">
-              PUBBLICA RECENSIONE
-            </button>
+            <textarea [(ngModel)]="commento" placeholder="Cosa ne pensi di questo scontro?"></textarea>
+            <button class="btn-send" (click)="inviaRecensione()">PUBBLICA</button>
           </div>
 
           <div *ngIf="recensioneInviata" class="success-banner fade-in">
-            <i class="fas fa-check-circle"></i> Grazie per il tuo feedback!
+            <i class="fas fa-check-circle"></i> Inviata con successo!
           </div>
         </div>
 
         <div class="reviews-list-side">
-          <h3>OPINIONI PILOTI</h3>
-
+          <h3>ULTIME OPINIONI</h3>
           <div class="reviews-scroll">
             <div *ngFor="let r of recensioniCoppia; trackBy: trackByRecensione" class="mini-review-card fade-in">
               <div class="r-head">
                 <div class="r-stars">
                   <i
-                    class="fas fa-star"
                     *ngFor="let s of [1,2,3,4,5]"
-                    [class.filled]="s <= r.voto">
+                    class="fa-star"
+                    [class.fas]="s <= r.voto"
+                    [class.far]="s > r.voto">
                   </i>
                 </div>
-                <span class="r-user">{{ r.utente?.nome || 'Utente' }}</span>
+                <span class="r-user">{{ r.utente?.nome || 'Pilota' }}</span>
               </div>
-
               <p class="r-text">"{{ r.commento }}"</p>
-            </div>
-
-            <div *ngIf="recensioniCoppia.length === 0" class="no-reviews">
-              Sii il primo a recensire questa sfida!
             </div>
           </div>
         </div>

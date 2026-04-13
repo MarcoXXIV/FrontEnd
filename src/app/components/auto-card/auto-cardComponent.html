@@ -1,8 +1,19 @@
 <div class="card-container" (click)="onCardClick()">
-  <div class="card-overlay"></div>
+  <div class="image-wrapper">
+    <img
+      class="auto-image"
+      [src]="immagineSrc"
+      [alt]="auto.marca + ' ' + auto.modello"
+      (error)="onImageError()"
+    />
+    <div class="card-overlay"></div>
+
+    <div class="top-badge brand-highlight">
+      {{ auto.marca }}
+    </div>
+  </div>
 
   <div class="auto-info">
-    <span class="brand">{{ auto.marca }}</span>
     <h3 class="model">{{ auto.modello }}</h3>
 
     <div class="specs-preview">
@@ -13,15 +24,16 @@
 
   <div class="card-footer">
     <span class="price-tag">
-      {{ auto.prezzo | currency:'EUR':'symbol':'1.0-0' }}
+      {{ auto.prezzo | currency:'EUR':'symbol':'1.2-2' }}
     </span>
 
     <button
       type="button"
       class="add-compare-btn"
+      [class.active]="isSelezionata"
       (click)="onAggiungiAlConfronto($event)">
-      <i class="fas fa-plus-circle"></i>
-      Aggiungi al confronto
+      <i class="fas" [ngClass]="isSelezionata ? 'fa-check-circle' : 'fa-plus-circle'"></i>
+      {{ isSelezionata ? 'Selezionata' : 'Aggiungi al confronto' }}
     </button>
   </div>
 </div>

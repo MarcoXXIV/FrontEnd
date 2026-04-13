@@ -1,7 +1,7 @@
 .navbar {
   background: rgba(18, 18, 18, 0.96);
   color: white;
-  padding: 0.9rem 2rem;
+  padding: 1.4rem 2rem;
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -19,24 +19,46 @@
   gap: 20px;
 }
 
-.logo {
-  font-size: 1.5rem;
-  font-weight: 800;
+/* WRAPPER LOGO + TESTO (Ora è un <a>) */
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   cursor: pointer;
+  text-decoration: none; /* Rimuove la sottolineatura del link */
+  flex: 1;
+}
+
+.logo-img {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.logo-wrapper:hover .logo-img {
+  transform: scale(1.05); /* Piccolo effetto al passaggio sul logo */
+}
+
+.logo-text {
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: white;
   white-space: nowrap;
 }
 
-.logo span {
-  color: #e74c3c;
+.logo-text span {
+  color: #e74c3c; /* Battle in Arancione */
 }
 
 .nav-menu {
   display: flex;
   list-style: none;
-  gap: 1.4rem;
-  margin: 0;
+  gap: 1.8rem;
   padding: 0;
   align-items: center;
+  margin: 0 auto;
 }
 
 .nav-menu a {
@@ -45,6 +67,7 @@
   font-weight: 600;
   transition: 0.25s;
   position: relative;
+  white-space: nowrap;
 }
 
 .nav-menu a:hover,
@@ -73,6 +96,13 @@
   display: flex;
   gap: 1rem;
   align-items: center;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.nav-container:not(:has(.nav-auth))::after {
+  content: '';
+  flex: 1;
 }
 
 .btn-login,
@@ -104,19 +134,20 @@
   background: #c0392b;
 }
 
+/* RESPONSIVE */
 @media (max-width: 900px) {
   .nav-container {
     flex-wrap: wrap;
     justify-content: center;
   }
-
-  .nav-menu {
-    flex-wrap: wrap;
+  .logo-wrapper, .nav-auth {
+    flex: none;
+    width: 100%;
     justify-content: center;
   }
-
-  .nav-auth {
-    width: 100%;
+  .nav-menu {
+    margin: 15px 0;
+    flex-wrap: wrap;
     justify-content: center;
   }
 }
@@ -125,18 +156,7 @@
   .navbar {
     padding: 0.8rem 1rem;
   }
-
-  .logo {
-    font-size: 1.25rem;
-  }
-
-  .nav-menu {
-    gap: 1rem;
-  }
-
-  .btn-login,
-  .btn-register {
-    padding: 0.5rem 0.85rem;
-    font-size: 0.9rem;
-  }
+  .logo-img { height: 35px; }
+  .logo-text { font-size: 1.2rem; }
+  .nav-menu { gap: 1rem; }
 }

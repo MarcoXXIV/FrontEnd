@@ -24,6 +24,7 @@ export class InfoAutoComponent implements OnInit, OnDestroy {
   loading = true;
   errore = '';
   caratteristicheComplete: CaratteristicaAuto[] = [];
+  immagineSrc: string = '/assets/img/Errore.png'; // Default iniziale
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -63,6 +64,7 @@ export class InfoAutoComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (data) => {
           this.auto = data;
+          this.impostaImmagine(); // Calcola il percorso immagine
           this.preparaCaratteristiche();
           this.loading = false;
           this.cdr.detectChanges();
@@ -73,6 +75,17 @@ export class InfoAutoComponent implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         }
       });
+  }
+
+  // Logica speculare a CardComponent per l'immagine
+  private impostaImmagine(): void {
+    this.immagineSrc = this.auto?.codice
+      ? `/assets/img/${this.auto.codice}.png`
+      : '/assets/img/Errore.png';
+  }
+
+  onImageError(): void {
+    this.immagineSrc = '/assets/img/Errore.png';
   }
 
   tornaAllaHome(): void { this.router.navigate(['/Home']); }
@@ -108,7 +121,8 @@ export class InfoAutoComponent implements OnInit, OnDestroy {
           label: item.label,
           icon: item.icon,
           value: this.formattaValore(valore, item.type, item.suffix ?? '')
-        } : null;      })
+        } : null;
+      })
       .filter((n): n is CaratteristicaAuto => n !== null);
   }
 

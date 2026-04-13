@@ -32,6 +32,9 @@ export class ConfrontoComponent implements OnInit {
   auto1?: AutoModel;
   auto2?: AutoModel;
 
+  immagineSrc1: string = '/assets/img/Errore.png';
+  immagineSrc2: string = '/assets/img/Errore.png';
+
   recensioniCoppia: RecensioneModel[] = [];
   mediaRecensioni: number | null = null;
 
@@ -48,19 +51,16 @@ export class ConfrontoComponent implements OnInit {
   commento = '';
   recensioneInviata = false;
 
+  // Variabili Toast
+  showToast = false;
+  toastMsg = '';
+  toastType: 'success' | 'error' = 'success';
+  private toastTimeout: any;
+
   soglieMax: Record<string, number> = {
-    cv: 1000,
-    velocitaMax: 450,
-    accelerazione0100: 10,
-    accelerazione100200: 25,
-    accelerazione80140: 15,
-    coppia: 1200,
-    cilindrata: 6500,
-    pesoKg: 2800,
-    rapportoPesoPotenza: 5,
-    prezzo: 200000,
-    consumoMedio: 25,
-    co2: 450
+    cv: 1000, velocitaMax: 450, accelerazione0100: 10, accelerazione100200: 25,
+    accelerazione80140: 15, coppia: 1200, cilindrata: 6500, pesoKg: 2800,
+    rapportoPesoPotenza: 5, prezzo: 200000, consumoMedio: 25, co2: 450
   };
 
   elencoParametri: ParametroConfronto[] = [
@@ -96,22 +96,17 @@ export class ConfrontoComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       const id1 = Number(params['idAuto1']);
       const id2 = Number(params['idAuto2']);
-
       if (!id1 || !id2) {
         this.loading = false;
         this.errore = 'Parametri non validi.';
-        this.cd.detectChanges();
         return;
       }
-
       this.inizializzaConfronto(id1, id2);
     });
   }
 
   inizializzaConfronto(id1: number, id2: number): void {
     this.loading = true;
-    this.errore = '';
-
     forkJoin({
       a1: this.autoService.getAutoById(id1),
       a2: this.autoService.getAutoById(id2),
@@ -121,12 +116,11 @@ export class ConfrontoComponent implements OnInit {
         this.auto1 = res.a1;
         this.auto2 = res.a2;
         this.idConfronto = res.confronto?.id;
-
+        this.impostaImmagini();
         this.calcolaPunteggi();
         this.caricaRecensioniCoppia();
         this.caricaMediaRecensioni();
         this.checkStatoPreferito(id1, id2);
-
         this.loading = false;
         this.cd.detectChanges();
       },
@@ -138,15 +132,56 @@ export class ConfrontoComponent implements OnInit {
     });
   }
 
-  private getAutoIds(): { auto1Id: number; auto2Id: number } | null {
-    if (this.auto1?.id == null || this.auto2?.id == null) {
-      return null;
+  private impostaImmagini(): void {
+    this.immagineSrc1 = this.auto1?.codice ? `/assets/img/${this.auto1.codice}.png` : '/assets/img/Errore.png';
+    this.immagineSrc2 = this.auto2?.codice ? `/assets/img/${this.auto2.codice}.png` : '/assets/img/Errore.png';
+  }
+
+  onImageError(side: number): void {
+    if (side === 1) this.immagineSrc1 = '/assets/img/Errore.png';
+    else this.immagineSrc2 = '/assets/img/Errore.png';
+  }
+
+  togglePreferito(event: Event): void {
+    event.stopPropagation();
+    if (!this.idConfronto) return;
+
+    this.preferitiService.togglePreferito(this.idConfronto).subscribe({
+      next: res => {
+        this.isPreferito = res.toLowerCase().includes('aggiunto');
+        this.triggerToast(
+          this.isPreferito ? 'Aggiunto ai preferiti!' : 'Rimosso dai preferiti',
+          'success'
+        );
+        this.cd.detectChanges();
+      },
+      error: () => this.triggerToast('Errore durante il salvataggio.', 'error')
+    });
+  }
+
+  private triggerToast(msg: string, type: 'success' | 'error'): void {
+    this.toastMsg = msg;
+    this.toastType = type;
+    this.showToast = false;
+
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
     }
 
-    return {
-      auto1Id: this.auto1.id,
-      auto2Id: this.auto2.id
-    };
+    setTimeout(() => {
+      this.showToast = true;
+      this.cd.detectChanges();
+
+      this.toastTimeout = setTimeout(() => {
+        this.showToast = false;
+        this.cd.detectChanges();
+      }, 3500);
+    }, 10);
+  }
+
+  private getAutoIds(): { auto1Id: number; auto2Id: number } | null {
+    if (this.auto1?.id == null || this.auto2?.id == null) return null;
+    return { auto1Id: this.auto1.id, auto2Id: this.auto2.id };
   }
 
   caricaRecensioniCoppia(): void {
@@ -185,19 +220,16 @@ export class ConfrontoComponent implements OnInit {
     const ids = this.getAutoIds();
     if (!ids || !this.commento.trim()) return;
 
-    const testo = this.commento.trim();
-    const votoCorrente = this.voto;
-
     this.recensioniService
-      .aggiungiRecensione(ids.auto1Id, ids.auto2Id, votoCorrente, testo)
+      .aggiungiRecensione(ids.auto1Id, ids.auto2Id, this.voto, this.commento.trim())
       .subscribe({
         next: () => {
           this.recensioneInviata = true;
           this.commento = '';
           this.voto = 5;
-
           this.caricaRecensioniCoppia();
           this.caricaMediaRecensioni();
+          this.triggerToast('Recensione inviata con successo!', 'success');
           this.cd.detectChanges();
 
           setTimeout(() => {
@@ -206,71 +238,34 @@ export class ConfrontoComponent implements OnInit {
           }, 2000);
         },
         error: err => {
-          if (err.status === 400 || err.status === 404) {
-            alert(err.error);
-          } else {
-            alert("Si è verificato un errore durante l'invio della recensione.");
-          }
-
-          console.warn('Errore recensione:', err);
+          this.triggerToast(
+            err.status === 400 ? err.error : 'Errore invio recensione.',
+            'error'
+          );
           this.cd.detectChanges();
         }
       });
   }
 
-  eliminaRecensione(): void {
-    const ids = this.getAutoIds();
-    if (!ids) return;
-
-    this.recensioniService.eliminaRecensione(ids.auto1Id, ids.auto2Id).subscribe({
-      next: () => {
-        this.caricaRecensioniCoppia();
-        this.caricaMediaRecensioni();
-        this.cd.detectChanges();
-      },
-      error: err => {
-        console.warn('Errore eliminazione recensione:', err);
-        alert('Impossibile eliminare la recensione.');
-      }
-    });
-  }
-
   trackByRecensione(index: number, item: RecensioneModel): number | string {
-    return item.id ?? `${item.commento}-${item.voto}-${index}`;
+    return item.id ?? index;
   }
 
   checkStatoPreferito(id1: number, id2: number): void {
     this.preferitiService.getMieiPreferiti().subscribe({
       next: preferiti => {
-        this.isPreferito = preferiti.some(
-          p =>
-            p.confronto?.id === this.idConfronto ||
-            (
-              (p.confronto?.auto1?.id === id1 && p.confronto?.auto2?.id === id2) ||
-              (p.confronto?.auto1?.id === id2 && p.confronto?.auto2?.id === id1)
-            )
+        this.isPreferito = preferiti.some(p =>
+          p.confronto?.id === this.idConfronto ||
+          (
+            (p.confronto?.auto1?.id === id1 && p.confronto?.auto2?.id === id2) ||
+            (p.confronto?.auto1?.id === id2 && p.confronto?.auto2?.id === id1)
+          )
         );
         this.cd.detectChanges();
       },
       error: () => {
         this.isPreferito = false;
         this.cd.detectChanges();
-      }
-    });
-  }
-
-  togglePreferito(event: Event): void {
-    event.stopPropagation();
-
-    if (!this.idConfronto) return;
-
-    this.preferitiService.togglePreferito(this.idConfronto).subscribe({
-      next: res => {
-        this.isPreferito = res.toLowerCase().includes('aggiunto');
-        this.cd.detectChanges();
-      },
-      error: () => {
-        alert('Errore durante il salvataggio nei preferiti.');
       }
     });
   }
@@ -288,13 +283,8 @@ export class ConfrontoComponent implements OnInit {
 
   calcolaPunteggi(): void {
     if (!this.auto1 || !this.auto2) return;
-
     const calcola = (auto: AutoModel) =>
-      Math.round(
-        Number(auto.cv) / 6 +
-        Number(auto.velocitaMax) / 5 +
-        Number(auto.coppia) / 40
-      );
+      Math.round(Number(auto.cv) / 6 + Number(auto.velocitaMax) / 5 + Number(auto.coppia) / 40);
 
     this.score1 = calcola(this.auto1);
     this.score2 = calcola(this.auto2);

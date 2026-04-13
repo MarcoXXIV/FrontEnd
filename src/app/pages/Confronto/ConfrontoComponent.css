@@ -1,11 +1,86 @@
-/* --- LAYOUT GENERALE --- */
+/* --- LAYOUT & BASE --- */
 .page-bg {
-  background: #080a0f;
+  background: radial-gradient(circle at top, #0f172a, #020617);
   color: white;
   min-height: 100vh;
   padding: 30px;
   font-family: 'Inter', sans-serif;
 }
+
+/* --- TOAST COME IN PROFILO --- */
+.toast-notification {
+  position: fixed;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2000;
+  min-width: 320px;
+  max-width: calc(100vw - 32px);
+  background: rgba(15, 23, 42, 0.96);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  transition: all 0.45s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+}
+
+.toast-notification.active {
+  top: 22px;
+}
+
+.toast-content {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toast-content i {
+  font-size: 1.15rem;
+}
+
+.toast-content span {
+  color: #e2e8f0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.toast-notification.success .toast-content i {
+  color: #10b981;
+}
+
+.toast-notification.error .toast-content i {
+  color: #ef4444;
+}
+
+.toast-progress {
+  height: 3px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.toast-progress.running::before {
+  content: '';
+  display: block;
+  height: 100%;
+  background: #3b82f6;
+  animation: progressRun 3.5s linear forwards;
+}
+
+.toast-notification.success .toast-progress::before {
+  background: #10b981;
+}
+
+.toast-notification.error .toast-progress::before {
+  background: #ef4444;
+}
+
+@keyframes progressRun {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+/* --- FINE TOAST --- */
 
 .container {
   max-width: 1300px;
@@ -13,9 +88,7 @@
 }
 
 .top-bar {
-  display: flex;
-  justify-content: flex-start;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 /* --- PULSANTI --- */
@@ -30,7 +103,7 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  transition: all 0.3s ease;
+  transition: 0.3s;
   box-shadow: 0 8px 18px rgba(34, 197, 94, 0.25);
 }
 
@@ -47,7 +120,7 @@
   height: 45px;
   border-radius: 50%;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: 0.3s;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -61,33 +134,57 @@
   box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
 }
 
-/* --- BATTLE HEADER --- */
+/* --- BATTLE HEADER CON IMMAGINI --- */
 .header-battle {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 40px;
-  margin-bottom: 30px;
+  gap: 30px;
+  margin-bottom: 40px;
 }
 
 .car-box {
   flex: 1;
-  padding: 25px;
-  background: rgba(255,255,255,0.03);
-  border-radius: 20px;
-  text-align: center;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 24px;
+  overflow: hidden;
   border-bottom: 4px solid #334155;
+  transition: transform 0.3s;
 }
 
-.car-box h2 {
-  font-size: 2rem;
+.car-img-wrapper {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  overflow: hidden;
+}
+
+.car-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: 0.5s;
+}
+
+.car-box:hover img {
+  transform: scale(1.05);
+}
+
+.car-info {
+  padding: 20px;
+  text-align: center;
+}
+
+.car-info h2 {
+  font-size: 1.8rem;
   margin: 5px 0;
+  font-weight: 900;
 }
 
-.car-box span {
+.car-info span {
   color: #94a3b8;
   text-transform: uppercase;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   letter-spacing: 2px;
 }
 
@@ -112,124 +209,117 @@
   font-weight: 900;
   clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
   box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+  font-size: 1.2rem;
 }
 
 /* --- SCHEDA TECNICA --- */
-.panel {
+.specs-panel {
   background: rgba(255,255,255,0.02);
-  border-radius: 24px;
-  padding: 22px;
+  border-radius: 30px;
+  padding: 30px;
   border: 1px solid rgba(255,255,255,0.05);
   margin-bottom: 30px;
 }
 
 .panel-title {
-  font-size: 1rem;
-  margin: 0 0 18px;
-  color: #f8fafc;
-  letter-spacing: 1.5px;
+  text-align: center;
+  font-size: 1.2rem;
+  margin-bottom: 30px;
+  letter-spacing: 3px;
+  color: #94a3b8;
   text-transform: uppercase;
-}
-
-.specs-panel {
-  overflow: visible;
 }
 
 .specs-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px 18px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
 }
 
 .spec-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 18px;
-  padding: 14px 16px;
+  background: rgba(255,255,255,0.03);
+  padding: 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
 .label-stat {
   text-align: center;
   color: #94a3b8;
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-size: 0.7rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 1.2px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 .bar-system {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: 20px;
   align-items: center;
 }
 
 .side-a,
 .side-b {
-  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  min-width: 0;
 }
 
 .side-a {
   justify-content: flex-end;
+  flex-direction: row;
 }
 
 .side-a .track {
-  display: flex;
   flex-direction: row-reverse;
-}
-
-.side-b {
-  justify-content: flex-start;
 }
 
 .track {
   flex: 1;
-  min-width: 0;
-  height: 8px;
+  height: 10px;
   background: rgba(255,255,255,0.1);
-  border-radius: 999px;
+  border-radius: 10px;
   overflow: hidden;
 }
 
 .fill {
   height: 100%;
-  transition: width 0.8s ease-in-out;
+  transition: width 1s ease-out;
 }
 
 .blue-bar {
   background: #3b82f6;
-  box-shadow: 0 0 10px #3b82f688;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
 }
 
 .red-bar {
   background: #ef4444;
-  box-shadow: 0 0 10px #ef444488;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
 }
 
 .val {
   font-weight: 800;
-  font-size: 0.92rem;
-  min-width: 72px;
-  line-height: 1.1;
+  font-size: 0.95rem;
+  line-height: 1;
 }
 
 .val small {
-  font-size: 0.72rem;
-  opacity: 0.8;
+  font-size: 0.7rem;
+  opacity: 0.6;
+  margin-left: 2px;
 }
 
-.blue {
-  color: #3b82f6;
-  text-align: right;
+/* FIX: Colori espliciti per testi a sinistra e destra */
+.blue,
+.blue-t {
+  color: #3b82f6 !important;
 }
 
-.red {
-  color: #ef4444;
-  text-align: left;
+.red,
+.red-t {
+  color: #ef4444 !important;
 }
 
 .text-system {
@@ -239,36 +329,21 @@
 }
 
 .txt-val {
-  min-height: 42px;
-  padding: 10px 12px;
+  background: rgba(0,0,0,0.3);
+  padding: 12px;
   border-radius: 12px;
-  font-size: 0.95rem;
-  font-weight: 800;
-  text-transform: uppercase;
   text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  word-break: break-word;
-  background: rgba(0,0,0,0.25);
+  font-weight: 800;
   border: 1px solid rgba(255,255,255,0.05);
 }
 
-.blue-t {
-  color: #3b82f6;
-}
-
-.red-t {
-  color: #ef4444;
-}
-
-/* --- ZONA GARA --- */
+/* --- RACE ZONE --- */
 .race-zone {
   background: #000;
   border-radius: 30px;
   padding: 40px;
   text-align: center;
-  border: 2px solid #1e293b;
+  border: 1px solid #1e293b;
   margin-bottom: 40px;
 }
 
@@ -286,275 +361,112 @@
 
 .btn-redo {
   background: transparent;
-  border: 1px solid #475569;
+  border: 1px solid #334155;
   color: #94a3b8;
   padding: 10px 20px;
   border-radius: 10px;
   cursor: pointer;
+  margin-top: 20px;
 }
 
-/* --- FOOTER RECENSIONI --- */
+/* --- FEEDBACK & REVIEWS --- */
 .feedback-layout {
   display: grid;
-  grid-template-columns: 200px 1fr 350px;
-  gap: 20px;
-  background: rgba(18, 22, 33, 0.8);
+  grid-template-columns: 220px 1fr 350px;
+  gap: 30px;
+  background: rgba(15, 23, 42, 0.8);
   padding: 40px;
   border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(15px);
-  align-items: stretch;
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
-/* Colonna Stelle */
 .stars-side {
-  display: flex;
-  flex-direction: column;
-  padding-right: 20px;
-  justify-content: flex-start;
-}
-
-.stars-side p {
-  color: #94a3b8;
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 2px;
-  margin-bottom: 25px;
   text-align: center;
 }
 
-.stars-container {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.stars {
+/* FIX: Stelle visibili */
+.stars,
+.r-stars {
   font-size: 1.8rem;
   color: #f59e0b;
-  cursor: pointer;
   display: flex;
+  justify-content: center;
   gap: 5px;
 }
 
-.voto-label {
-  margin-top: 15px;
-  font-weight: 900;
-  color: #f59e0b;
-  font-size: 1.1rem;
+.r-stars {
+  font-size: 0.8rem;
+  justify-content: flex-start;
 }
 
-/* Colonna Form */
+.r-stars .filled,
+.stars i.fas,
+.r-stars i.fas {
+  color: #f59e0b !important;
+}
+
+.stars {
+  cursor: pointer;
+  margin: 20px 0;
+}
+
 .comment-side {
-  display: flex;
-  flex-direction: column;
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0 40px;
-}
-
-.comment-side h3 {
-  font-size: 1rem;
-  margin-bottom: 20px;
-  color: #fff;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.form-inner {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+  padding: 0 30px;
+  border-left: 1px solid rgba(255,255,255,0.1);
+  border-right: 1px solid rgba(255,255,255,0.1);
 }
 
 textarea {
-  flex-grow: 1;
-  min-height: 120px;
+  width: 100%;
   background: rgba(0,0,0,0.4);
+  border: 1px solid #334155;
   border-radius: 12px;
   color: white;
   padding: 15px;
-  border: 1px solid #2d3748;
-  margin-bottom: 20px;
+  min-height: 100px;
   resize: none;
-  font-family: inherit;
-  transition: border-color 0.3s;
-}
-
-textarea:focus {
-  border-color: #3b82f6;
-  outline: none;
+  margin-bottom: 15px;
 }
 
 .btn-send {
   background: #3b82f6;
+  color: white;
   width: 100%;
-  padding: 14px;
-  border-radius: 12px;
+  padding: 12px;
+  border-radius: 10px;
   border: none;
   font-weight: 700;
-  color: white;
   cursor: pointer;
-  transition: all 0.3s;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.btn-send:hover {
-  background: #2563eb;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
-}
-
-/* Colonna Recensioni */
-.reviews-list-side {
-  display: flex;
-  flex-direction: column;
-  padding-left: 10px;
-}
-
-.reviews-list-side h3 {
-  font-size: 0.9rem;
-  color: #3b82f6;
-  margin-bottom: 20px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
 .reviews-scroll {
   max-height: 300px;
   overflow-y: auto;
-  padding-right: 10px;
-}
-
-.reviews-scroll::-webkit-scrollbar {
-  width: 4px;
-}
-
-.reviews-scroll::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 10px;
 }
 
 .mini-review-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
   padding: 15px;
-  margin-bottom: 12px;
-}
-
-.r-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.r-stars {
-  font-size: 0.65rem;
-  color: #475569;
-}
-
-.r-stars .filled {
-  color: #f59e0b;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
 .r-user {
-  font-size: 0.75rem;
   color: #3b82f6;
   font-weight: 700;
+  font-size: 0.8rem;
 }
 
 .r-text {
   font-size: 0.85rem;
-  color: #cbd5e1;
+  color: #94a3b8;
   font-style: italic;
-  margin: 0;
-  line-height: 1.5;
+  margin-top: 5px;
 }
 
-.no-reviews {
-  color: #475569;
-  font-size: 0.8rem;
-  text-align: center;
-  margin-top: 30px;
-  font-style: italic;
-}
-
-/* --- UTILS --- */
-.success-banner {
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid #22c55e;
-  padding: 25px;
-  border-radius: 15px;
-  color: #22c55e;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  height: 100%;
-}
-
-.loader-overlay {
-  text-align: center;
-  padding: 50px;
-  font-size: 1.2rem;
-}
-
-.fade-in {
-  animation: fadeInAnim 0.5s ease forwards;
-}
-
-@keyframes fadeInAnim {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* --- RESPONSIVE --- */
-@media (max-width: 1150px) {
-  .feedback-layout {
-    grid-template-columns: 1fr;
-    padding: 25px;
-  }
-
-  .comment-side {
-    border: none;
-    padding: 20px 0;
-    margin: 20px 0;
-    border-top: 1px solid rgba(255,255,255,0.1);
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-  }
-
-  .stars-side {
-    padding-right: 0;
-  }
-
-  .reviews-list-side {
-    padding-left: 0;
-  }
-}
-
-@media (max-width: 1050px) {
-  .specs-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
+/* --- OTTIMIZZAZIONE MOBILE --- */
 @media (max-width: 900px) {
-  .page-bg {
-    padding: 20px;
-  }
-
   .header-battle {
     flex-direction: column;
     gap: 20px;
@@ -564,42 +476,124 @@ textarea:focus {
     width: 100%;
   }
 
+  .car-img-wrapper {
+    height: auto;
+    aspect-ratio: 16/9;
+  }
+
+  .vs-container {
+    order: -1;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+    padding: 0 10px;
+  }
+
+  .specs-grid {
+    grid-template-columns: 1fr;
+  }
+
   .bar-system {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 15px;
   }
 
   .side-a,
   .side-b {
     justify-content: space-between;
+    width: 100%;
+    flex-direction: row !important;
   }
 
-  .val {
-    min-width: 78px;
+  .side-a .track {
+    flex-direction: row;
   }
 
-  .race-zone {
-    padding: 25px 20px;
+  .feedback-layout {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+
+  .comment-side {
+    border: none;
+    padding: 20px 0;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
   }
 }
 
-@media (max-width: 600px) {
-  .panel,
-  .feedback-layout {
-    padding: 18px;
+@media (max-width: 768px) {
+  .toast-notification {
+    top: -120px;
+    left: 12px;
+    right: 12px;
+    transform: none;
+    min-width: unset;
+    max-width: unset;
+    width: auto;
   }
 
-  .spec-card {
-    padding: 12px;
+  .toast-notification.active {
+    top: 12px;
+  }
+}
+
+@media (max-width: 500px) {
+  .page-bg {
+    padding: 15px;
   }
 
-  .text-system {
-    grid-template-columns: 1fr;
+  .car-info h2 {
+    font-size: 1.5rem;
   }
 
   .btn-race {
     width: 100%;
-    padding: 16px 20px;
-    font-size: 1.05rem;
+    padding: 15px;
+    font-size: 1.1rem;
+  }
+
+  .txt-val {
+    font-size: 0.8rem;
+  }
+}
+
+/* --- ANIMAZIONI & UTILS --- */
+.fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.loader-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+}
+
+.spinner {
+  border: 4px solid rgba(255,255,255,0.1);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
   }
 }

@@ -1,187 +1,164 @@
 :host {
   display: block;
-  perspective: 1000px;
+  perspective: 1200px;
 }
 
 .card-container {
   position: relative;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 25px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.45s ease, box-shadow 0.45s ease, border-color 0.45s ease;
   display: flex;
   flex-direction: column;
-  min-height: 200px;
-  justify-content: space-between;
+  min-height: 430px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
 }
 
 .card-container:hover {
-  transform: translateY(-10px) rotateX(5deg);
-  background: rgba(255, 255, 255, 0.08);
-  border-color: #e74c3c;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(231, 76, 60, 0.2);
+  transform: translateY(-8px) scale(1.01);
+  border-color: rgba(231, 76, 60, 0.4);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+}
+
+.image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+}
+
+.auto-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease;
+}
+
+.card-container:hover .auto-image {
+  transform: scale(1.06);
+}
+
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.05) 0%,
+    rgba(0, 0, 0, 0.15) 45%,
+    rgba(0, 0, 0, 0.65) 100%
+  );
+}
+
+.brand-highlight {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: rgba(0, 0, 0, 0.6) !important;
+  color: #e74c3c !important;
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  z-index: 2;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(231, 76, 60, 0.3);
 }
 
 .auto-info {
-  z-index: 2;
-  position: relative;
-}
-
-.brand {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  color: #e74c3c;
-  letter-spacing: 2.5px;
-  font-weight: 800;
-  display: block;
-  margin-bottom: 5px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex-grow: 1;
 }
 
 .model {
-  font-size: 1.4rem;
+  font-size: 1.45rem;
   color: white;
-  font-weight: 700;
+  font-weight: 800;
   margin: 0;
+  line-height: 1.25;
 }
 
 .specs-preview {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 15px;
-  color: #bdc3c7;
-  font-size: 0.9rem;
+  color: #d5d8dc;
+  font-size: 0.95rem;
 }
 
 .specs-preview span {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .specs-preview i {
   color: #e74c3c;
-  margin-right: 2px;
+  width: 18px;
 }
 
 .card-footer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-top: 20px;
-  z-index: 2;
-  position: relative;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 22px 22px;
 }
 
 .price-tag {
   color: white;
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-
-.add-compare-btn {
-  border: none;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  padding: 10px 14px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-weight: 700;
-  transition: 0.3s;
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 0.4px;
   white-space: nowrap;
 }
 
-.add-compare-btn i {
-  color: #e74c3c;
-}
-
-.add-compare-btn:hover {
-  background: #e74c3c;
-  transform: scale(1.03);
-}
-
-.add-compare-btn:hover i {
-  color: white;
-}
-
-.card-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
+.add-compare-btn {
   width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, rgba(231, 76, 60, 0.15) 0%, transparent 60%);
-  pointer-events: none;
-  z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  padding: 14px 18px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+/* Hover e Stato Attivo (Arancione) */
+.add-compare-btn:hover,
+.add-compare-btn.active {
+  background: #e74c3c !important;
+  border-color: transparent;
+  box-shadow: 0 10px 20px rgba(231, 76, 60, 0.4);
+}
+
+.add-compare-btn.active {
+  transform: scale(1.02); /* Leggera enfasi quando selezionata */
+}
+
+.add-compare-btn:active {
+  transform: scale(0.98);
 }
 
 @media (max-width: 768px) {
   .card-container {
-    padding: 22px 15px; /* Più spazio verticale, meno orizzontale */
     min-height: auto;
-    border-radius: 18px;
   }
-
-  .card-footer {
-    flex-direction: column;
-    align-items: center; /* Centra tutto il blocco */
-    justify-content: center;
-    gap: 12px;
-    margin-top: 20px;
-    width: 100%;
-  }
-
-  .price-tag {
-    font-size: 1.1rem;
-    text-align: center;
-    width: 100%;
-  }
-
-  .add-compare-btn {
-    /* RESET E NUOVO STILE */
-    background: #e74c3c !important; /* Rosso pieno */
-    color: white !important;
-    border: none;
-
-    /* GESTIONE LARGHEZZA */
-    width: auto; /* Non forziamo il 100% */
-    min-width: 160px; /* Base minima */
-    max-width: 90%; /* Margine di sicurezza dai bordi della card */
-
-    /* SPAZIATURA E CENTRATURA */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto; /* Centratura orizzontale */
-    padding: 10px 20px; /* Padding generoso ai lati per non far toccare il testo */
-
-    /* TESTO */
-    font-size: 0.8rem; /* Font leggermente più piccolo per scritte lunghe */
-    line-height: 1.2;
-    text-align: center;
-    white-space: normal; /* Permette alla scritta di andare a capo se troppo lunga */
-    border-radius: 50px; /* Effetto pillola perfetto */
-
-    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
-  }
-
-  .add-compare-btn i {
-    color: white !important;
-    font-size: 0.9rem;
-    flex-shrink: 0; /* Impedisce all'icona di rimpicciolirsi */
-  }
-
-  .add-compare-btn:active {
-    transform: scale(0.96);
-    background: #c0392b !important;
-  }
+  .image-wrapper { height: 190px; }
+  .model { font-size: 1.25rem; }
+  .price-tag { font-size: 1.2rem; }
 }
-
