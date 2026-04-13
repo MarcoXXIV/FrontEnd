@@ -49,10 +49,19 @@
             </button>
           </div>
 
+          <div class="card-images">
+            <div class="img-box img-box-left">
+              <img [src]="getImgAuto1(p)" (error)="handleImgError($event)" alt="Auto 1">
+            </div>
+            <div class="img-box img-box-right">
+              <img [src]="getImgAuto2(p)" (error)="handleImgError($event)" alt="Auto 2">
+            </div>
+          </div>
+
           <div class="card-body">
-            <h3>{{ p.confronto?.auto1?.marca }} {{ p.confronto?.auto1?.modello }}</h3>
-            <div class="versus">contro</div>
-            <h3>{{ p.confronto?.auto2?.marca }} {{ p.confronto?.auto2?.modello }}</h3>
+            <h3 class="car-name-left">{{ p.confronto?.auto1?.marca }} {{ p.confronto?.auto1?.modello }}</h3>
+            <div class="versus">VS</div>
+            <h3 class="car-name-right">{{ p.confronto?.auto2?.marca }} {{ p.confronto?.auto2?.modello }}</h3>
           </div>
 
           <div class="card-actions">

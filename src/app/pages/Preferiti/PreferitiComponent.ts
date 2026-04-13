@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router'; // Aggiunto Router
+import { RouterModule, Router } from '@angular/router';
 import { PreferitiService } from '../../services/PreferitiService';
 import { PreferitoModel } from '../../models/PreferitoModel';
 
@@ -22,7 +22,7 @@ export class PreferitiComponent implements OnInit {
   constructor(
     private preferitiService: PreferitiService,
     private cd: ChangeDetectorRef,
-    private router: Router // Iniettato per far funzionare vaiHome()
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -33,7 +33,6 @@ export class PreferitiComponent implements OnInit {
     this.loading = true;
     this.preferitiService.getMieiPreferiti().subscribe({
       next: (data) => {
-        console.log('Preferiti ricevuti:', data);
         this.listaPreferiti = Array.isArray(data) ? data : [];
         this.totalePreferiti = this.listaPreferiti.length;
         this.loading = false;
@@ -47,15 +46,30 @@ export class PreferitiComponent implements OnInit {
     });
   }
 
+  // Helper per ottenere l'immagine dell'auto 1
+  getImgAuto1(p: PreferitoModel): string {
+    const codice = p.confronto?.auto1?.codice;
+    return codice ? `/assets/img/${codice}.png` : '/assets/img/Errore.png';
+  }
+
+  // Helper per ottenere l'immagine dell'auto 2
+  getImgAuto2(p: PreferitoModel): string {
+    const codice = p.confronto?.auto2?.codice;
+    return codice ? `/assets/img/${codice}.png` : '/assets/img/Errore.png';
+  }
+
+  // Gestione errore caricamento immagine singola
+  handleImgError(event: any): void {
+    event.target.src = '/assets/img/Errore.png';
+  }
+
   rimuoviPreferito(confrontoId?: number): void {
     if (!confrontoId) return;
 
     this.preferitiService.togglePreferito(confrontoId).subscribe({
       next: () => {
-        // Rimuoviamo subito dalla lista per velocità visiva
         this.listaPreferiti = this.listaPreferiti.filter(p => p.confronto?.id !== confrontoId);
         this.totalePreferiti = this.listaPreferiti.length;
-
         this.triggerBanner("Bolide rimosso dal garage!");
         this.cd.detectChanges();
       },

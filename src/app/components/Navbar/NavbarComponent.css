@@ -134,21 +134,58 @@
   background: #c0392b;
 }
 
-/* RESPONSIVE */
 @media (max-width: 900px) {
+  .navbar {
+    text-align: center;
+  }
+
   .nav-container {
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 15px;
+    text-align: center;
   }
-  .logo-wrapper, .nav-auth {
-    flex: none;
-    width: 100%;
-    justify-content: center;
-  }
+
+  .logo-wrapper,
+  .nav-auth,
   .nav-menu {
-    margin: 15px 0;
+    flex: none !important;
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+    margin: 0 auto !important;
+  }
+
+  .logo-wrapper {
+    justify-content: center !important;
+  }
+
+  .logo-text {
+    text-align: center;
+  }
+
+  .nav-menu {
+    display: flex;
     flex-wrap: wrap;
+    gap: 1.2rem;
+    justify-content: center !important;
+  }
+
+  .nav-menu li {
+    display: flex;
     justify-content: center;
+  }
+
+  .nav-auth {
+    justify-content: center !important;
+  }
+
+  .nav-container:not(:has(.nav-auth))::after {
+    display: none !important;
+    content: none !important;
   }
 }
 
