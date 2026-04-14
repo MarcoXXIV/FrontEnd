@@ -58,9 +58,9 @@ export class ConfrontoComponent implements OnInit {
   private toastTimeout: any;
 
   soglieMax: Record<string, number> = {
-    cv: 1000, velocitaMax: 450, accelerazione0100: 10, accelerazione100200: 25,
-    accelerazione80140: 15, coppia: 1200, cilindrata: 6500, pesoKg: 2800,
-    rapportoPesoPotenza: 5, prezzo: 200000, consumoMedio: 25, co2: 450
+    cv: 1800, velocitaMax: 450, accelerazione0100: 10, accelerazione100200: 25,
+    accelerazione80140: 15, coppia: 1500, cilindrata: 8000, pesoKg: 3000,
+    rapportoPesoPotenza: 7, prezzo: 5000000, consumoMedio: 30, co2: 450
   };
 
   elencoParametri: ParametroConfronto[] = [
