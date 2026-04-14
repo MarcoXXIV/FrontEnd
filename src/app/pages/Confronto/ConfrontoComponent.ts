@@ -12,6 +12,7 @@ import { ConfrontoService } from '../../services/ConfrontoService';
 import { AutoModel } from '../../models/AutoModel';
 import { RecensioneModel } from '../../models/RecensioneModel';
 import { GaraAnimationComponent } from '../../components/gara/garaComponent';
+import {NavbarComponent} from '../../components/Navbar/NavbarComponent';
 
 interface ParametroConfronto {
   label: string;
@@ -24,7 +25,7 @@ interface ParametroConfronto {
 @Component({
   selector: 'app-confronto',
   standalone: true,
-  imports: [CommonModule, FormsModule, GaraAnimationComponent, RouterModule],
+  imports: [CommonModule, FormsModule, GaraAnimationComponent, RouterModule, NavbarComponent],
   templateUrl: './ConfrontoComponent.html',
   styleUrls: ['./ConfrontoComponent.css']
 })
@@ -58,9 +59,18 @@ export class ConfrontoComponent implements OnInit {
   private toastTimeout: any;
 
   soglieMax: Record<string, number> = {
-    cv: 1800, velocitaMax: 450, accelerazione0100: 10, accelerazione100200: 25,
-    accelerazione80140: 15, coppia: 1500, cilindrata: 8000, pesoKg: 3000,
-    rapportoPesoPotenza: 7, prezzo: 5000000, consumoMedio: 30, co2: 450
+    cv: 1800,
+    velocitaMax: 500,
+    accelerazione0100: 10,
+    accelerazione100200: 25,
+    accelerazione80140: 15,
+    coppia: 2000,
+    cilindrata: 9000,
+    pesoKg: 3000,
+    rapportoPesoPotenza: 7,
+    prezzo: 5000000,
+    consumoMedio: 30,
+    co2: 600
   };
 
   elencoParametri: ParametroConfronto[] = [
@@ -270,15 +280,40 @@ export class ConfrontoComponent implements OnInit {
     });
   }
 
-  getPerc(valore: unknown, chiave: keyof AutoModel, invert = false): number {
+  // Se il valore è 0, nullo, undefined o non numerico -> n.d.
+  isValoreNonDisponibile(valore: unknown): boolean {
+    const n = Number(valore);
+    return valore === null || valore === undefined || valore === '' || Number.isNaN(n) || n === 0;
+  }
+
+  formatValore(valore: unknown, isText = false): string {
+    if (isText) {
+      return valore !== null && valore !== undefined && String(valore).trim() !== ''
+        ? String(valore)
+        : 'n.d';
+    }
+
+    if (this.isValoreNonDisponibile(valore)) {
+      return 'n.d';
+    }
+
+    return String(valore);
+  }
+
+  // Barra sempre proporzionale al valore:
+  // 0 = vuota, massimo = piena
+  getPerc(valore: unknown, chiave: keyof AutoModel): number {
     const max = this.soglieMax[String(chiave)] || 1000;
-    const v = Number(valore) || 0;
-    const p = invert ? (1 - v / max) * 100 : (v / max) * 100;
+    const v = Number(valore);
+
+    if (this.isValoreNonDisponibile(valore) || max <= 0) return 0;
+
+    const p = (v / max) * 100;
     return Math.min(100, Math.max(0, p));
   }
 
   getBarWidth(auto: AutoModel, parametro: ParametroConfronto): number {
-    return this.getPerc(this.getVal(auto, parametro.key), parametro.key, !!parametro.invert);
+    return this.getPerc(this.getVal(auto, parametro.key), parametro.key);
   }
 
   calcolaPunteggi(): void {

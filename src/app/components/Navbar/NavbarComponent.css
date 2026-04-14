@@ -1,32 +1,36 @@
 .navbar {
   background: rgba(18, 18, 18, 0.96);
   color: white;
-  padding: 1.4rem 2rem;
+  padding: 1.2rem 2rem;
   position: sticky;
   top: 0;
   z-index: 1000;
-  box-shadow: 0 2px 14px rgba(0,0,0,0.35);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(8px);
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .nav-container {
   max-width: 1280px;
   margin: 0 auto;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
+  position: relative;
+  min-height: 60px;
 }
 
-/* WRAPPER LOGO + TESTO (Ora è un <a>) */
+/* =========================
+   LOGO
+========================= */
 .logo-wrapper {
   display: flex;
   align-items: center;
   gap: 12px;
   cursor: pointer;
-  text-decoration: none; /* Rimuove la sottolineatura del link */
-  flex: 1;
+  text-decoration: none;
+  flex-shrink: 0;
+  z-index: 3;
 }
 
 .logo-img {
@@ -37,7 +41,7 @@
 }
 
 .logo-wrapper:hover .logo-img {
-  transform: scale(1.05); /* Piccolo effetto al passaggio sul logo */
+  transform: scale(1.05);
 }
 
 .logo-text {
@@ -49,16 +53,43 @@
 }
 
 .logo-text span {
-  color: #e74c3c; /* Battle in Arancione */
+  color: #e74c3c;
+}
+
+/* =========================
+   NAVBAR VUOTA
+========================= */
+.empty-navbar-spacer {
+  flex: 1;
+  min-height: 52px;
+}
+
+/* =========================
+   NAVBAR STANDARD
+========================= */
+.default-navbar-layout {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
 }
 
 .nav-menu {
   display: flex;
   list-style: none;
-  gap: 1.8rem;
+  gap: 1.5rem;
   padding: 0;
   align-items: center;
-  margin: 0 auto;
+  margin: 0;
+}
+
+.centered-menu {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  justify-content: center;
+  z-index: 1;
 }
 
 .nav-menu a {
@@ -68,6 +99,7 @@
   transition: 0.25s;
   position: relative;
   white-space: nowrap;
+  font-size: 1rem; /* <--- Aggiungi questa riga (es. 1.15rem o 18px) */
 }
 
 .nav-menu a:hover,
@@ -96,13 +128,8 @@
   display: flex;
   gap: 1rem;
   align-items: center;
-  flex: 1;
-  justify-content: flex-end;
-}
-
-.nav-container:not(:has(.nav-auth))::after {
-  content: '';
-  flex: 1;
+  margin-left: auto;
+  z-index: 2;
 }
 
 .btn-login,
@@ -121,7 +148,7 @@
 }
 
 .btn-login:hover {
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .btn-register {
@@ -134,66 +161,240 @@
   background: #c0392b;
 }
 
-@media (max-width: 900px) {
+/* =========================
+   NAVBAR PROFILO
+========================= */
+.profile-toolbar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.profile-toolbar-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  z-index: 1;
+}
+
+.profile-toolbar-right {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-left: auto;
+  z-index: 2;
+}
+
+.profile-btn {
+  border-radius: 10px;
+  padding: 0.62rem 1rem;
+  cursor: pointer;
+  font-weight: 700;
+  transition: 0.25s ease;
+  white-space: nowrap;
+  font-size: 1rem;
+}
+
+.profile-nav-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #f8fafc;
+}
+
+.profile-nav-btn:hover,
+.profile-nav-btn.active {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.45);
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(59, 130, 246, 0.16);
+}
+
+.reset-btn {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+.reset-btn:hover {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(239, 68, 68, 0.16);
+}
+
+.logout-btn {
+  border: none;
+  color: #ffffff;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 10px 20px rgba(239, 68, 68, 0.24);
+}
+
+.logout-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+  box-shadow: 0 14px 26px rgba(239, 68, 68, 0.3);
+}
+
+.logout-btn:active,
+.profile-nav-btn:active,
+.reset-btn:active {
+  transform: scale(0.98);
+}
+
+/* =========================
+   NAVBAR ADMIN
+========================= */
+.admin-toolbar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.admin-toolbar-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  z-index: 1;
+}
+
+.admin-toolbar-right {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-left: auto;
+  z-index: 2;
+}
+
+.admin-nav-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: #f8fafc;
+  padding: 0.7rem 1rem;
+  text-align: left;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-weight: 700;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.admin-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+}
+
+.admin-nav-btn.active {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(59, 130, 246, 0.42);
+  color: white;
+  box-shadow: 0 8px 18px rgba(59, 130, 246, 0.16);
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 980px) {
   .navbar {
-    text-align: center;
+    padding: 1rem 1.2rem;
   }
 
   .nav-container {
-    flex-direction: column !important;
-    justify-content: center !important;
-    align-items: center !important;
-    gap: 15px;
-    text-align: center;
-  }
-
-  .logo-wrapper,
-  .nav-auth,
-  .nav-menu {
-    flex: none !important;
-    width: 100% !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    text-align: center !important;
-    margin: 0 auto !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
   }
 
   .logo-wrapper {
-    justify-content: center !important;
-  }
-
-  .logo-text {
-    text-align: center;
-  }
-
-  .nav-menu {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.2rem;
-    justify-content: center !important;
-  }
-
-  .nav-menu li {
-    display: flex;
     justify-content: center;
   }
 
-  .nav-auth {
-    justify-content: center !important;
+  .default-navbar-layout,
+  .profile-toolbar,
+  .admin-toolbar,
+  .empty-navbar-spacer {
+    justify-content: center;
+    min-height: auto;
   }
 
-  .nav-container:not(:has(.nav-auth))::after {
-    display: none !important;
-    content: none !important;
+  .centered-menu,
+  .profile-toolbar-center,
+  .admin-toolbar-center {
+    position: static;
+    left: auto;
+    transform: none;
+    width: 100%;
+  }
+
+  .nav-menu,
+  .nav-auth,
+  .profile-toolbar-right,
+  .admin-toolbar-right {
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-left: 0;
   }
 }
 
 @media (max-width: 640px) {
   .navbar {
-    padding: 0.8rem 1rem;
+    padding: 0.9rem 1rem;
   }
-  .logo-img { height: 35px; }
-  .logo-text { font-size: 1.2rem; }
-  .nav-menu { gap: 1rem; }
+
+  .logo-img {
+    height: 38px;
+  }
+
+  .logo-text {
+    font-size: 1.2rem;
+  }
+
+  .profile-toolbar-center,
+  .admin-toolbar-center {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .profile-toolbar-right,
+  .admin-toolbar-right {
+    width: 100%;
+  }
+
+  .profile-btn,
+  .admin-nav-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .nav-menu {
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .nav-auth {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .btn-login,
+  .btn-register {
+    width: 100%;
+  }
 }

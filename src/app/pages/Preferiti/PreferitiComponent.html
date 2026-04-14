@@ -1,3 +1,5 @@
+<app-navbar></app-navbar>
+
 <div class="preferiti-page">
 
   <div class="toast-notification" [class.active]="showBanner">
@@ -19,10 +21,6 @@
             <span class="stat-value-mini">{{ totalePreferiti }}</span>
           </div>
         </div>
-
-        <button class="btn-home-green" (click)="vaiHome()">
-          <i class="fas fa-house"></i> Home
-        </button>
       </div>
     </header>
 
@@ -35,7 +33,7 @@
       <i class="fas fa-ghost"></i>
       <h2>Garage Vuoto</h2>
       <p>Nessun confronto salvato nel database.</p>
-      <button class="btn-detail" (click)="vaiHome()">Trova Nuove Sfide</button>
+      <span class="empty-note">Usa il logo nella navbar per tornare alla Home.</span>
     </div>
 
     <div class="grid-preferiti" *ngIf="!loading && listaPreferiti.length > 0">

@@ -1,23 +1,24 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { AutoService } from '../../services/AutoService';
 import { AdminService } from '../../services/AdminService';
 import { AutoModel } from '../../models/AutoModel';
 import { UtenteModel } from '../../models/UtenteModel';
+import { NavbarComponent } from '../../components/Navbar/NavbarComponent';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NavbarComponent],
   templateUrl: './AdminComponent.html',
-  styleUrl: './AdminComponent.css'
+  styleUrls: ['./AdminComponent.css']
 })
 export class AdminComponent implements OnInit {
   listaUtenti: UtenteModel[] = [];
   listaAuto: AutoModel[] = [];
-  sezioneAttiva: 'utenti' | 'nuova-auto' | 'gestione-auto' = 'utenti';
+  sezioneAttiva: 'utenti' | 'nuova-auto' | 'gestione-auto' = 'nuova-auto';
 
   nuovaAuto: any = this.getResetForm();
 
@@ -25,16 +26,20 @@ export class AdminComponent implements OnInit {
     private autoService: AutoService,
     private adminService: AdminService,
     private cd: ChangeDetectorRef,
-    private router: Router
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
+    // Sottoscrizione ai parametri della query per cambiare sezione dalla Navbar
+    this.route.queryParams.subscribe(params => {
+      const section = params['section'];
+      if (section) {
+        this.setSezione(section);
+      }
+    });
+
     this.caricaUtenti();
     this.caricaAuto();
-  }
-
-  vaiHome(): void {
-    this.router.navigate(['/Home']);
   }
 
   setSezione(nome: 'utenti' | 'nuova-auto' | 'gestione-auto'): void {
@@ -47,9 +52,9 @@ export class AdminComponent implements OnInit {
     if (nome === 'gestione-auto' && this.listaAuto.length === 0) {
       this.caricaAuto();
     }
+    this.cd.detectChanges();
   }
 
-  // --- GESTIONE UTENTI ---
   caricaUtenti(): void {
     this.adminService.getAllUtenti().subscribe({
       next: (data: UtenteModel[]) => {
@@ -65,16 +70,13 @@ export class AdminComponent implements OnInit {
 
   modificaRuolo(idUtente: number | undefined, nuovoRuolo: string): void {
     if (!idUtente) return;
-
     this.adminService.cambiaRuolo(idUtente, nuovoRuolo).subscribe({
       next: (res: UtenteModel) => {
         const index = this.listaUtenti.findIndex(u => u.id === idUtente);
-
         if (index !== -1) {
           this.listaUtenti[index] = res;
           this.listaUtenti = [...this.listaUtenti];
         }
-
         alert('Ruolo aggiornato!');
         this.cd.detectChanges();
       },
@@ -87,27 +89,22 @@ export class AdminComponent implements OnInit {
 
   eliminaUtente(id: number | undefined): void {
     if (!id) return;
-
     if (confirm("Eliminare definitivamente l'utente?")) {
       const copiaBackup = [...this.listaUtenti];
       this.listaUtenti = this.listaUtenti.filter(u => u.id !== id);
-
       this.adminService.eliminaUtente(id).subscribe({
         next: () => {
-          console.log('Utente rimosso dal database');
           this.cd.detectChanges();
         },
         error: (err: any) => {
-          console.error(err);
-          alert("Errore durante l'eliminazione server-side.");
           this.listaUtenti = copiaBackup;
+          alert("Errore durante l'eliminazione server-side.");
           this.cd.detectChanges();
         }
       });
     }
   }
 
-  // --- GESTIONE AUTO ---
   caricaAuto(): void {
     this.autoService.getAllAuto().subscribe({
       next: (data: AutoModel[]) => {
@@ -128,7 +125,6 @@ export class AdminComponent implements OnInit {
         this.listaAuto = [res, ...this.listaAuto];
         this.nuovaAuto = this.getResetForm();
         this.setSezione('gestione-auto');
-        this.cd.detectChanges();
       },
       error: (err: any) => {
         console.error(err);
@@ -139,20 +135,16 @@ export class AdminComponent implements OnInit {
 
   eliminaAuto(id: number | undefined): void {
     if (!id) return;
-
     if (confirm('Sei sicuro di voler rimuovere questa auto dal catalogo?')) {
       const copiaBackup = [...this.listaAuto];
       this.listaAuto = this.listaAuto.filter(a => a.id !== id);
-
       this.autoService.eliminaAuto(id).subscribe({
-        next: (messaggio: string) => {
-          console.log(messaggio);
+        next: () => {
           this.cd.detectChanges();
         },
         error: (err: any) => {
-          console.error(err);
-          alert("Errore nell'eliminazione dell'auto.");
           this.listaAuto = copiaBackup;
+          alert("Errore nell'eliminazione dell'auto.");
           this.cd.detectChanges();
         }
       });
@@ -161,27 +153,12 @@ export class AdminComponent implements OnInit {
 
   private getResetForm() {
     return {
-      marca: '',
-      modello: '',
-      anno: new Date().getFullYear(),
-      prezzo: 0,
-      categoria: '',
-      codice: '',
-      cilindri: 0,
-      cv: 0,
-      cilindrata: 0,
-      coppia: 0,
-      alimentazione: '',
-      trazione: '',
-      euro: '',
-      velocitaMax: 0,
-      accelerazione0100: 0,
-      accelerazione100200: 0,
-      accelerazione80140: 0,
-      pesoKg: 0,
-      rapportoPesoPotenza: 0,
-      consumoMedio: 0,
-      co2: 0
+      marca: '', modello: '', anno: new Date().getFullYear(),
+      prezzo: 0, categoria: '', codice: '', cilindri: 0,
+      cv: 0, cilindrata: 0, coppia: 0, alimentazione: '',
+      trazione: '', euro: '', velocitaMax: 0, accelerazione0100: 0,
+      accelerazione100200: 0, accelerazione80140: 0, pesoKg: 0,
+      rapportoPesoPotenza: 0, consumoMedio: 0, co2: 0
     };
   }
 }

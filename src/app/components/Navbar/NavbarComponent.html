@@ -1,35 +1,126 @@
 <nav class="navbar">
   <div class="nav-container">
-    <a routerLink="/Home"
-       routerLinkActive="active"
-       [routerLinkActiveOptions]="{exact: true}"
-       class="logo-wrapper"
-       title="Torna alla Home">
+    <a
+      routerLink="/Home"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="logo-wrapper"
+      title="Torna alla Home"
+    >
       <img
         src="assets/img/SPECBATTLE.png"
-        alt="Arena Auto - Icona"
+        alt="SpecBattle - Logo"
         class="logo-img"
       />
       <span class="logo-text">SPEC<span>BATTLE</span></span>
     </a>
 
-    <ul class="nav-menu">
-      <li *ngIf="loggedIn">
-        <a routerLink="/Preferiti" routerLinkActive="active">❤️ Preferiti</a>
-      </li>
+    <!-- NAVBAR PROFILO -->
+    <ng-container *ngIf="isProfileNavbar(); else nonProfileNavbar">
+      <div class="profile-toolbar">
+        <div class="profile-toolbar-center">
+          <button
+            type="button"
+            class="profile-btn profile-nav-btn"
+            [class.active]="isOnProfilo()"
+            (click)="vaiProfilo()"
+          >
+            👤 Profilo personale
+          </button>
 
-      <li *ngIf="loggedIn">
-        <a routerLink="/Profilo" routerLinkActive="active">👤 Profilo</a>
-      </li>
+          <button
+            type="button"
+            class="profile-btn reset-btn"
+            (click)="resetCronologiaProfilo()"
+          >
+            🗑️ Reset
+          </button>
+        </div>
 
-      <li *ngIf="loggedIn && isAdmin()">
-        <a routerLink="/Admin" routerLinkActive="active" class="admin-link">🛠️ Admin Panel</a>
-      </li>
-    </ul>
+        <div class="profile-toolbar-right">
+          <button type="button" class="profile-btn logout-btn" (click)="logout()">
+            Logout
+          </button>
+        </div>
+      </div>
+    </ng-container>
 
-    <div class="nav-auth" *ngIf="!loggedIn">
-      <button class="btn-login" (click)="vaiLogin()">Accedi</button>
-      <button class="btn-register" (click)="vaiRegistrazione()">Registrati</button>
-    </div>
+    <ng-template #nonProfileNavbar>
+      <!-- NAVBAR ADMIN -->
+      <ng-container *ngIf="isAdminNavbar(); else nonAdminNavbar">
+        <div class="admin-toolbar">
+          <div class="admin-toolbar-center">
+            <button
+              type="button"
+              class="admin-nav-btn"
+              [class.active]="isAdminSection('nuova-auto')"
+              (click)="vaiAdminSezione('nuova-auto')"
+            >
+              <i class="fas fa-plus-circle"></i>
+              <span>Aggiungi Auto</span>
+            </button>
+
+            <button
+              type="button"
+              class="admin-nav-btn"
+              [class.active]="isAdminSection('utenti')"
+              (click)="vaiAdminSezione('utenti')"
+            >
+              <i class="fas fa-users"></i>
+              <span>Gestione Utenti</span>
+            </button>
+
+            <button
+              type="button"
+              class="admin-nav-btn"
+              [class.active]="isAdminSection('gestione-auto')"
+              (click)="vaiAdminSezione('gestione-auto')"
+            >
+              <i class="fas fa-car"></i>
+              <span>Gestione Auto</span>
+            </button>
+          </div>
+
+          <div class="admin-toolbar-right">
+            <button type="button" class="profile-btn logout-btn" (click)="logout()">
+              Logout
+            </button>
+          </div>
+        </div>
+      </ng-container>
+    </ng-template>
+
+    <ng-template #nonAdminNavbar>
+      <!-- NAVBAR VUOTA: solo logo -->
+      <ng-container *ngIf="isEmptyNavbar(); else defaultNavbar">
+        <div class="empty-navbar-spacer"></div>
+      </ng-container>
+    </ng-template>
+
+    <!-- NAVBAR STANDARD -->
+    <ng-template #defaultNavbar>
+      <div class="default-navbar-layout">
+        <ul class="nav-menu centered-menu" *ngIf="loggedIn">
+          <li>
+            <a routerLink="/Preferiti" routerLinkActive="active">❤️ Preferiti</a>
+          </li>
+
+          <li>
+            <a routerLink="/Profilo" routerLinkActive="active">👤 Profilo</a>
+          </li>
+
+          <li *ngIf="isAdmin()">
+            <a routerLink="/Admin" routerLinkActive="active" class="admin-link">
+              🛠️ Admin Panel
+            </a>
+          </li>
+        </ul>
+
+        <div class="nav-auth" *ngIf="!loggedIn">
+          <button class="btn-login" (click)="vaiLogin()">Accedi</button>
+          <button class="btn-register" (click)="vaiRegistrazione()">Registrati</button>
+        </div>
+      </div>
+    </ng-template>
   </div>
 </nav>

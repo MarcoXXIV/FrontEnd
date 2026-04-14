@@ -1,8 +1,8 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin, of, Subscription } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 import { UtenteService } from '../../services/UtenteService';
@@ -10,18 +10,20 @@ import { ConfrontoService } from '../../services/ConfrontoService';
 import { RecensioniService } from '../../services/RecensioniService';
 import { PreferitiService } from '../../services/PreferitiService';
 import { AuthService } from '../../services/AuthService';
+import { NavbarActionService } from '../../services/NavbarActionService';
 import { UtenteModel } from '../../models/UtenteModel';
 import { ConfrontoModel } from '../../models/ConfrontoModel';
 import { RecensioneModel } from '../../models/RecensioneModel';
+import {NavbarComponent} from '../../components/Navbar/NavbarComponent';
 
 @Component({
   selector: 'app-profilo',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, NavbarComponent],
   templateUrl: './ProfiloComponent.html',
   styleUrls: ['./ProfiloComponent.css']
 })
-export class ProfiloComponent implements OnInit {
+export class ProfiloComponent implements OnInit, OnDestroy {
   utente?: UtenteModel;
   mieisfide: ConfrontoModel[] = [];
   totaleSfide = 0;
@@ -40,18 +42,29 @@ export class ProfiloComponent implements OnInit {
   toastMsg = '';
   toastType: 'success' | 'error' = 'success';
 
+  private resetSub?: Subscription;
+
   constructor(
     private utenteService: UtenteService,
     private confrontoService: ConfrontoService,
     private recensioniService: RecensioniService,
     private preferitiService: PreferitiService,
     private authService: AuthService,
+    private navbarActionService: NavbarActionService,
     private router: Router,
     private cd: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.caricaTutto();
+
+    this.resetSub = this.navbarActionService.resetCronologia$.subscribe(() => {
+      this.pulisciCronologia();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.resetSub?.unsubscribe();
   }
 
   vaiHome(): void {

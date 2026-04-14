@@ -1,3 +1,5 @@
+<app-navbar></app-navbar>
+
 <div class="page-bg">
   <div class="toast-notification" [class.active]="showToast" [ngClass]="toastType">
     <div class="toast-content">
@@ -10,11 +12,6 @@
     <div class="toast-progress" [class.running]="showToast"></div>
   </div>
 
-  <div class="top-bar">
-    <button class="btn-home" (click)="tornaHome()">
-      <i class="fas fa-house"></i> Torna alla Home
-    </button>
-  </div>
 
   <div *ngIf="loading" class="loader-overlay">
     <div class="spinner"></div>
@@ -60,7 +57,10 @@
 
             <div class="bar-system" *ngIf="!p.isText">
               <div class="side-a">
-                <span class="val blue">{{ getVal(auto1, p.key) }} <small>{{ p.unit }}</small></span>
+                <span class="val blue">
+                  {{ formatValore(getVal(auto1, p.key)) }}
+                  <small *ngIf="!isValoreNonDisponibile(getVal(auto1, p.key))">{{ p.unit }}</small>
+                </span>
                 <div class="track">
                   <div class="fill blue-bar" [style.width.%]="getBarWidth(auto1, p)"></div>
                 </div>
@@ -70,13 +70,16 @@
                 <div class="track">
                   <div class="fill red-bar" [style.width.%]="getBarWidth(auto2, p)"></div>
                 </div>
-                <span class="val red">{{ getVal(auto2, p.key) }} <small>{{ p.unit }}</small></span>
+                <span class="val red">
+                  {{ formatValore(getVal(auto2, p.key)) }}
+                  <small *ngIf="!isValoreNonDisponibile(getVal(auto2, p.key))">{{ p.unit }}</small>
+                </span>
               </div>
             </div>
 
             <div class="text-system" *ngIf="p.isText">
-              <div class="txt-val blue-t">{{ getVal(auto1, p.key) }}</div>
-              <div class="txt-val red-t">{{ getVal(auto2, p.key) }}</div>
+              <div class="txt-val blue-t">{{ formatValore(getVal(auto1, p.key), true) }}</div>
+              <div class="txt-val red-t">{{ formatValore(getVal(auto2, p.key), true) }}</div>
             </div>
           </div>
         </div>

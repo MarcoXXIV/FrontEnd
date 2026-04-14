@@ -1,13 +1,14 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { PreferitiService } from '../../services/PreferitiService';
 import { PreferitoModel } from '../../models/PreferitoModel';
+import { NavbarComponent } from '../../components/Navbar/NavbarComponent';
 
 @Component({
   selector: 'app-preferiti',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, NavbarComponent],
   templateUrl: './PreferitiComponent.html',
   styleUrls: ['./PreferitiComponent.css']
 })
@@ -21,8 +22,7 @@ export class PreferitiComponent implements OnInit {
 
   constructor(
     private preferitiService: PreferitiService,
-    private cd: ChangeDetectorRef,
-    private router: Router
+    private cd: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -39,26 +39,23 @@ export class PreferitiComponent implements OnInit {
         this.cd.detectChanges();
       },
       error: (err) => {
-        console.error("Errore caricamento:", err);
+        console.error('Errore caricamento:', err);
         this.loading = false;
         this.cd.detectChanges();
       }
     });
   }
 
-  // Helper per ottenere l'immagine dell'auto 1
   getImgAuto1(p: PreferitoModel): string {
     const codice = p.confronto?.auto1?.codice;
     return codice ? `/assets/img/${codice}.png` : '/assets/img/Errore.png';
   }
 
-  // Helper per ottenere l'immagine dell'auto 2
   getImgAuto2(p: PreferitoModel): string {
     const codice = p.confronto?.auto2?.codice;
     return codice ? `/assets/img/${codice}.png` : '/assets/img/Errore.png';
   }
 
-  // Gestione errore caricamento immagine singola
   handleImgError(event: any): void {
     event.target.src = '/assets/img/Errore.png';
   }
@@ -70,12 +67,12 @@ export class PreferitiComponent implements OnInit {
       next: () => {
         this.listaPreferiti = this.listaPreferiti.filter(p => p.confronto?.id !== confrontoId);
         this.totalePreferiti = this.listaPreferiti.length;
-        this.triggerBanner("Bolide rimosso dal garage!");
+        this.triggerBanner('Bolide rimosso dal garage!');
         this.cd.detectChanges();
       },
       error: (err) => {
-        console.error("Errore:", err);
-        this.triggerBanner("Errore nella rimozione.");
+        console.error('Errore:', err);
+        this.triggerBanner('Errore nella rimozione.');
       }
     });
   }
@@ -91,9 +88,5 @@ export class PreferitiComponent implements OnInit {
 
   trackByPreferito(index: number, item: PreferitoModel): number {
     return item.id ?? item.confronto?.id ?? index;
-  }
-
-  vaiHome(): void {
-    this.router.navigate(['/Home']);
   }
 }

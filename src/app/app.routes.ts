@@ -1,10 +1,8 @@
 import { Routes } from '@angular/router';
 
-// Guard di sicurezza
 import { authGuard } from './guards/AuthGuards';
 import { adminGuard } from './guards/AdminGuards';
 
-// Componenti delle pagine
 import { HomeComponent } from './pages/Home/HomeComponent';
 import { LoginComponent } from './pages/Login/LoginComponent';
 import { RegistrazioneComponent } from './pages/Registrazione/RegistrazioneComponent';
@@ -12,46 +10,53 @@ import { ProfiloComponent } from './pages/Profilo/ProfiloComponent';
 import { ConfrontoComponent } from './pages/Confronto/ConfrontoComponent';
 import { PreferitiComponent } from './pages/Preferiti/PreferitiComponent';
 import { AdminComponent } from './pages/Admin/AdminComponent';
-import { InfoAutoComponent} from './pages/InfoAuto/InfoAutoComponent';
+import { InfoAutoComponent } from './pages/InfoAuto/InfoAutoComponent';
 
 export const routes: Routes = [
-  // --- ROTTE PUBBLICHE (Accessibili a tutti) ---
-  { path: 'Home', component: HomeComponent },
-  { path: 'Login', component: LoginComponent },
-  { path: 'Registrazione', component: RegistrazioneComponent },
-  { path: 'info-auto/:id', component: InfoAutoComponent },
-
-
-  // --- ROTTE PROTETTE (Richiedono Login) ---
+  {
+    path: 'Home',
+    component: HomeComponent,
+    data: { navbarMode: 'default' }
+  },
+  {
+    path: 'Login',
+    component: LoginComponent,
+    data: { navbarMode: 'default' }
+  },
+  {
+    path: 'Registrazione',
+    component: RegistrazioneComponent,
+    data: { navbarMode: 'default' }
+  },
+  {
+    path: 'info-auto/:id',
+    component: InfoAutoComponent,
+    data: { navbarMode: 'default' }
+  },
   {
     path: 'Profilo',
     component: ProfiloComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard],
+    data: { navbarMode: 'Profilo' }
   },
-
   {
     path: 'Confronto',
     component: ConfrontoComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard],
+    data: { navbarMode: 'default' }
   },
   {
     path: 'Preferiti',
     component: PreferitiComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard],
+    data: { navbarMode: 'empty' }
   },
-
-  // --- ROTTE ADMIN (Richiedono Login + Ruolo ADMIN) ---
   {
     path: 'Admin',
     component: AdminComponent,
-    canActivate: [authGuard, adminGuard]
-
+    canActivate: [authGuard, adminGuard],
+    data: { navbarMode: 'admin' }
   },
-
-  // --- REDIRECT E FALLBACK ---
-  // Se l'URL è vuoto, vai in Home
   { path: '', redirectTo: '/Home', pathMatch: 'full' },
-
-  // Se l'URL non esiste (404), rimanda in Home
   { path: '**', redirectTo: '/Home' }
 ];
