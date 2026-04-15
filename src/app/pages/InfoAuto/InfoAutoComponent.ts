@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, ViewportScroller } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Subject, map, distinctUntilChanged, takeUntil, timeout } from 'rxjs';
 import { AutoService } from '../../services/AutoService';
@@ -24,17 +24,21 @@ export class InfoAutoComponent implements OnInit, OnDestroy {
   loading = true;
   errore = '';
   caratteristicheComplete: CaratteristicaAuto[] = [];
-  immagineSrc: string = '/assets/img/Errore.png'; // Default iniziale
+  immagineSrc: string = '/assets/img/Errore.png';
+
   private destroy$ = new Subject<void>();
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private autoService: AutoService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private viewportScroller: ViewportScroller
   ) {}
 
   ngOnInit(): void {
+    this.scrollTop();
+
     this.route.paramMap
       .pipe(
         map(params => Number(params.get('id'))),
@@ -42,12 +46,16 @@ export class InfoAutoComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe(id => {
+        this.scrollTop();
+
         if (!id || id <= 0) {
           this.loading = false;
           this.errore = 'ID non valido.';
           this.cdr.detectChanges();
+          this.scrollTop();
           return;
         }
+
         this.caricaAuto(id);
       });
   }
@@ -59,25 +67,38 @@ export class InfoAutoComponent implements OnInit, OnDestroy {
 
   private caricaAuto(id: number): void {
     this.loading = true;
+    this.errore = '';
+    this.scrollTop();
+
     this.autoService.getAutoById(id)
-      .pipe(timeout(10000), takeUntil(this.destroy$))
+      .pipe(
+        timeout(10000),
+        takeUntil(this.destroy$)
+      )
       .subscribe({
         next: (data) => {
           this.auto = data;
-          this.impostaImmagine(); // Calcola il percorso immagine
+          this.impostaImmagine();
           this.preparaCaratteristiche();
           this.loading = false;
           this.cdr.detectChanges();
+          this.scrollTop();
         },
         error: () => {
           this.errore = 'Impossibile caricare i dati.';
           this.loading = false;
           this.cdr.detectChanges();
+          this.scrollTop();
         }
       });
   }
 
-  // Logica speculare a CardComponent per l'immagine
+  private scrollTop(): void {
+    setTimeout(() => {
+      this.viewportScroller.scrollToPosition([0, 0]);
+    }, 0);
+  }
+
   private impostaImmagine(): void {
     this.immagineSrc = this.auto?.codice
       ? `/assets/img/${this.auto.codice}.png`
@@ -88,7 +109,11 @@ export class InfoAutoComponent implements OnInit, OnDestroy {
     this.immagineSrc = '/assets/img/Errore.png';
   }
 
-  tornaAllaHome(): void { this.router.navigate(['/Home']); }
+  tornaAllaHome(): void {
+    this.router.navigate(['/Home']).then(() => {
+      this.viewportScroller.scrollToPosition([0, 0]);
+    });
+  }
 
   private preparaCaratteristiche(): void {
     if (!this.auto) return;
@@ -117,11 +142,13 @@ export class InfoAutoComponent implements OnInit, OnDestroy {
     this.caratteristicheComplete = configurazione
       .map(item => {
         const valore = this.leggiCampo(item.keys);
-        return valore ? {
-          label: item.label,
-          icon: item.icon,
-          value: this.formattaValore(valore, item.type, item.suffix ?? '')
-        } : null;
+        return valore !== null && valore !== undefined && valore !== ''
+          ? {
+            label: item.label,
+            icon: item.icon,
+            value: this.formattaValore(valore, item.type, item.suffix ?? '')
+          }
+          : null;
       })
       .filter((n): n is CaratteristicaAuto => n !== null);
   }
@@ -129,18 +156,39 @@ export class InfoAutoComponent implements OnInit, OnDestroy {
   private leggiCampo(keys: string[]): any {
     const obj = this.auto as any;
     for (const key of keys) {
-      if (obj[key] !== undefined && obj[key] !== null && obj[key] !== '') return obj[key];
+      if (obj[key] !== undefined && obj[key] !== null && obj[key] !== '') {
+        return obj[key];
+      }
     }
     return null;
   }
 
   private formattaValore(value: any, type: string, suffix: string): string {
-    if (type === 'currency') return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(value);
-    if (type === 'number') return `${new Intl.NumberFormat('it-IT').format(value)}${suffix}`;
+    if (type === 'currency') {
+      return new Intl.NumberFormat('it-IT', {
+        style: 'currency',
+        currency: 'EUR'
+      }).format(value);
+    }
+
+    if (type === 'number') {
+      return `${new Intl.NumberFormat('it-IT').format(value)}${suffix}`;
+    }
+
     return `${value}${suffix}`;
   }
 
-  get categoria(): string { return this.auto?.categoria ?? 'N/D'; }
-  get alimentazione(): string { return this.auto?.alimentazione ?? 'N/D'; }
-  get prezzo(): string { return this.auto?.prezzo ? this.formattaValore(this.auto.prezzo, 'currency', '') : 'N/D'; }
+  get categoria(): string {
+    return this.auto?.categoria ?? 'N/D';
+  }
+
+  get alimentazione(): string {
+    return this.auto?.alimentazione ?? 'N/D';
+  }
+
+  get prezzo(): string {
+    return this.auto?.prezzo
+      ? this.formattaValore(this.auto.prezzo, 'currency', '')
+      : 'N/D';
+  }
 }

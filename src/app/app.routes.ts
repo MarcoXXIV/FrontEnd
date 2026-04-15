@@ -21,12 +21,12 @@ export const routes: Routes = [
   {
     path: 'Login',
     component: LoginComponent,
-    data: { navbarMode: 'default' }
+    data: { navbarMode: 'empty' }
   },
   {
     path: 'Registrazione',
     component: RegistrazioneComponent,
-    data: { navbarMode: 'default' }
+    data: { navbarMode: 'empty' }
   },
   {
     path: 'info-auto/:id',
@@ -49,7 +49,7 @@ export const routes: Routes = [
     path: 'Preferiti',
     component: PreferitiComponent,
     canActivate: [authGuard],
-    data: { navbarMode: 'empty' }
+    data: { navbarMode: 'preferiti' }
   },
   {
     path: 'Admin',

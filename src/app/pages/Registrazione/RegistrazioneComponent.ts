@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/AuthService';
 import { RegisterRequest } from '../../models/RegisterRequest';
+import {NavbarComponent} from '../../components/Navbar/NavbarComponent';
 
 @Component({
   selector: 'app-registrazione',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NavbarComponent],
   templateUrl: './RegistrazioneComponent.html',
   styleUrl: './RegistrazioneComponent.css'
 })

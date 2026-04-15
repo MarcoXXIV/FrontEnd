@@ -2,7 +2,6 @@
 
 <div class="home-container">
   <header class="hero-section">
-
     <h1 class="hero-title">
       Trova il tuo prossimo <span class="highlight">Bolide</span>
     </h1>
@@ -38,15 +37,15 @@
 
   <div class="quick-actions">
     <button class="chip" (click)="caricaCatalogo()">
-      <i class="fas fa-random"></i> Random
+      <i class="fas fa-random"></i> Catalogo Completo
     </button>
 
     <button class="chip" (click)="caricaTopAccelerazione()">
-      <i class="fas fa-tachometer-alt"></i> Top Accelerazione
+      <i class="fas fa-tachometer-alt"></i> Top 10 Accelerazione
     </button>
 
     <button class="chip" (click)="caricaTopGreen()">
-      <i class="fas fa-leaf"></i> Eco Friendly
+      <i class="fas fa-leaf"></i> Top 10 Eco Friendly
     </button>
 
     <select class="chip select-chip" (change)="caricaPerCategoria($any($event.target).value)">
@@ -70,7 +69,7 @@
   <div class="auto-grid" *ngIf="!loading">
     <div
       class="card-wrapper"
-      *ngFor="let auto of autoFiltrate; trackBy: trackByAutoId"
+      *ngFor="let auto of autoPaginata; trackBy: trackByAutoId"
       [class.selected]="autoSelezionate.includes(auto.id!)"
     >
       <app-auto-card
@@ -90,6 +89,37 @@
     <h3>Nessun risultato disponibile</h3>
     <p>Prova a cambiare filtro o ricaricare il catalogo.</p>
     <button class="btn-search" (click)="caricaCatalogo()">Ricarica catalogo</button>
+  </div>
+
+  <div class="pagination-wrapper" *ngIf="!loading && autoFiltrate.length > 0 && totalePagine > 1">
+    <div class="pagination-info">
+      Mostrando <strong>{{ indiceInizio }}</strong> - <strong>{{ indiceFine }}</strong>
+      di <strong>{{ autoFiltrate.length }}</strong> auto
+    </div>
+
+    <div class="pagination">
+      <button
+        class="page-nav"
+        (click)="paginaPrecedente()"
+        [disabled]="paginaCorrente === 1">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+
+      <button
+        class="page-btn"
+        *ngFor="let pagina of pagine"
+        [class.active]="pagina === paginaCorrente"
+        (click)="vaiAPagina(pagina)">
+        {{ pagina }}
+      </button>
+
+      <button
+        class="page-nav"
+        (click)="paginaSuccessiva()"
+        [disabled]="paginaCorrente === totalePagine">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
   </div>
 
   <div class="comparison-bar" *ngIf="autoSelezionate.length > 0">

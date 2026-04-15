@@ -34,10 +34,6 @@
 
           <h2 class="sidebar-name">{{ utente.nome }} {{ utente.cognome }}</h2>
 
-          <span class="user-badge" [ngClass]="utente.ruolo?.toLowerCase()">
-            {{ utente.ruolo === 'ADMIN' ? 'Comandante' : 'Pilota Pro' }}
-          </span>
-
           <!-- Sfide e Garage sotto Comandante -->
           <div class="sidebar-stats">
             <div class="sidebar-stat-card">

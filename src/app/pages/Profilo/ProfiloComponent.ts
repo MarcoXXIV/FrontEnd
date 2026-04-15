@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { forkJoin, of, Subscription } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, filter } from 'rxjs/operators';
 
 import { UtenteService } from '../../services/UtenteService';
 import { ConfrontoService } from '../../services/ConfrontoService';
@@ -14,7 +14,7 @@ import { NavbarActionService } from '../../services/NavbarActionService';
 import { UtenteModel } from '../../models/UtenteModel';
 import { ConfrontoModel } from '../../models/ConfrontoModel';
 import { RecensioneModel } from '../../models/RecensioneModel';
-import {NavbarComponent} from '../../components/Navbar/NavbarComponent';
+import { NavbarComponent } from '../../components/Navbar/NavbarComponent';
 
 @Component({
   selector: 'app-profilo',
@@ -42,7 +42,7 @@ export class ProfiloComponent implements OnInit, OnDestroy {
   toastMsg = '';
   toastType: 'success' | 'error' = 'success';
 
-  private resetSub?: Subscription;
+  private subs: Subscription = new Subscription();
 
   constructor(
     private utenteService: UtenteService,
@@ -58,23 +58,26 @@ export class ProfiloComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.caricaTutto();
 
-    this.resetSub = this.navbarActionService.resetCronologia$.subscribe(() => {
-      this.pulisciCronologia();
-    });
+    this.subs.add(
+      this.navbarActionService.resetCronologia$.subscribe(() => {
+        this.mieisfide = [];
+        this.totaleSfide = 0;
+        this.triggerToast('Cronologia eliminata con successo!', 'success');
+        this.cd.detectChanges();
+      })
+    );
+
+    this.subs.add(
+      this.navbarActionService.resetRecensioni$.subscribe(() => {
+        this.mieRecensioni = [];
+        this.triggerToast('Tutte le recensioni sono state rimosse!', 'success');
+        this.cd.detectChanges();
+      })
+    );
   }
 
   ngOnDestroy(): void {
-    this.resetSub?.unsubscribe();
-  }
-
-  vaiHome(): void {
-    this.router.navigate(['/Home']);
-  }
-
-  logout(): void {
-    this.authService.logout();
-    this.cd.detectChanges();
-    this.router.navigate(['/Home']);
+    this.subs.unsubscribe();
   }
 
   caricaTutto(): void {
@@ -120,7 +123,10 @@ export class ProfiloComponent implements OnInit, OnDestroy {
           this.triggerToast('Recensione eliminata con successo!', 'success');
           this.cd.detectChanges();
         },
-        error: () => this.triggerToast('Errore durante l\'eliminazione.', 'error')
+        error: (err) => {
+          const msg = err.error || 'Errore durante l\'eliminazione.';
+          this.triggerToast(msg, 'error');
+        }
       });
     }
   }
@@ -133,7 +139,10 @@ export class ProfiloComponent implements OnInit, OnDestroy {
         this.utente = updated;
         this.triggerToast('Profilo aggiornato con successo!', 'success');
       },
-      error: () => this.triggerToast('Errore durante l\'aggiornamento.', 'error')
+      error: (err) => {
+        const msg = err.error || 'Errore durante l\'aggiornamento.';
+        this.triggerToast(msg, 'error');
+      }
     });
   }
 
@@ -158,22 +167,23 @@ export class ProfiloComponent implements OnInit, OnDestroy {
         this.confermaNuovaPsw = '';
         this.cd.detectChanges();
       },
-      error: () => this.triggerToast('Errore: La vecchia password è errata.', 'error')
+      error: (err) => {
+        const msg = err.error || 'Errore: La vecchia password è errata.';
+        this.triggerToast(msg, 'error');
+      }
     });
   }
 
   pulisciCronologia(): void {
-    if (confirm('Vuoi eliminare tutta la cronologia delle sfide?')) {
-      this.confrontoService.eliminaCronologia().subscribe({
-        next: () => {
-          this.mieisfide = [];
-          this.totaleSfide = 0;
-          this.triggerToast('Cronologia resettata!', 'success');
-          this.cd.detectChanges();
-        },
-        error: () => this.triggerToast('Errore nella pulizia.', 'error')
-      });
-    }
+    this.confrontoService.eliminaCronologia().subscribe({
+      next: () => {
+        this.mieisfide = [];
+        this.totaleSfide = 0;
+        this.triggerToast('Cronologia resettata!', 'success');
+        this.cd.detectChanges();
+      },
+      error: () => this.triggerToast('Errore nella pulizia della cronologia.', 'error')
+    });
   }
 
   private triggerToast(msg: string, type: 'success' | 'error'): void {

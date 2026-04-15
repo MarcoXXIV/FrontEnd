@@ -1,3 +1,4 @@
+<app-navbar></app-navbar>
 <div class="login-container">
   <div class="login-card">
     <div class="card-header">
@@ -19,7 +20,8 @@
             name="email"
             [(ngModel)]="credentials.email"
             placeholder="esempio@mail.com"
-            required>
+            required
+          />
         </div>
       </div>
 
@@ -34,13 +36,14 @@
             name="password"
             [(ngModel)]="credentials.password"
             placeholder="••••••••"
-            required>
+            required
+          />
 
           <i
             class="fas toggle-icon"
             [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"
-            (click)="togglePassword()">
-          </i>
+            (click)="togglePassword()"
+          ></i>
         </div>
       </div>
 
@@ -57,10 +60,6 @@
 
     <div class="card-footer">
       <p>Nuovo nel circuito? <a (click)="goToRegister()">Crea un account</a></p>
-
-      <button type="button" class="btn-home-link" (click)="vaiHome()">
-        <i class="fas fa-house"></i> Torna alla Home
-      </button>
     </div>
   </div>
 </div>

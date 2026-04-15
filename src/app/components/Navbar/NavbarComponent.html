@@ -1,31 +1,60 @@
 <nav class="navbar">
-  <div class="nav-container">
-    <a
-      routerLink="/Home"
-      routerLinkActive="active"
-      [routerLinkActiveOptions]="{ exact: true }"
-      class="logo-wrapper"
-      title="Torna alla Home"
-    >
-      <img
-        src="assets/img/SPECBATTLE.png"
-        alt="SpecBattle - Logo"
-        class="logo-img"
-      />
-      <span class="logo-text">SPEC<span>BATTLE</span></span>
-    </a>
+  <div class="nav-container" [class.sidebar-mode]="shouldShowMobileSidebar()">
 
-    <!-- NAVBAR PROFILO -->
-    <ng-container *ngIf="isProfileNavbar(); else nonProfileNavbar">
-      <div class="profile-toolbar">
-        <div class="profile-toolbar-center">
+    <!-- LOGO + HOME DESKTOP -->
+    <div class="logo-home-group">
+      <a
+        routerLink="/Home"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="logo-wrapper"
+        title="Torna alla Home"
+        (click)="closeSidebar()"
+      >
+        <img
+          src="assets/img/SPECBATTLE.png"
+          alt="SpecBattle - Logo"
+          class="logo-img"
+        />
+        <span class="logo-text">SPEC<span>BATTLE</span></span>
+      </a>
+
+      <!-- BOTTONE HOME SOLO DESKTOP -->
+      <button
+        type="button"
+        class="desktop-home-btn"
+        (click)="vaiHome()"
+      >
+        🏠 Home
+      </button>
+    </div>
+
+    <!-- PULSANTE MENU MOBILE -->
+    <button
+      *ngIf="shouldShowMobileSidebar()"
+      type="button"
+      class="mobile-sidebar-toggle"
+      (click)="toggleSidebar()"
+      aria-label="Apri menu laterale"
+      [attr.aria-expanded]="sidebarOpen"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <!-- NAVBAR PROFILO DESKTOP -->
+    <ng-container *ngIf="isProfileNavbar(); else otherNavbar">
+      <div class="profile-toolbar desktop-only-toolbar">
+        <div class="profile-spacer"></div>
+
+        <div class="profile-toolbar-right">
           <button
             type="button"
-            class="profile-btn profile-nav-btn"
-            [class.active]="isOnProfilo()"
-            (click)="vaiProfilo()"
+            class="profile-btn reset-btn"
+            (click)="resetRecensioniProfilo()"
           >
-            👤 Profilo personale
+            🗑️ Elimina Recensioni
           </button>
 
           <button
@@ -33,11 +62,9 @@
             class="profile-btn reset-btn"
             (click)="resetCronologiaProfilo()"
           >
-            🗑️ Reset
+            🗑️ Elimina Cronologia
           </button>
-        </div>
 
-        <div class="profile-toolbar-right">
           <button type="button" class="profile-btn logout-btn" (click)="logout()">
             Logout
           </button>
@@ -45,10 +72,10 @@
       </div>
     </ng-container>
 
-    <ng-template #nonProfileNavbar>
-      <!-- NAVBAR ADMIN -->
-      <ng-container *ngIf="isAdminNavbar(); else nonAdminNavbar">
-        <div class="admin-toolbar">
+    <ng-template #otherNavbar>
+      <!-- NAVBAR ADMIN DESKTOP -->
+      <ng-container *ngIf="isAdminNavbar(); else fallbackNavbar">
+        <div class="admin-toolbar desktop-only-toolbar">
           <div class="admin-toolbar-center">
             <button
               type="button"
@@ -90,8 +117,8 @@
       </ng-container>
     </ng-template>
 
-    <ng-template #nonAdminNavbar>
-      <!-- NAVBAR VUOTA: solo logo -->
+    <ng-template #fallbackNavbar>
+      <!-- NAVBAR VUOTA -->
       <ng-container *ngIf="isEmptyNavbar(); else defaultNavbar">
         <div class="empty-navbar-spacer"></div>
       </ng-container>
@@ -123,4 +150,246 @@
       </div>
     </ng-template>
   </div>
+
+  <!-- OVERLAY SIDEBAR MOBILE -->
+  <div
+    class="mobile-sidebar-overlay"
+    [class.open]="sidebarOpen"
+    *ngIf="shouldShowMobileSidebar()"
+    (click)="closeSidebar()"
+  ></div>
+
+  <!-- SIDEBAR MOBILE -->
+  <aside
+    class="mobile-sidebar"
+    [class.open]="sidebarOpen"
+    *ngIf="shouldShowMobileSidebar()"
+  >
+    <div class="mobile-sidebar-header">
+      <div class="mobile-sidebar-title">Menu</div>
+      <button
+        type="button"
+        class="mobile-sidebar-close"
+        (click)="closeSidebar()"
+        aria-label="Chiudi menu"
+      >
+        ✕
+      </button>
+    </div>
+
+    <!-- SIDEBAR MOBILE PROFILO -->
+    <div class="mobile-sidebar-content" *ngIf="isProfileNavbar(); else preferitiOrAdminSidebar">
+
+      <button
+        type="button"
+        class="sidebar-btn sidebar-reset-btn"
+        (click)="resetCronologiaProfilo()"
+      >
+        <span class="sidebar-icon">🗑️</span>
+        <span class="sidebar-label">Elimina Cronologia</span>
+      </button>
+
+      <button
+        type="button"
+        class="sidebar-btn sidebar-reset-btn"
+        (click)="resetRecensioniProfilo()"
+      >
+        <span class="sidebar-icon">🗑️</span>
+        <span class="sidebar-label">Elimina Recensioni</span>
+      </button>
+
+      <button
+        type="button"
+        class="sidebar-btn sidebar-profile-btn"
+        [class.active]="isOnPreferiti()"
+        (click)="vaiPreferiti()"
+      >
+        <span class="sidebar-icon">❤️</span>
+        <span class="sidebar-label">Preferiti</span>
+      </button>
+
+      <button
+        *ngIf="isAdmin()"
+        type="button"
+        class="sidebar-btn sidebar-admin-btn"
+        [class.active]="isOnAdmin()"
+        (click)="vaiAdmin()"
+      >
+        <span class="sidebar-icon">🛠️</span>
+        <span class="sidebar-label">Admin Panel</span>
+      </button>
+
+      <button
+        type="button"
+        class="sidebar-btn sidebar-logout-btn"
+        (click)="logout()"
+      >
+        <span class="sidebar-icon">🚪</span>
+        <span class="sidebar-label">Logout</span>
+      </button>
+
+      <button
+        type="button"
+        class="sidebar-btn sidebar-Home-btn"
+        (click)="vaiHome()"
+      >
+        <span class="sidebar-icon">🏠</span>
+        <span class="sidebar-label">Home</span>
+      </button>
+    </div>
+
+    <ng-template #preferitiOrAdminSidebar>
+      <!-- SIDEBAR MOBILE PREFERITI -->
+      <div class="mobile-sidebar-content" *ngIf="isPreferitiNavbar(); else adminOrDefaultSidebar">
+        <button
+          type="button"
+          class="sidebar-btn sidebar-profile-btn"
+          [class.active]="isOnProfilo()"
+          (click)="vaiProfilo()"
+        >
+          <span class="sidebar-icon">👤</span>
+          <span class="sidebar-label">Profilo</span>
+        </button>
+
+        <button
+          *ngIf="isAdmin()"
+          type="button"
+          class="sidebar-btn sidebar-admin-btn"
+          [class.active]="isOnAdmin()"
+          (click)="vaiAdmin()"
+        >
+          <span class="sidebar-icon">🛠️</span>
+          <span class="sidebar-label">Admin Panel</span>
+        </button>
+
+        <button
+          type="button"
+          class="sidebar-btn sidebar-Home-btn"
+          (click)="vaiHome()"
+        >
+          <span class="sidebar-icon">🏠</span>
+          <span class="sidebar-label">Home</span>
+        </button>
+      </div>
+    </ng-template>
+
+    <ng-template #adminOrDefaultSidebar>
+      <!-- SIDEBAR MOBILE ADMIN -->
+      <div class="mobile-sidebar-content" *ngIf="isAdminNavbar(); else defaultMobileSidebar">
+        <button
+          type="button"
+          class="sidebar-btn sidebar-admin-btn"
+          [class.active]="isAdminSection('nuova-auto')"
+          (click)="vaiAdminSezione('nuova-auto')"
+        >
+          <i class="fas fa-plus-circle sidebar-icon"></i>
+          <span class="sidebar-label">Aggiungi Auto</span>
+        </button>
+
+        <button
+          type="button"
+          class="sidebar-btn sidebar-admin-btn"
+          [class.active]="isAdminSection('utenti')"
+          (click)="vaiAdminSezione('utenti')"
+        >
+          <i class="fas fa-users sidebar-icon"></i>
+          <span class="sidebar-label">Gestione Utenti</span>
+        </button>
+
+        <button
+          type="button"
+          class="sidebar-btn sidebar-admin-btn"
+          [class.active]="isAdminSection('gestione-auto')"
+          (click)="vaiAdminSezione('gestione-auto')"
+        >
+          <i class="fas fa-car sidebar-icon"></i>
+          <span class="sidebar-label">Gestione Auto</span>
+        </button>
+
+        <button
+          type="button"
+          class="sidebar-btn sidebar-profile-btn"
+          [class.active]="isOnPreferiti()"
+          (click)="vaiPreferiti()"
+        >
+          <span class="sidebar-icon">❤️</span>
+          <span class="sidebar-label">Preferiti</span>
+        </button>
+
+        <button
+          *ngIf="isAdmin()"
+          type="button"
+          class="sidebar-btn sidebar-admin-btn"
+          [class.active]="isOnAdmin()"
+          (click)="vaiAdmin()"
+        >
+          <span class="sidebar-icon">🛠️</span>
+          <span class="sidebar-label">Admin Panel</span>
+        </button>
+
+        <button
+          type="button"
+          class="sidebar-btn sidebar-logout-btn"
+          (click)="logout()"
+        >
+          <span class="sidebar-icon">🚪</span>
+          <span class="sidebar-label">Logout</span>
+        </button>
+
+        <button
+          type="button"
+          class="sidebar-btn sidebar-Home-btn"
+          (click)="vaiHome()"
+        >
+          <span class="sidebar-icon">🏠</span>
+          <span class="sidebar-label">Home</span>
+        </button>
+      </div>
+    </ng-template>
+
+    <!-- SIDEBAR MOBILE DEFAULT -->
+    <ng-template #defaultMobileSidebar>
+      <div class="mobile-sidebar-content">
+        <button
+          type="button"
+          class="sidebar-btn sidebar-profile-btn"
+          [class.active]="isOnProfilo()"
+          (click)="vaiProfilo()"
+        >
+          <span class="sidebar-icon">👤</span>
+          <span class="sidebar-label">Profilo</span>
+        </button>
+
+        <button
+          type="button"
+          class="sidebar-btn sidebar-profile-btn"
+          [class.active]="isOnPreferiti()"
+          (click)="vaiPreferiti()"
+        >
+          <span class="sidebar-icon">❤️</span>
+          <span class="sidebar-label">Preferiti</span>
+        </button>
+
+        <button
+          *ngIf="isAdmin()"
+          type="button"
+          class="sidebar-btn sidebar-admin-btn"
+          [class.active]="isOnAdmin()"
+          (click)="vaiAdmin()"
+        >
+          <span class="sidebar-icon">🛠️</span>
+          <span class="sidebar-label">Admin Panel</span>
+        </button>
+
+        <button
+          type="button"
+          class="sidebar-btn sidebar-Home-btn"
+          (click)="vaiHome()"
+        >
+          <span class="sidebar-icon">🏠</span>
+          <span class="sidebar-label">Home</span>
+        </button>
+      </div>
+    </ng-template>
+  </aside>
 </nav>

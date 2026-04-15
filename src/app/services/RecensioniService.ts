@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../environments/environment';
 import { RecensioneModel } from '../models/RecensioneModel';
 
+
 @Injectable({
   providedIn: 'root'
 })
@@ -53,5 +54,9 @@ export class RecensioniService {
       .set('auto2Id', auto2Id.toString());
 
     return this.http.delete<void>(`${this.apiUrl}/elimina`, { params });
+  }
+
+  eliminaTutteLeRecensioni(): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/deleteAll`);
   }
 }

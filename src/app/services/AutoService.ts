@@ -16,10 +16,6 @@ export class AutoService {
     return this.http.get<AutoModel[]>(`${this.apiUrl}/all`);
   }
 
-  getRandom10(): Observable<AutoModel[]> {
-    return this.http.get<AutoModel[]>(`${this.apiUrl}/random`);
-  }
-
   getAutoById(id: number): Observable<AutoModel> {
     return this.http.get<AutoModel>(`${this.apiUrl}/${id}`);
   }

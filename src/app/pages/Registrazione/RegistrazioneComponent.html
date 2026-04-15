@@ -1,5 +1,5 @@
+<app-navbar></app-navbar>
 <div class="register-container">
-
   <div class="register-content-wrapper fade-in">
 
     <header class="admin-header-style">
@@ -7,17 +7,9 @@
         <h1><i class="fas fa-flag-checkered"></i> Pit Lane</h1>
         <p>Crea il tuo profilo pilota e scendi in pista</p>
       </div>
-
-      <div class="header-actions">
-
-        <button class="btn-home-green" (click)="vaiHome()">
-          <i class="fas fa-house"></i> Home
-        </button>
-      </div>
     </header>
 
     <div class="register-card">
-
       <form (ngSubmit)="onRegister()" #registerForm="ngForm" class="register-form">
 
         <div class="row">
@@ -25,7 +17,13 @@
             <label>Nome</label>
             <div class="input-wrapper">
               <i class="fas fa-user"></i>
-              <input type="text" name="nome" [(ngModel)]="user.nome" placeholder="Mario" required>
+              <input
+                type="text"
+                name="nome"
+                [(ngModel)]="user.nome"
+                placeholder="Mario"
+                required
+              />
             </div>
           </div>
 
@@ -33,7 +31,13 @@
             <label>Cognome</label>
             <div class="input-wrapper">
               <i class="fas fa-user-tag"></i>
-              <input type="text" name="cognome" [(ngModel)]="user.cognome" placeholder="Rossi" required>
+              <input
+                type="text"
+                name="cognome"
+                [(ngModel)]="user.cognome"
+                placeholder="Rossi"
+                required
+              />
             </div>
           </div>
         </div>
@@ -42,7 +46,13 @@
           <label>Email</label>
           <div class="input-wrapper">
             <i class="fas fa-envelope"></i>
-            <input type="email" name="email" [(ngModel)]="user.email" placeholder="mario.rossi@mail.it" required>
+            <input
+              type="email"
+              name="email"
+              [(ngModel)]="user.email"
+              placeholder="mario.rossi@mail.it"
+              required
+            />
           </div>
         </div>
 
@@ -50,8 +60,18 @@
           <label>Password</label>
           <div class="input-wrapper">
             <i class="fas fa-lock"></i>
-            <input [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="user.password" placeholder="••••••••" required>
-            <i class="fas toggle-icon" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'" (click)="togglePassword()"></i>
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              name="password"
+              [(ngModel)]="user.password"
+              placeholder="••••••••"
+              required
+            />
+            <i
+              class="fas toggle-icon"
+              [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"
+              (click)="togglePassword()"
+            ></i>
           </div>
         </div>
 
@@ -59,7 +79,13 @@
           <label>Conferma Password</label>
           <div class="input-wrapper">
             <i class="fas fa-shield-alt"></i>
-            <input [type]="showPassword ? 'text' : 'password'" name="conferma" [(ngModel)]="confermaPassword" placeholder="••••••••" required>
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              name="conferma"
+              [(ngModel)]="confermaPassword"
+              placeholder="••••••••"
+              required
+            />
           </div>
         </div>
 

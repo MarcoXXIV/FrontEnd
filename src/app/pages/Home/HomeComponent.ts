@@ -19,6 +19,7 @@ import { NavbarComponent } from '../../components/Navbar/NavbarComponent';
 export class HomeComponent implements OnInit, OnDestroy {
   listaAuto: AutoModel[] = [];
   autoFiltrate: AutoModel[] = [];
+  autoPaginata: AutoModel[] = [];
   autoSelezionate: number[] = [];
 
   filtroMarca: string = '';
@@ -28,6 +29,11 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   utenteLoggato: boolean = false;
   isAdminUser: boolean = false;
+
+  paginaCorrente: number = 1;
+  readonly autoPerPagina: number = 12;
+  totalePagine: number = 0;
+  pagine: number[] = [];
 
   private routerSub?: Subscription;
 
@@ -63,14 +69,70 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.autoFiltrate = [...data];
     this.messaggio = msg;
     this.loading = false;
+
+    this.paginaCorrente = 1;
+    this.aggiornaPaginazione();
+
     this.cd.detectChanges();
+  }
+
+  private aggiornaPaginazione(): void {
+    this.totalePagine = Math.ceil(this.autoFiltrate.length / this.autoPerPagina);
+
+    if (this.totalePagine === 0) {
+      this.autoPaginata = [];
+      this.pagine = [];
+      return;
+    }
+
+    if (this.paginaCorrente > this.totalePagine) {
+      this.paginaCorrente = this.totalePagine;
+    }
+
+    const start = (this.paginaCorrente - 1) * this.autoPerPagina;
+    const end = start + this.autoPerPagina;
+
+    this.autoPaginata = this.autoFiltrate.slice(start, end);
+    this.pagine = Array.from({ length: this.totalePagine }, (_, i) => i + 1);
+  }
+
+  vaiAPagina(pagina: number): void {
+    if (pagina < 1 || pagina > this.totalePagine || pagina === this.paginaCorrente) {
+      return;
+    }
+
+    this.paginaCorrente = pagina;
+    this.aggiornaPaginazione();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.cd.detectChanges();
+  }
+
+  paginaPrecedente(): void {
+    if (this.paginaCorrente > 1) {
+      this.vaiAPagina(this.paginaCorrente - 1);
+    }
+  }
+
+  paginaSuccessiva(): void {
+    if (this.paginaCorrente < this.totalePagine) {
+      this.vaiAPagina(this.paginaCorrente + 1);
+    }
+  }
+
+  get indiceInizio(): number {
+    if (this.autoFiltrate.length === 0) return 0;
+    return (this.paginaCorrente - 1) * this.autoPerPagina + 1;
+  }
+
+  get indiceFine(): number {
+    return Math.min(this.paginaCorrente * this.autoPerPagina, this.autoFiltrate.length);
   }
 
   caricaCatalogo(): void {
     this.loading = true;
     this.messaggio = '';
 
-    this.autoService.getRandom10().subscribe({
+    this.autoService.getAllAuto().subscribe({
       next: (data) => {
         this.gestisciRisposta(data, 'Esplora il catalogo. Per sfidare 2 auto serve il login.');
       },
@@ -108,6 +170,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.filtroMarca = '';
     this.filtroModello = '';
     this.autoSelezionate = [];
+    this.paginaCorrente = 1;
     this.caricaCatalogo();
   }
 
@@ -132,7 +195,9 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.cd.detectChanges();
 
         setTimeout(() => {
-          this.router.navigate(['/Login']);
+          this.router.navigate(['/Login']).then(() => {
+            window.scrollTo({ top: 0, behavior: 'auto' });
+          });
         }, 400);
 
         return;
@@ -140,8 +205,11 @@ export class HomeComponent implements OnInit, OnDestroy {
 
       const [id1, id2] = this.autoSelezionate;
 
+      // Navigazione verso il confronto con reset dello scroll
       this.router.navigate(['/Confronto'], {
         queryParams: { idAuto1: id1, idAuto2: id2 }
+      }).then(() => {
+        window.scrollTo({ top: 0, behavior: 'auto' });
       });
 
       this.autoSelezionate = [];
@@ -151,7 +219,10 @@ export class HomeComponent implements OnInit, OnDestroy {
   apriInfoAuto(idAuto: number): void {
     console.log('Navigo verso info auto con id:', idAuto);
     if (!idAuto) return;
-    this.router.navigate(['/info-auto', idAuto]);
+
+    this.router.navigate(['/info-auto', idAuto]).then(() => {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    });
   }
 
 
