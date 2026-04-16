@@ -1,16 +1,6 @@
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  HostListener
-} from '@angular/core';
-import { CommonModule } from '@angular/common';
-import {
-  RouterModule,
-  Router,
-  NavigationEnd,
-  ActivatedRoute
-} from '@angular/router';
+import { Component, OnInit, OnDestroy, HostListener, Inject } from '@angular/core';
+import { CommonModule, DOCUMENT } from '@angular/common';
+import { RouterModule, Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 import { AuthService } from '../../services/AuthService';
 import { NavbarActionService } from '../../services/NavbarActionService';
@@ -24,7 +14,7 @@ type NavbarMode = 'default' | 'Profilo' | 'empty' | 'admin' | 'preferiti';
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './NavbarComponent.html',
-  styleUrls: ['./NavbarComponent.css']
+  styleUrls: ['./NavbarComponent.css'],
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   loggedIn = false;
@@ -36,19 +26,21 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private routerSub?: Subscription;
 
   constructor(
+    @Inject(DOCUMENT) private document: Document,
     public authService: AuthService,
     private router: Router,
     private activatedRoute: ActivatedRoute,
     private navbarActionService: NavbarActionService,
-    private recensioniService: RecensioniService
+    private recensioniService: RecensioniService,
   ) {}
 
   ngOnInit(): void {
     this.aggiornaStato();
     this.aggiornaNavbarMode();
+    this.normalizeSidebarState();
 
     this.routerSub = this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
+      .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe(() => {
         this.aggiornaStato();
         this.aggiornaNavbarMode();
@@ -61,6 +53,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.routerSub?.unsubscribe();
     window.removeEventListener('storage', this.syncAuthState);
+    this.document.body.classList.remove('sidebar-open');
   }
 
   @HostListener('window:resize')
@@ -80,7 +73,24 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private syncAuthState = (): void => {
     this.aggiornaStato();
     this.aggiornaNavbarMode();
+    this.normalizeSidebarState();
   };
+
+  private normalizeSidebarState(): void {
+    if (!this.shouldShowMobileSidebar()) {
+      this.sidebarOpen = false;
+    }
+
+    this.document.body.classList.toggle(
+      'sidebar-open',
+      this.sidebarOpen && this.shouldShowMobileSidebar(),
+    );
+  }
+
+  private setSidebarState(open: boolean): void {
+    this.sidebarOpen = open && this.shouldShowMobileSidebar();
+    this.normalizeSidebarState();
+  }
 
   aggiornaStato(): void {
     this.loggedIn = this.authService.isLoggedIn();
@@ -97,11 +107,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.navbarMode = (route.snapshot.data['navbarMode'] || 'default') as NavbarMode;
 
     const section = route.snapshot.queryParamMap.get('section');
-    if (
-      section === 'nuova-auto' ||
-      section === 'utenti' ||
-      section === 'gestione-auto'
-    ) {
+    if (section === 'nuova-auto' || section === 'utenti' || section === 'gestione-auto') {
       this.adminSection = section;
     } else {
       this.adminSection = 'nuova-auto';
@@ -158,11 +164,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   toggleSidebar(): void {
-    this.sidebarOpen = !this.sidebarOpen;
+    this.setSidebarState(!this.sidebarOpen);
   }
 
   closeSidebar(): void {
-    this.sidebarOpen = false;
+    this.setSidebarState(false);
   }
 
   vaiLogin(): void {
@@ -188,7 +194,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   vaiAdmin(): void {
     this.closeSidebar();
     this.router.navigate(['/Admin'], {
-      queryParams: { section: 'nuova-auto' }
+      queryParams: { section: 'nuova-auto' },
     });
   }
 
@@ -200,7 +206,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   vaiAdminSezione(section: AdminSection): void {
     this.closeSidebar();
     this.router.navigate(['/Admin'], {
-      queryParams: { section }
+      queryParams: { section },
     });
   }
 
@@ -232,9 +238,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
         console.log('Recensioni eliminate e UI sincronizzata');
       },
       error: (err) => {
-        console.error('Errore durante l\'eliminazione:', err);
-        alert('Errore tecnico durante l\'eliminazione.');
-      }
+        console.error("Errore durante l'eliminazione:", err);
+        alert("Errore tecnico durante l'eliminazione.");
+      },
     });
   }
 }
