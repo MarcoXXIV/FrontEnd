@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './stat-progress-barComponent.html',
-  styleUrls: ['./stat-progress-barComponent.css']
+  styleUrls: ['./stat-progress-barComponent.css'],
 })
 export class StatProgressBarComponent {
   @Input() value: number = 0;
@@ -14,9 +14,12 @@ export class StatProgressBarComponent {
   @Input() color: string = '#3498db';
 
   get percentage(): number {
-    // Evitiamo divisioni per zero e percentuali superiori a 100
-    if (!this.max || this.max === 0) return 0;
+    if (!this.max || this.max <= 0) return 0;
+
     const calc = (this.value / this.max) * 100;
-    return calc > 100 ? 100 : calc;
+
+    if (!Number.isFinite(calc)) return 0;
+
+    return Math.max(0, Math.min(calc, 100));
   }
 }

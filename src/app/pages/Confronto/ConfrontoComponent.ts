@@ -1,8 +1,8 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subscription } from 'rxjs';
 
 import { AutoService } from '../../services/AutoService';
 import { PreferitiService } from '../../services/PreferitiService';
@@ -22,7 +22,10 @@ interface ParametroConfronto {
   isText?: boolean;
 }
 
-type GaraModalita = 'accelerazione0100' | 'accelerazione100200' | 'accelerazione80140';
+type GaraModalita =
+  | 'accelerazione0100'
+  | 'accelerazione100200'
+  | 'accelerazione80140';
 
 @Component({
   selector: 'app-confronto',
@@ -31,7 +34,7 @@ type GaraModalita = 'accelerazione0100' | 'accelerazione100200' | 'accelerazione
   templateUrl: './ConfrontoComponent.html',
   styleUrls: ['./ConfrontoComponent.css']
 })
-export class ConfrontoComponent implements OnInit {
+export class ConfrontoComponent implements OnInit, OnDestroy {
   auto1?: AutoModel;
   auto2?: AutoModel;
 
@@ -56,6 +59,8 @@ export class ConfrontoComponent implements OnInit {
   toastMsg = '';
   toastType: 'success' | 'error' = 'success';
   private toastTimeout: any;
+
+  private queryParamsSub?: Subscription;
 
   soglieConfronto: Partial<Record<keyof AutoModel, number>> = {};
 
@@ -97,7 +102,7 @@ export class ConfrontoComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe(params => {
+    this.queryParamsSub = this.route.queryParams.subscribe(params => {
       const id1 = Number(params['idAuto1']);
       const id2 = Number(params['idAuto2']);
 
@@ -109,6 +114,11 @@ export class ConfrontoComponent implements OnInit {
 
       this.inizializzaConfronto(id1, id2);
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.toastTimeout) clearTimeout(this.toastTimeout);
+    this.queryParamsSub?.unsubscribe();
   }
 
   inizializzaConfronto(id1: number, id2: number): void {
@@ -182,9 +192,7 @@ export class ConfrontoComponent implements OnInit {
     this.toastType = type;
     this.showToast = false;
 
-    if (this.toastTimeout) {
-      clearTimeout(this.toastTimeout);
-    }
+    if (this.toastTimeout) clearTimeout(this.toastTimeout);
 
     setTimeout(() => {
       this.showToast = true;
@@ -318,7 +326,6 @@ export class ConfrontoComponent implements OnInit {
       const v1 = Number(this.getVal(this.auto1!, parametro.key)) || 0;
       const v2 = Number(this.getVal(this.auto2!, parametro.key)) || 0;
 
-      // Prende sempre il valore numerico più alto tra le due auto per questo parametro
       soglie[parametro.key] = Math.max(v1, v2);
     });
 
@@ -326,23 +333,24 @@ export class ConfrontoComponent implements OnInit {
   }
 
   getPerc(valore: unknown, parametro: ParametroConfronto): number {
-    if (this.isValoreNonDisponibile(valore) || !this.auto1 || !this.auto2) return 0;
+    if (parametro.isText || this.isValoreNonDisponibile(valore) || !this.auto1 || !this.auto2) {
+      return 0;
+    }
 
     const v = Number(valore);
-    const v1 = Number(this.getVal(this.auto1, parametro.key)) || 0;
-    const v2 = Number(this.getVal(this.auto2, parametro.key)) || 0;
+    const benchmark =
+      Number(this.soglieConfronto[parametro.key]) ||
+      Math.max(
+        Number(this.getVal(this.auto1, parametro.key)) || 0,
+        Number(this.getVal(this.auto2, parametro.key)) || 0
+      );
 
-    if (v1 === v2) return 100;
+    if (!benchmark || benchmark <= 0) return 0;
 
-    let benchmark: number;
+    const perc = (v / benchmark) * 100;
+    if (!Number.isFinite(perc)) return 0;
 
-    if (parametro.invert) {
-      benchmark = Math.min(v1, v2);
-      return (benchmark / v) * 100;
-    } else {
-      benchmark = Math.max(v1, v2);
-      return (v / benchmark) * 100;
-    }
+    return Math.max(0, Math.min(perc, 100));
   }
 
   getBarWidth(auto: AutoModel, parametro: ParametroConfronto): number {
@@ -388,6 +396,7 @@ export class ConfrontoComponent implements OnInit {
 
   setGaraMode(mode: GaraModalita, event?: Event): void {
     if (event) event.stopPropagation();
+    if (!this.hasRaceData(mode)) return;
 
     this.garaMode = mode;
 

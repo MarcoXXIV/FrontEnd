@@ -41,7 +41,11 @@
 
       <div class="vs-container">
         <div class="vs-hex">VS</div>
-        <button type="button" class="btn-fav" (click)="togglePreferito($event)" [class.active]="isPreferito">
+        <button
+          type="button"
+          class="btn-fav"
+          (click)="togglePreferito($event)"
+          [class.active]="isPreferito">
           <i [class.fas]="isPreferito" [class.far]="!isPreferito" class="fa-heart"></i>
         </button>
       </div>
@@ -61,7 +65,9 @@
       <div class="panel specs-panel">
         <h3 class="panel-title">Confronto Prestazioni</h3>
         <p class="panel-subtitle">
-          Le barre mostrano la dimensione numerica del valore più alto; il badge "Migliore" continua invece a seguire la logica del parametro.
+          Le barre mostrano sempre la dimensione numerica del valore più alto.
+          Il badge “Migliore” continua invece a seguire la logica del parametro
+          (es. nei tempi più basso = migliore).
         </p>
 
         <div class="specs-grid">
@@ -74,6 +80,7 @@
           >
             <div class="spec-top">
               <div class="label-stat">{{ p.label }}</div>
+
               <div class="mini-result" *ngIf="!p.isText">
                 <span *ngIf="isWinner(1, p)" class="mini-badge left-badge">Migliore</span>
                 <span *ngIf="isTie(p)" class="mini-badge tie-badge">Parità</span>
@@ -86,10 +93,11 @@
                 <span
                   class="val blue"
                   [class.winner-text]="isWinner(1, p)"
-                  [class.tie-text]="isTie(p)"
-                >
-                  {{ formatValore(getVal(auto1, p.key)) }}<small *ngIf="!isValoreNonDisponibile(getVal(auto1, p.key))">{{ p.unit }}</small>
+                  [class.tie-text]="isTie(p)">
+                  {{ formatValore(getVal(auto1, p.key)) }}
+                  <small *ngIf="!isValoreNonDisponibile(getVal(auto1, p.key))">{{ p.unit }}</small>
                 </span>
+
                 <div class="track track-left">
                   <div
                     class="fill blue-bar"
@@ -109,12 +117,13 @@
                     [style.width.%]="getBarWidth(auto2, p)">
                   </div>
                 </div>
+
                 <span
                   class="val red"
                   [class.winner-text]="isWinner(2, p)"
-                  [class.tie-text]="isTie(p)"
-                >
-                  {{ formatValore(getVal(auto2, p.key)) }}<small *ngIf="!isValoreNonDisponibile(getVal(auto2, p.key))">{{ p.unit }}</small>
+                  [class.tie-text]="isTie(p)">
+                  {{ formatValore(getVal(auto2, p.key)) }}
+                  <small *ngIf="!isValoreNonDisponibile(getVal(auto2, p.key))">{{ p.unit }}</small>
                 </span>
               </div>
             </div>
@@ -136,6 +145,7 @@
             Scegli la prova reale e guarda la simulazione usando i tempi veri delle due auto.
           </p>
         </div>
+
         <div class="selected-race-pill">
           <i class="fas fa-flag-checkered"></i>
           {{ getLabelGara() }}
@@ -149,6 +159,7 @@
           class="mode-chip"
           [class.active]="garaMode === opt.key"
           [class.disabled]="!hasRaceData(opt.key)"
+          [disabled]="!hasRaceData(opt.key)"
           (click)="setGaraMode(opt.key, $event)"
         >
           <span class="mode-main">{{ opt.label }}</span>
@@ -162,10 +173,12 @@
           <h4>{{ auto1.modello }}</h4>
           <div class="preview-time">{{ getTempoDisplayForMode(auto1, garaMode) }}</div>
         </div>
+
         <div class="preview-middle">
           <div class="preview-vs">VS</div>
           <div class="preview-mode">{{ getLabelGara() }}</div>
         </div>
+
         <div class="preview-card right-preview" [class.fastest]="getRaceWinnerPreview() === 2">
           <span class="preview-label">{{ auto2.marca }}</span>
           <h4>{{ auto2.modello }}</h4>
@@ -191,6 +204,7 @@
           [trigger]="garaTrigger"
           [modalita]="garaMode">
         </app-gara-animation>
+
         <div class="race-footer">
           <button type="button" class="btn-redo" (click)="resetGara($event)">
             RIGIOCA <i class="fas fa-redo"></i>
@@ -203,6 +217,7 @@
       <div class="feedback-layout">
         <div class="stars-side">
           <p>IL TUO VOTO</p>
+
           <div class="stars-container">
             <div class="stars">
               <i
@@ -213,8 +228,10 @@
                 class="fa-star">
               </i>
             </div>
+
             <span class="voto-label">{{ voto }} / 5</span>
           </div>
+
           <div *ngIf="mediaRecensioni !== null" class="media-voti">
             Media: <strong>{{ mediaRecensioni | number:'1.1-2' }}/5</strong>
           </div>
@@ -222,10 +239,12 @@
 
         <div class="comment-side">
           <h3>LASCIACI UN COMMENTO</h3>
+
           <div *ngIf="!recensioneInviata" class="form-inner">
             <textarea [(ngModel)]="commento" placeholder="Cosa ne pensi di questo scontro?"></textarea>
             <button type="button" class="btn-send" (click)="inviaRecensione()">PUBBLICA</button>
           </div>
+
           <div *ngIf="recensioneInviata" class="success-banner fade-in">
             <i class="fas fa-check-circle"></i> Inviata con successo!
           </div>
@@ -233,6 +252,7 @@
 
         <div class="reviews-list-side">
           <h3>ULTIME OPINIONI</h3>
+
           <div class="reviews-scroll">
             <div *ngFor="let r of recensioniCoppia; trackBy: trackByRecensione" class="mini-review-card fade-in">
               <div class="r-head">
@@ -244,8 +264,10 @@
                     [class.far]="s > r.voto">
                   </i>
                 </div>
+
                 <span class="r-user">{{ r.utente?.nome || 'Pilota' }}</span>
               </div>
+
               <p class="r-text">"{{ r.commento }}"</p>
             </div>
           </div>

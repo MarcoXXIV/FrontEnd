@@ -4,6 +4,8 @@
   min-height: 100vh;
   padding: 30px;
   font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .container {
@@ -165,6 +167,7 @@
 
 .car-box {
   flex: 1;
+  min-width: 0;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 24px;
   overflow: hidden;
@@ -203,6 +206,7 @@
   font-size: 1.8rem;
   margin: 5px 0;
   font-weight: 900;
+  word-break: break-word;
 }
 
 .car-info span {
@@ -226,6 +230,7 @@
   align-items: center;
   justify-content: center;
   gap: 15px;
+  flex-shrink: 0;
 }
 
 .vs-hex {
@@ -265,11 +270,12 @@
 
 .specs-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
 }
 
 .spec-card {
+  min-width: 0;
   background: rgba(255,255,255,0.03);
   padding: 20px;
   border-radius: 20px;
@@ -306,12 +312,14 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
+  min-width: 0;
 }
 
 .mini-result {
   min-width: 80px;
   display: flex;
   justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 .mini-badge {
@@ -320,6 +328,7 @@
   font-size: 0.68rem;
   font-weight: 900;
   letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
 .left-badge {
@@ -340,12 +349,10 @@
   border: 1px solid rgba(245,158,11,0.25);
 }
 
-/* ============================================================
-   BAR SYSTEM — fix testo lungo che spinge la barra
-   ============================================================ */
+/* BAR SYSTEM */
 .bar-system {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 20px;
   align-items: center;
 }
@@ -359,45 +366,42 @@
 }
 
 .side-a {
-  flex-direction: row;          /* valore | barra→ */
+  flex-direction: row;
   justify-content: flex-end;
 }
 
 .side-b {
-  flex-direction: row;          /* ←barra | valore */
+  flex-direction: row;
   justify-content: flex-start;
 }
 
-/* Il testo del valore ha larghezza fissa così non schiaccia il track */
 .val {
   flex-shrink: 0;
-  width: 90px;                  /* abbastanza per "150450 €" */
+  width: 105px;
   font-weight: 800;
   font-size: 0.95rem;
-  line-height: 1;
+  line-height: 1.1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Il testo a sinistra è allineato a destra */
 .side-a .val {
   text-align: right;
 }
 
-/* Il testo a destra è allineato a sinistra */
 .side-b .val {
   text-align: left;
 }
 
 .val small {
   font-size: 0.7rem;
-  opacity: 0.6;
+  opacity: 0.7;
   margin-left: 2px;
 }
 
 .track {
-  flex: 1;                      /* occupa tutto lo spazio rimanente */
+  flex: 1;
   min-width: 0;
   height: 10px;
   background: rgba(255,255,255,0.1);
@@ -408,18 +412,18 @@
   align-items: center;
 }
 
-.track-left {
-  justify-content: flex-end;   /* la barra blu cresce da destra verso sinistra */
-}
-
+/* FIX IMPORTANTE:
+   entrambe le barre partono da sinistra verso destra */
+.track-left,
 .track-right {
-  justify-content: flex-start; /* la barra rossa cresce da sinistra verso destra */
+  justify-content: flex-start;
 }
 
 .fill {
   height: 100%;
-  transition: width 1s ease-out;
+  transition: width 0.8s ease-out;
   border-radius: 10px;
+  min-width: 0;
 }
 
 .blue-bar {
@@ -461,7 +465,7 @@
 
 .text-system {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -472,6 +476,7 @@
   text-align: center;
   font-weight: 800;
   border: 1px solid rgba(255,255,255,0.05);
+  word-break: break-word;
 }
 
 /* RACE ZONE */
@@ -525,7 +530,7 @@
 
 .mode-switcher {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 22px;
 }
@@ -543,9 +548,10 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 
-.mode-chip:hover {
+.mode-chip:hover:not(:disabled) {
   transform: translateY(-2px);
   background: rgba(255,255,255,0.06);
 }
@@ -556,8 +562,10 @@
   box-shadow: 0 12px 24px rgba(59,130,246,0.12);
 }
 
-.mode-chip.disabled {
+.mode-chip.disabled,
+.mode-chip:disabled {
   opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .mode-main {
@@ -572,7 +580,7 @@
 
 .race-preview {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   gap: 16px;
   align-items: center;
   margin-bottom: 24px;
@@ -584,6 +592,7 @@
   padding: 18px;
   border: 1px solid rgba(255,255,255,0.06);
   transition: 0.25s ease;
+  min-width: 0;
 }
 
 .preview-card.fastest {
@@ -614,6 +623,7 @@
   font-size: 1.15rem;
   font-weight: 900;
   color: #fff;
+  word-break: break-word;
 }
 
 .preview-time {
@@ -627,6 +637,7 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .preview-vs {
@@ -645,6 +656,7 @@
   font-size: 0.8rem;
   color: #94a3b8;
   font-weight: 700;
+  text-align: center;
 }
 
 .race-warning {
@@ -715,7 +727,7 @@
 /* FEEDBACK */
 .feedback-layout {
   display: grid;
-  grid-template-columns: 220px 1fr 350px;
+  grid-template-columns: 220px minmax(0, 1fr) 350px;
   gap: 30px;
   background: rgba(15, 23, 42, 0.8);
   padding: 40px;
@@ -836,6 +848,7 @@ textarea {
   color: #94a3b8;
   font-style: italic;
   margin-top: 8px;
+  word-break: break-word;
 }
 
 /* UTIL */
@@ -870,7 +883,22 @@ textarea {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* MOBILE */
+/* TABLET */
+@media (max-width: 1100px) {
+  .feedback-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .comment-side {
+    border-left: none;
+    border-right: none;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding: 24px 0;
+  }
+}
+
+/* MOBILE / TABLET */
 @media (max-width: 900px) {
   .header-battle {
     flex-direction: column;
@@ -883,7 +911,7 @@ textarea {
 
   .car-img-wrapper {
     height: auto;
-    aspect-ratio: 16/9;
+    aspect-ratio: 16 / 9;
   }
 
   .vs-container {
@@ -894,20 +922,77 @@ textarea {
     padding: 0;
   }
 
+  .specs-panel {
+    padding: 20px;
+  }
+
   .specs-grid {
     grid-template-columns: 1fr;
   }
 
+  .spec-card {
+    padding: 16px;
+  }
+
+  .spec-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .mini-result {
+    width: 100%;
+    justify-content: flex-start;
+    min-width: 0;
+  }
+
   .bar-system {
     grid-template-columns: 1fr;
-    gap: 15px;
+    gap: 14px;
   }
 
   .side-a,
   .side-b {
-    justify-content: space-between;
     width: 100%;
-    flex-direction: row !important;
+    min-width: 0;
+    gap: 10px;
+  }
+
+  .side-a {
+    display: grid;
+    grid-template-columns: 78px minmax(0, 1fr);
+    align-items: center;
+    justify-content: stretch;
+  }
+
+  .side-b {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 78px;
+    align-items: center;
+    justify-content: stretch;
+  }
+
+  .val {
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
+    font-size: 0.85rem;
+  }
+
+  .side-a .val {
+    text-align: left;
+  }
+
+  .side-b .val {
+    text-align: right;
+  }
+
+  .track {
+    width: 100%;
+    height: 12px;
   }
 
   .track-left,
@@ -915,10 +1000,12 @@ textarea {
     justify-content: flex-start;
   }
 
-  /* Su mobile il testo può essere più stretto */
-  .val {
-    width: 80px;
-    font-size: 0.85rem;
+  .text-system {
+    grid-template-columns: 1fr;
+  }
+
+  .txt-val {
+    text-align: left;
   }
 
   .race-zone-header {
@@ -938,15 +1025,7 @@ textarea {
   }
 
   .feedback-layout {
-    grid-template-columns: 1fr;
     padding: 20px;
-  }
-
-  .comment-side {
-    border: none;
-    padding: 20px 0;
-    border-top: 1px solid rgba(255,255,255,0.1);
-    border-bottom: 1px solid rgba(255,255,255,0.1);
   }
 }
 
@@ -972,17 +1051,43 @@ textarea {
   }
 
   .car-info h2 {
-    font-size: 1.5rem;
+    font-size: 1.45rem;
+  }
+
+  .panel-title {
+    letter-spacing: 2px;
+    font-size: 1rem;
+  }
+
+  .panel-subtitle {
+    font-size: 0.86rem;
+  }
+
+  .label-stat {
+    font-size: 0.72rem;
+  }
+
+  .mini-badge {
+    font-size: 0.64rem;
+    padding: 4px 8px;
+  }
+
+  .side-a {
+    grid-template-columns: 70px minmax(0, 1fr);
+  }
+
+  .side-b {
+    grid-template-columns: minmax(0, 1fr) 70px;
+  }
+
+  .val {
+    font-size: 0.78rem;
   }
 
   .btn-race {
     width: 100%;
     padding: 15px;
     font-size: 1rem;
-  }
-
-  .txt-val {
-    font-size: 0.8rem;
   }
 
   .race-zone {
@@ -999,5 +1104,9 @@ textarea {
 
   .preview-time {
     font-size: 1.1rem;
+  }
+
+  .txt-val {
+    font-size: 0.8rem;
   }
 }

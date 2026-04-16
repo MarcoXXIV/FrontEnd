@@ -7,6 +7,6 @@ export interface ConfrontoModel {
   auto1: AutoModel;
   auto2: AutoModel;
   dataConfronto?: Date | string;
-  punteggioAuto1: number;
-  punteggioAuto2: number;
+  punteggio1: number;
+  punteggio2: number;
 }
