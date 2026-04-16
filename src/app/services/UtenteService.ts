@@ -22,7 +22,6 @@ export class UtenteService {
     return this.http.get<UtenteModel>(`${this.apiUrl}/profilo`);
   }
 
-  // Usiamo UtenteModel per coerenza con il backend
   aggiornaProfilo(nuoviDati: UtenteModel): Observable<UtenteModel> {
     return this.http.put<UtenteModel>(`${this.apiUrl}/aggiorna`, nuoviDati);
   }
@@ -46,7 +45,6 @@ export class UtenteService {
     return this.http.put<UtenteModel>(`${this.apiUrl}/cambia-ruolo/${idUtente}`, { ruolo: nuovoRuolo });
   }
 
-  // CORRETTO: URL allineato al Controller Java (/elimina invece di /delete)
   eliminaUtente(id: number): Observable<string> {
     return this.http.delete(`${this.apiUrl}/elimina/${id}`, { responseType: 'text' });
   }

@@ -60,10 +60,15 @@ export class ProfiloComponent implements OnInit, OnDestroy {
 
     this.subs.add(
       this.navbarActionService.resetCronologia$.subscribe(() => {
-        this.mieisfide = [];
-        this.totaleSfide = 0;
-        this.triggerToast('Cronologia eliminata con successo!', 'success');
-        this.cd.detectChanges();
+        this.confrontoService.eliminaCronologia().subscribe({
+          next: () => {
+            this.mieisfide = [];
+            this.totaleSfide = 0;
+            this.triggerToast('Cronologia eliminata dal database!', 'success');
+            this.cd.detectChanges();
+          },
+          error: () => this.triggerToast('Errore tecnico nell\'eliminazione.', 'error')
+        });
       })
     );
 

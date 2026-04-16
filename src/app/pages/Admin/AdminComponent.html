@@ -1,6 +1,21 @@
 <app-navbar></app-navbar>
 
 <div class="admin-page">
+  <div
+    class="toast-notification"
+    [class.active]="showToast"
+    [ngClass]="toastType"
+  >
+    <div class="toast-content">
+      <i
+        class="fas"
+        [ngClass]="toastType === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'">
+      </i>
+      <span>{{ toastMsg }}</span>
+    </div>
+    <div class="toast-progress" [class.running]="showToast"></div>
+  </div>
+
   <div class="admin-container fade-in">
 
     <header class="admin-header-style">
@@ -26,6 +41,7 @@
     <div class="admin-content-wrapper">
       <main class="admin-main">
 
+        <!-- SEZIONE UTENTI -->
         <section *ngIf="sezioneAttiva === 'utenti'" class="table-section fade-in">
           <div class="section-header">
             <div>
@@ -52,16 +68,21 @@
               <tr *ngFor="let u of listaUtenti" class="row-hover">
                 <td>
                   <div class="user-info">
-                    <div class="user-avatar">{{ u.nome.charAt(0) }}</div>
+                    <div class="user-avatar">{{ u.nome.charAt(0) || '?' }}</div>
                     <strong>{{ u.nome }} {{ u.cognome }}</strong>
                   </div>
                 </td>
-                <td><span class="email-text">{{ u.email }}</span></td>
+
+                <td>
+                  <span class="email-text">{{ u.email }}</span>
+                </td>
+
                 <td>
                     <span class="role-badge" [ngClass]="u.ruolo?.toLowerCase()">
                       {{ u.ruolo }}
                     </span>
                 </td>
+
                 <td>
                   <select class="select-role" #roleSelect (change)="modificaRuolo(u.id, roleSelect.value)">
                     <option value="" disabled selected>Seleziona...</option>
@@ -69,6 +90,7 @@
                     <option value="ADMIN">ADMIN</option>
                   </select>
                 </td>
+
                 <td class="text-right">
                   <button class="btn-action-delete" type="button" (click)="eliminaUtente(u.id)">
                     <i class="fas fa-user-minus"></i>
@@ -81,11 +103,12 @@
           </div>
         </section>
 
+        <!-- SEZIONE GESTIONE AUTO -->
         <section *ngIf="sezioneAttiva === 'gestione-auto'" class="table-section fade-in">
           <div class="section-header">
             <div>
               <h2>Gestione Catalogo</h2>
-              <p>Controlla e aggiorna i veicoli presenti nel sistema.</p>
+              <p>Controlla, modifica e aggiorna i veicoli presenti nel sistema.</p>
             </div>
             <button class="btn-refresh" type="button" (click)="caricaAuto()" title="Aggiorna auto">
               <i class="fas fa-sync"></i>
@@ -104,10 +127,24 @@
               </thead>
               <tbody>
               <tr *ngFor="let a of listaAuto" class="row-hover">
-                <td><strong>{{ a.marca }}</strong> {{ a.modello }}</td>
-                <td><code>{{ a.codice }}</code></td>
-                <td>{{ a.prezzo | currency:'EUR' }}</td>
-                <td class="text-right">
+                <td>
+                  <strong>{{ a.marca }}</strong> {{ a.modello }}
+                </td>
+
+                <td>
+                  <code>{{ a.codice }}</code>
+                </td>
+
+                <td>
+                  {{ a.prezzo | currency:'EUR' }}
+                </td>
+
+                <td class="text-right action-group">
+                  <button class="btn-action-edit" type="button" (click)="modificaAuto(a)">
+                    <i class="fas fa-pen"></i>
+                    <span>Modifica</span>
+                  </button>
+
                   <button class="btn-action-delete" type="button" (click)="eliminaAuto(a.id)">
                     <i class="fas fa-trash-alt"></i>
                     <span>Rimuovi</span>
@@ -119,61 +156,188 @@
           </div>
         </section>
 
+        <!-- SEZIONE FORM AUTO -->
         <section *ngIf="sezioneAttiva === 'nuova-auto'" class="form-section-wrapper fade-in">
           <header class="form-header">
-            <h2>Inserimento Nuovo Veicolo</h2>
-            <p>Compila tutti i parametri tecnici per il confronto</p>
+            <h2>
+              {{ isModifica ? 'Modifica Veicolo' : 'Inserimento Nuovo Veicolo' }}
+            </h2>
+            <p>
+              {{
+                isModifica
+                  ? 'Il form è stato precompilato con i dati dell’auto selezionata. Modifica quello che vuoi e poi salva.'
+                  : 'Compila tutti i parametri tecnici per il confronto'
+              }}
+            </p>
           </header>
 
-          <form (ngSubmit)="aggiungiAuto()" class="auto-form">
+          <div *ngIf="isModifica" class="editing-banner">
+            <i class="fas fa-pen"></i>
+            <span>
+              Stai modificando:
+              <strong>{{ nuovaAuto.marca }} {{ nuovaAuto.modello }}</strong>
+            </span>
+          </div>
+
+          <form (ngSubmit)="salvaAuto()" class="auto-form">
             <div class="form-card">
-              <div class="card-title"><i class="fas fa-id-card"></i> <span>Identità del Veicolo</span></div>
+              <div class="card-title">
+                <i class="fas fa-id-card"></i>
+                <span>Identità del Veicolo</span>
+              </div>
+
               <div class="form-grid">
-                <div class="form-group"><label>Marca</label><input [(ngModel)]="nuovaAuto.marca" name="marca" placeholder="es. Lamborghini" required></div>
-                <div class="form-group"><label>Modello</label><input [(ngModel)]="nuovaAuto.modello" name="modello" placeholder="es. Huracán" required></div>
-                <div class="form-group"><label>Anno</label><input type="number" [(ngModel)]="nuovaAuto.anno" name="anno"></div>
-                <div class="form-group"><label>Categoria</label><input [(ngModel)]="nuovaAuto.categoria" name="categoria"></div>
-                <div class="form-group"><label>Codice Univoco</label><input [(ngModel)]="nuovaAuto.codice" name="codice"></div>
-                <div class="form-group"><label>Prezzo (€)</label><input type="number" [(ngModel)]="nuovaAuto.prezzo" name="prezzo"></div>
+                <div class="form-group">
+                  <label>Marca</label>
+                  <input [(ngModel)]="nuovaAuto.marca" name="marca" placeholder="es. Lamborghini" required>
+                </div>
+
+                <div class="form-group">
+                  <label>Modello</label>
+                  <input [(ngModel)]="nuovaAuto.modello" name="modello" placeholder="es. Huracán" required>
+                </div>
+
+                <div class="form-group">
+                  <label>Anno</label>
+                  <input type="number" [(ngModel)]="nuovaAuto.anno" name="anno">
+                </div>
+
+                <div class="form-group">
+                  <label>Categoria</label>
+                  <input [(ngModel)]="nuovaAuto.categoria" name="categoria">
+                </div>
+
+                <div class="form-group">
+                  <label>Codice Univoco</label>
+                  <input [(ngModel)]="nuovaAuto.codice" name="codice">
+                </div>
+
+                <div class="form-group">
+                  <label>Prezzo (€)</label>
+                  <input type="number" [(ngModel)]="nuovaAuto.prezzo" name="prezzo">
+                </div>
               </div>
             </div>
 
             <div class="form-card">
-              <div class="card-title"><i class="fas fa-cogs"></i> <span>Specifiche Tecniche</span></div>
+              <div class="card-title">
+                <i class="fas fa-cogs"></i>
+                <span>Specifiche Tecniche</span>
+              </div>
+
               <div class="form-grid">
-                <div class="form-group"><label>Cilindri</label><input type="number" [(ngModel)]="nuovaAuto.cilindri" name="cilindri"></div>
-                <div class="form-group"><label>Potenza (CV)</label><input type="number" [(ngModel)]="nuovaAuto.cv" name="cv"></div>
-                <div class="form-group"><label>Cilindrata (cc)</label><input type="number" [(ngModel)]="nuovaAuto.cilindrata" name="cilindrata"></div>
-                <div class="form-group"><label>Coppia (Nm)</label><input type="number" [(ngModel)]="nuovaAuto.coppia" name="coppia"></div>
-                <div class="form-group"><label>Trazione</label><input [(ngModel)]="nuovaAuto.trazione" name="trazione"></div>
-                <div class="form-group"><label>Alimentazione</label><input [(ngModel)]="nuovaAuto.alimentazione" name="alimentazione"></div>
-                <div class="form-group"><label>Classe Euro</label><input [(ngModel)]="nuovaAuto.euro" name="euro"></div>
+                <div class="form-group">
+                  <label>Cilindri</label>
+                  <input type="number" [(ngModel)]="nuovaAuto.cilindri" name="cilindri">
+                </div>
+
+                <div class="form-group">
+                  <label>Potenza (CV)</label>
+                  <input type="number" [(ngModel)]="nuovaAuto.cv" name="cv">
+                </div>
+
+                <div class="form-group">
+                  <label>Cilindrata (cc)</label>
+                  <input type="number" [(ngModel)]="nuovaAuto.cilindrata" name="cilindrata">
+                </div>
+
+                <div class="form-group">
+                  <label>Coppia (Nm)</label>
+                  <input type="number" [(ngModel)]="nuovaAuto.coppia" name="coppia">
+                </div>
+
+                <div class="form-group">
+                  <label>Trazione</label>
+                  <input [(ngModel)]="nuovaAuto.trazione" name="trazione">
+                </div>
+
+                <div class="form-group">
+                  <label>Alimentazione</label>
+                  <input [(ngModel)]="nuovaAuto.alimentazione" name="alimentazione">
+                </div>
+
+                <div class="form-group">
+                  <label>Classe Euro</label>
+                  <input [(ngModel)]="nuovaAuto.euro" name="euro">
+                </div>
               </div>
             </div>
 
             <div class="form-card">
-              <div class="card-title"><i class="fas fa-tachometer-alt"></i> <span>Prestazioni e Peso</span></div>
+              <div class="card-title">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Prestazioni e Peso</span>
+              </div>
+
               <div class="form-grid">
-                <div class="form-group"><label>Velocità Max</label><input type="number" [(ngModel)]="nuovaAuto.velocitaMax" name="vMax"></div>
-                <div class="form-group"><label>0-100 km/h</label><input type="number" step="0.1" [(ngModel)]="nuovaAuto.accelerazione0100" name="acc0100"></div>
-                <div class="form-group"><label>100-200 km/h</label><input type="number" step="0.1" [(ngModel)]="nuovaAuto.accelerazione100200" name="acc100200"></div>
-                <div class="form-group"><label>80-140 km/h</label><input type="number" step="0.1" [(ngModel)]="nuovaAuto.accelerazione80140" name="acc80140"></div>
-                <div class="form-group"><label>Peso (kg)</label><input type="number" [(ngModel)]="nuovaAuto.pesoKg" name="peso"></div>
-                <div class="form-group"><label>Rapporto P/P</label><input type="number" step="0.01" [(ngModel)]="nuovaAuto.rapportoPesoPotenza" name="rpp"></div>
+                <div class="form-group">
+                  <label>Velocità Max</label>
+                  <input type="number" [(ngModel)]="nuovaAuto.velocitaMax" name="velocitaMax">
+                </div>
+
+                <div class="form-group">
+                  <label>0-100 km/h</label>
+                  <input type="number" step="0.1" [(ngModel)]="nuovaAuto.accelerazione0100" name="accelerazione0100">
+                </div>
+
+                <div class="form-group">
+                  <label>100-200 km/h</label>
+                  <input type="number" step="0.1" [(ngModel)]="nuovaAuto.accelerazione100200" name="accelerazione100200">
+                </div>
+
+                <div class="form-group">
+                  <label>80-140 km/h</label>
+                  <input type="number" step="0.1" [(ngModel)]="nuovaAuto.accelerazione80140" name="accelerazione80140">
+                </div>
+
+                <div class="form-group">
+                  <label>Peso (kg)</label>
+                  <input type="number" [(ngModel)]="nuovaAuto.pesoKg" name="pesoKg">
+                </div>
+
+                <div class="form-group">
+                  <label>Rapporto Peso/Potenza</label>
+                  <input type="number" step="0.01" [(ngModel)]="nuovaAuto.rapportoPesoPotenza" name="rapportoPesoPotenza">
+                </div>
               </div>
             </div>
 
             <div class="form-card">
-              <div class="card-title"><i class="fas fa-leaf"></i> <span>Consumi ed Emissioni</span></div>
+              <div class="card-title">
+                <i class="fas fa-leaf"></i>
+                <span>Consumi ed Emissioni</span>
+              </div>
+
               <div class="form-grid">
-                <div class="form-group"><label>Consumo Medio</label><input type="number" step="0.1" [(ngModel)]="nuovaAuto.consumoMedio" name="consumo"></div>
-                <div class="form-group"><label>Emissioni CO2</label><input type="number" [(ngModel)]="nuovaAuto.co2" name="co2"></div>
+                <div class="form-group">
+                  <label>Consumo Medio</label>
+                  <input type="number" step="0.1" [(ngModel)]="nuovaAuto.consumoMedio" name="consumoMedio">
+                </div>
+
+                <div class="form-group">
+                  <label>Emissioni CO2</label>
+                  <input type="number" [(ngModel)]="nuovaAuto.co2" name="co2">
+                </div>
               </div>
             </div>
 
-            <button type="submit" class="btn-save-glow">🚀 PUBBLICA NEL CATALOGO</button>
+            <div class="form-actions">
+              <button type="submit" class="btn-save-glow">
+                {{ isModifica ? '💾 SALVA MODIFICHE' : '🚀 PUBBLICA NEL CATALOGO' }}
+              </button>
+
+              <button
+                *ngIf="isModifica"
+                type="button"
+                class="btn-cancel-edit"
+                (click)="annullaModifica(true)"
+              >
+                Annulla Modifica
+              </button>
+            </div>
           </form>
         </section>
+
       </main>
     </div>
   </div>

@@ -46,4 +46,8 @@ export class AutoService {
   getTopGreen(): Observable<AutoModel[]> {
     return this.http.get<AutoModel[]>(`${this.apiUrl}/top/green`);
   }
+
+  aggiornaAuto(id: number, auto: AutoModel): Observable<AutoModel> {
+    return this.http.put<AutoModel>(`${this.apiUrl}/aggiorna/${id}`, auto);
+  }
 }

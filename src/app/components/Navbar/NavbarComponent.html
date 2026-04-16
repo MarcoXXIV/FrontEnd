@@ -19,7 +19,6 @@
         <span class="logo-text">SPEC<span>BATTLE</span></span>
       </a>
 
-      <!-- BOTTONE HOME SOLO DESKTOP -->
       <button
         type="button"
         class="desktop-home-btn"
@@ -29,7 +28,7 @@
       </button>
     </div>
 
-    <!-- PULSANTE MENU MOBILE -->
+    <!-- TOGGLE MOBILE -->
     <button
       *ngIf="shouldShowMobileSidebar()"
       type="button"
@@ -65,7 +64,11 @@
             🗑️ Elimina Cronologia
           </button>
 
-          <button type="button" class="profile-btn logout-btn" (click)="logout()">
+          <button
+            type="button"
+            class="profile-btn logout-btn"
+            (click)="logout()"
+          >
             Logout
           </button>
         </div>
@@ -109,7 +112,11 @@
           </div>
 
           <div class="admin-toolbar-right">
-            <button type="button" class="profile-btn logout-btn" (click)="logout()">
+            <button
+              type="button"
+              class="profile-btn logout-btn"
+              (click)="logout()"
+            >
               Logout
             </button>
           </div>
@@ -151,7 +158,7 @@
     </ng-template>
   </div>
 
-  <!-- OVERLAY SIDEBAR MOBILE -->
+  <!-- OVERLAY MOBILE -->
   <div
     class="mobile-sidebar-overlay"
     [class.open]="sidebarOpen"
@@ -230,7 +237,7 @@
 
       <button
         type="button"
-        class="sidebar-btn sidebar-Home-btn"
+        class="sidebar-btn sidebar-home-btn"
         (click)="vaiHome()"
       >
         <span class="sidebar-icon">🏠</span>
@@ -264,7 +271,7 @@
 
         <button
           type="button"
-          class="sidebar-btn sidebar-Home-btn"
+          class="sidebar-btn sidebar-home-btn"
           (click)="vaiHome()"
         >
           <span class="sidebar-icon">🏠</span>
@@ -317,17 +324,6 @@
         </button>
 
         <button
-          *ngIf="isAdmin()"
-          type="button"
-          class="sidebar-btn sidebar-admin-btn"
-          [class.active]="isOnAdmin()"
-          (click)="vaiAdmin()"
-        >
-          <span class="sidebar-icon">🛠️</span>
-          <span class="sidebar-label">Admin Panel</span>
-        </button>
-
-        <button
           type="button"
           class="sidebar-btn sidebar-logout-btn"
           (click)="logout()"
@@ -338,7 +334,7 @@
 
         <button
           type="button"
-          class="sidebar-btn sidebar-Home-btn"
+          class="sidebar-btn sidebar-home-btn"
           (click)="vaiHome()"
         >
           <span class="sidebar-icon">🏠</span>
@@ -383,7 +379,16 @@
 
         <button
           type="button"
-          class="sidebar-btn sidebar-Home-btn"
+          class="sidebar-btn sidebar-logout-btn"
+          (click)="logout()"
+        >
+          <span class="sidebar-icon">🚪</span>
+          <span class="sidebar-label">Logout</span>
+        </button>
+
+        <button
+          type="button"
+          class="sidebar-btn sidebar-home-btn"
           (click)="vaiHome()"
         >
           <span class="sidebar-icon">🏠</span>

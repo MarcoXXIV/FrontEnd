@@ -2,7 +2,6 @@ import {
   Component,
   OnInit,
   OnDestroy,
-  ChangeDetectorRef,
   HostListener
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -18,6 +17,7 @@ import { NavbarActionService } from '../../services/NavbarActionService';
 import { RecensioniService } from '../../services/RecensioniService';
 
 type AdminSection = 'nuova-auto' | 'utenti' | 'gestione-auto';
+type NavbarMode = 'default' | 'Profilo' | 'empty' | 'admin' | 'preferiti';
 
 @Component({
   selector: 'app-navbar',
@@ -27,12 +27,11 @@ type AdminSection = 'nuova-auto' | 'utenti' | 'gestione-auto';
   styleUrls: ['./NavbarComponent.css']
 })
 export class NavbarComponent implements OnInit, OnDestroy {
-  loggedIn: boolean = false;
-  admin: boolean = false;
-  navbarMode: 'default' | 'Profilo' | 'empty' | 'admin' | 'preferiti' = 'default';
+  loggedIn = false;
+  admin = false;
+  navbarMode: NavbarMode = 'default';
   adminSection: AdminSection = 'nuova-auto';
-
-  sidebarOpen: boolean = false;
+  sidebarOpen = false;
 
   private routerSub?: Subscription;
 
@@ -40,7 +39,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
     public authService: AuthService,
     private router: Router,
     private activatedRoute: ActivatedRoute,
-    private cd: ChangeDetectorRef,
     private navbarActionService: NavbarActionService,
     private recensioniService: RecensioniService
   ) {}
@@ -72,6 +70,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
     }
   }
 
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.sidebarOpen) {
+      this.closeSidebar();
+    }
+  }
+
   private syncAuthState = (): void => {
     this.aggiornaStato();
     this.aggiornaNavbarMode();
@@ -80,7 +85,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
   aggiornaStato(): void {
     this.loggedIn = this.authService.isLoggedIn();
     this.admin = localStorage.getItem('ruolo') === 'ADMIN';
-    this.cd.detectChanges();
   }
 
   aggiornaNavbarMode(): void {
@@ -90,7 +94,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       route = route.firstChild;
     }
 
-    this.navbarMode = route.snapshot.data['navbarMode'] || 'default';
+    this.navbarMode = (route.snapshot.data['navbarMode'] || 'default') as NavbarMode;
 
     const section = route.snapshot.queryParamMap.get('section');
     if (
@@ -102,8 +106,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
     } else {
       this.adminSection = 'nuova-auto';
     }
-
-    this.cd.detectChanges();
   }
 
   isAdmin(): boolean {
@@ -136,14 +138,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.isPreferitiNavbar() ||
       this.isAdminNavbar() ||
       this.isDefaultMobileNavbar()
-    );
-  }
-
-  isSidebarNavbar(): boolean {
-    return (
-      this.isProfileNavbar() ||
-      this.isPreferitiNavbar() ||
-      this.isAdminNavbar()
     );
   }
 
@@ -215,7 +209,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.authService.logout();
     this.loggedIn = false;
     this.admin = false;
-    this.cd.detectChanges();
     this.router.navigate(['/Home']);
   }
 
@@ -235,8 +228,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
     this.recensioniService.eliminaTutteLeRecensioni().subscribe({
       next: () => {
-+        this.navbarActionService.requestResetRecensioni();
-
+        this.navbarActionService.requestResetRecensioni();
         console.log('Recensioni eliminate e UI sincronizzata');
       },
       error: (err) => {

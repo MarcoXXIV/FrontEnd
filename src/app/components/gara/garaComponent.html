@@ -1,50 +1,116 @@
-<div class="race-track-container">
-  <div class="race-header" [class.fade-out]="mostraVincitore">
-    <h2>
-      DRAG RACE:
-      <span class="blue">{{ car1?.modello }}</span>
-      vs
-      <span class="red">{{ car2?.modello }}</span>
-    </h2>
-    <p>Il semaforo è verde! Chi dominerà il quarto di miglio?</p>
-  </div>
+<div class="race-track-container" [class.is-running]="animazioneIniziata">
+  <div class="bg-orb orb-blue"></div>
+  <div class="bg-orb orb-red"></div>
 
-  <div class="track">
-    <div class="finish-line"></div>
+  <div class="race-topbar" [class.fade-soft]="mostraVincitore">
+    <div class="mode-pill">
+      <i class="fas fa-gauge-high"></i>
+      {{ getModeLabel() }}
+    </div>
 
-    <div class="lane">
-      <div
-        class="car blue-glow"
-        [class.racing]="animazioneIniziata"
-        [style.animation-duration]="getDurata(score1) + 's'">
-        <i class="fas fa-car-side"></i>
-        <div class="car-label">{{ car1?.modello }}</div>
-        <div class="flame" *ngIf="animazioneIniziata"></div>
+    <div class="timing-hud">
+      <div class="hud-card blue-card" [class.leading]="winnerIndex === 1">
+        <div class="hud-label">{{ car1?.marca }} {{ car1?.modello }}</div>
+        <div class="hud-time">{{ getTempoDisplay(car1) }}</div>
+      </div>
+
+      <div class="vs-mini">VS</div>
+
+      <div class="hud-card red-card" [class.leading]="winnerIndex === 2">
+        <div class="hud-label">{{ car2?.marca }} {{ car2?.modello }}</div>
+        <div class="hud-time">{{ getTempoDisplay(car2) }}</div>
       </div>
     </div>
 
-    <div class="lane">
-      <div
-        class="car red-glow"
-        [class.racing]="animazioneIniziata"
-        [style.animation-duration]="getDurata(score2) + 's'">
-        <i class="fas fa-car-side"></i>
-        <div class="car-label">{{ car2?.modello }}</div>
-        <div class="flame" *ngIf="animazioneIniziata"></div>
+    <div class="start-panel">
+      <div class="traffic-light">
+        <span class="light red-light" [class.on]="lightState === 'red' || lightState === 'yellow' || lightState === 'green'"></span>
+        <span class="light yellow-light" [class.on]="lightState === 'yellow' || lightState === 'green'"></span>
+        <span class="light green-light" [class.on]="lightState === 'green'"></span>
+      </div>
+
+      <div class="countdown" [class.go]="countdownText === 'GO!'">
+        {{ countdownText }}
+      </div>
+    </div>
+  </div>
+
+  <div class="track-shell">
+    <div class="speed-lines"></div>
+    <div class="finish-banner">FINISH</div>
+
+    <div class="track">
+      <div class="finish-line"></div>
+      <div class="center-divider"></div>
+
+      <div class="lane">
+        <div class="lane-tag blue-tag">Lane A</div>
+
+        <div
+          class="car car-blue"
+          [class.racing]="animazioneIniziata"
+          [class.winner]="mostraVincitore && isCarWinner(1)"
+          [style.animation-duration]="getCarAnimationDuration(car1)"
+        >
+          <div class="car-card">
+            <i class="fas fa-car-side"></i>
+          </div>
+          <div class="car-label">{{ car1?.marca }} {{ car1?.modello }}</div>
+          <div class="flame blue-flame" *ngIf="animazioneIniziata"></div>
+          <div class="road-shadow"></div>
+        </div>
+      </div>
+
+      <div class="lane">
+        <div class="lane-tag red-tag">Lane B</div>
+
+        <div
+          class="car car-red"
+          [class.racing]="animazioneIniziata"
+          [class.winner]="mostraVincitore && isCarWinner(2)"
+          [style.animation-duration]="getCarAnimationDuration(car2)"
+        >
+          <div class="car-card">
+            <i class="fas fa-car-side"></i>
+          </div>
+          <div class="car-label">{{ car2?.marca }} {{ car2?.modello }}</div>
+          <div class="flame red-flame" *ngIf="animazioneIniziata"></div>
+          <div class="road-shadow"></div>
+        </div>
       </div>
     </div>
   </div>
 
   <div class="winner-overlay" *ngIf="mostraVincitore">
     <div class="winner-card fade-in">
-      <i class="fas fa-flag-checkered trophy"></i>
-      <h3>Vincitore</h3>
-      <h2 [class.blue-text]="score1 > score2" [class.red-text]="score2 > score1">
+      <div class="winner-badge">
+        <i class="fas" [ngClass]="isPareggio() ? 'fa-handshake' : 'fa-trophy'"></i>
+        {{ isPareggio() ? 'Parità' : 'Winner' }}
+      </div>
+
+      <h3>{{ getModeLabel() }}</h3>
+
+      <h2
+        [class.blue-text]="winnerIndex === 1"
+        [class.red-text]="winnerIndex === 2"
+        [class.gold-text]="winnerIndex === 0"
+      >
         {{ vincitoreNome }}
       </h2>
-      <div class="final-scores">
-        {{ score1 }} pts - {{ score2 }} pts
+
+      <div class="final-times">
+        <div class="final-chip blue-chip">{{ getTempoDisplay(car1) }}</div>
+        <div class="final-separator">•</div>
+        <div class="final-chip red-chip">{{ getTempoDisplay(car2) }}</div>
       </div>
+
+      <p class="gap-text" *ngIf="!isPareggio()">
+        Vantaggio: <strong>{{ getGapDisplay() }}</strong>
+      </p>
+
+      <p class="gap-text" *ngIf="isPareggio()">
+        Le due auto hanno chiuso con lo stesso tempo.
+      </p>
     </div>
   </div>
 </div>

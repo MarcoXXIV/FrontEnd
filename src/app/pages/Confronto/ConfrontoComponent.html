@@ -12,10 +12,19 @@
     <div class="toast-progress" [class.running]="showToast"></div>
   </div>
 
-
   <div *ngIf="loading" class="loader-overlay">
     <div class="spinner"></div>
     <p>Sincronizzando i motori...</p>
+  </div>
+
+  <div *ngIf="!loading && errore" class="error-box fade-in">
+    <i class="fas fa-triangle-exclamation"></i>
+    <h2>Ops, qualcosa è andato storto</h2>
+    <p>{{ errore }}</p>
+    <button type="button" class="btn-home" (click)="tornaHome()">
+      <i class="fas fa-home"></i>
+      Torna alla Home
+    </button>
   </div>
 
   <div *ngIf="!loading && auto1 && auto2 && !errore" class="container fade-in">
@@ -32,7 +41,7 @@
 
       <div class="vs-container">
         <div class="vs-hex">VS</div>
-        <button class="btn-fav" (click)="togglePreferito($event)" [class.active]="isPreferito">
+        <button type="button" class="btn-fav" (click)="togglePreferito($event)" [class.active]="isPreferito">
           <i [class.fas]="isPreferito" [class.far]="!isPreferito" class="fa-heart"></i>
         </button>
       </div>
@@ -50,29 +59,62 @@
 
     <section class="comparison-grid">
       <div class="panel specs-panel">
-        <h3 class="panel-title">CONFRONTO PRESTAZIONI</h3>
+        <h3 class="panel-title">Confronto Prestazioni</h3>
+        <p class="panel-subtitle">
+          Le barre mostrano la dimensione numerica del valore più alto; il badge "Migliore" continua invece a seguire la logica del parametro.
+        </p>
+
         <div class="specs-grid">
-          <div class="spec-card" *ngFor="let p of elencoParametri">
-            <div class="label-stat">{{ p.label }}</div>
+          <div
+            class="spec-card"
+            *ngFor="let p of elencoParametri"
+            [class.card-left-win]="!p.isText && isWinner(1, p)"
+            [class.card-right-win]="!p.isText && isWinner(2, p)"
+            [class.card-tie]="!p.isText && isTie(p)"
+          >
+            <div class="spec-top">
+              <div class="label-stat">{{ p.label }}</div>
+              <div class="mini-result" *ngIf="!p.isText">
+                <span *ngIf="isWinner(1, p)" class="mini-badge left-badge">Migliore</span>
+                <span *ngIf="isTie(p)" class="mini-badge tie-badge">Parità</span>
+                <span *ngIf="isWinner(2, p)" class="mini-badge right-badge">Migliore</span>
+              </div>
+            </div>
 
             <div class="bar-system" *ngIf="!p.isText">
               <div class="side-a">
-                <span class="val blue">
-                  {{ formatValore(getVal(auto1, p.key)) }}
-                  <small *ngIf="!isValoreNonDisponibile(getVal(auto1, p.key))">{{ p.unit }}</small>
+                <span
+                  class="val blue"
+                  [class.winner-text]="isWinner(1, p)"
+                  [class.tie-text]="isTie(p)"
+                >
+                  {{ formatValore(getVal(auto1, p.key)) }}<small *ngIf="!isValoreNonDisponibile(getVal(auto1, p.key))">{{ p.unit }}</small>
                 </span>
-                <div class="track">
-                  <div class="fill blue-bar" [style.width.%]="getBarWidth(auto1, p)"></div>
+                <div class="track track-left">
+                  <div
+                    class="fill blue-bar"
+                    [class.best-fill]="isWinner(1, p)"
+                    [class.tie-fill]="isTie(p)"
+                    [style.width.%]="getBarWidth(auto1, p)">
+                  </div>
                 </div>
               </div>
 
               <div class="side-b">
-                <div class="track">
-                  <div class="fill red-bar" [style.width.%]="getBarWidth(auto2, p)"></div>
+                <div class="track track-right">
+                  <div
+                    class="fill red-bar"
+                    [class.best-fill]="isWinner(2, p)"
+                    [class.tie-fill]="isTie(p)"
+                    [style.width.%]="getBarWidth(auto2, p)">
+                  </div>
                 </div>
-                <span class="val red">
-                  {{ formatValore(getVal(auto2, p.key)) }}
-                  <small *ngIf="!isValoreNonDisponibile(getVal(auto2, p.key))">{{ p.unit }}</small>
+                <span
+                  class="val red"
+                  [class.winner-text]="isWinner(2, p)"
+                  [class.tie-text]="isTie(p)"
+                >
+                  {{ formatValore(getVal(auto2, p.key)) }}<small *ngIf="!isValoreNonDisponibile(getVal(auto2, p.key))">{{ p.unit }}</small>
                 </span>
               </div>
             </div>
@@ -87,9 +129,58 @@
     </section>
 
     <section class="race-zone">
+      <div class="race-zone-header">
+        <div>
+          <h3>Race Lab</h3>
+          <p>
+            Scegli la prova reale e guarda la simulazione usando i tempi veri delle due auto.
+          </p>
+        </div>
+        <div class="selected-race-pill">
+          <i class="fas fa-flag-checkered"></i>
+          {{ getLabelGara() }}
+        </div>
+      </div>
+
+      <div class="mode-switcher">
+        <button
+          *ngFor="let opt of opzioniGara"
+          type="button"
+          class="mode-chip"
+          [class.active]="garaMode === opt.key"
+          [class.disabled]="!hasRaceData(opt.key)"
+          (click)="setGaraMode(opt.key, $event)"
+        >
+          <span class="mode-main">{{ opt.label }}</span>
+          <small class="mode-sub">{{ getRaceTimeSummary(opt.key) }}</small>
+        </button>
+      </div>
+
+      <div class="race-preview">
+        <div class="preview-card left-preview" [class.fastest]="getRaceWinnerPreview() === 1">
+          <span class="preview-label">{{ auto1.marca }}</span>
+          <h4>{{ auto1.modello }}</h4>
+          <div class="preview-time">{{ getTempoDisplayForMode(auto1, garaMode) }}</div>
+        </div>
+        <div class="preview-middle">
+          <div class="preview-vs">VS</div>
+          <div class="preview-mode">{{ getLabelGara() }}</div>
+        </div>
+        <div class="preview-card right-preview" [class.fastest]="getRaceWinnerPreview() === 2">
+          <span class="preview-label">{{ auto2.marca }}</span>
+          <h4>{{ auto2.modello }}</h4>
+          <div class="preview-time">{{ getTempoDisplayForMode(auto2, garaMode) }}</div>
+        </div>
+      </div>
+
+      <div class="race-warning" *ngIf="!canRunSelectedRace()">
+        <i class="fas fa-circle-info"></i>
+        Dati non disponibili per questa modalità. Seleziona una prova con tempi presenti per entrambe le auto.
+      </div>
+
       <div class="trigger-box" *ngIf="!garaInCorso">
-        <button class="btn-race" (click)="startGara($event)">
-          AVVIA GARA <i class="fas fa-bolt"></i>
+        <button type="button" class="btn-race" (click)="startGara($event)" [disabled]="!canRunSelectedRace()">
+          AVVIA {{ getLabelGara() }} <i class="fas fa-bolt"></i>
         </button>
       </div>
 
@@ -97,13 +188,11 @@
         <app-gara-animation
           [car1]="auto1"
           [car2]="auto2"
-          [score1]="score1"
-          [score2]="score2"
-          [trigger]="garaTrigger">
+          [trigger]="garaTrigger"
+          [modalita]="garaMode">
         </app-gara-animation>
-
         <div class="race-footer">
-          <button class="btn-redo" (click)="resetGara($event)">
+          <button type="button" class="btn-redo" (click)="resetGara($event)">
             RIGIOCA <i class="fas fa-redo"></i>
           </button>
         </div>
@@ -126,7 +215,6 @@
             </div>
             <span class="voto-label">{{ voto }} / 5</span>
           </div>
-
           <div *ngIf="mediaRecensioni !== null" class="media-voti">
             Media: <strong>{{ mediaRecensioni | number:'1.1-2' }}/5</strong>
           </div>
@@ -134,12 +222,10 @@
 
         <div class="comment-side">
           <h3>LASCIACI UN COMMENTO</h3>
-
           <div *ngIf="!recensioneInviata" class="form-inner">
             <textarea [(ngModel)]="commento" placeholder="Cosa ne pensi di questo scontro?"></textarea>
-            <button class="btn-send" (click)="inviaRecensione()">PUBBLICA</button>
+            <button type="button" class="btn-send" (click)="inviaRecensione()">PUBBLICA</button>
           </div>
-
           <div *ngIf="recensioneInviata" class="success-banner fade-in">
             <i class="fas fa-check-circle"></i> Inviata con successo!
           </div>

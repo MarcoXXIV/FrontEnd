@@ -297,7 +297,6 @@
 }
 
 .logout-btn:active,
-.profile-nav-btn:active,
 .reset-btn:active {
   transform: scale(0.98);
 }
@@ -511,28 +510,22 @@
   filter: brightness(1.03);
 }
 
-.sidebar-logout-btn:active,
-.sidebar-reset-btn:active,
-.sidebar-profile-btn:active,
-.sidebar-admin-btn:active {
-  transform: scale(0.98);
-}
-
-.sidebar-Home-btn {
-  background: forestgreen;
+.sidebar-home-btn {
+  background: linear-gradient(135deg, #228b22, #166534);
   border: none;
-  box-shadow: 0 12px 22px darkgreen;
+  box-shadow: 0 12px 22px rgba(22, 101, 52, 0.24);
 }
 
-.sidebar-Home-btn:hover {
+.sidebar-home-btn:hover {
   transform: translateY(-1px);
   filter: brightness(1.03);
 }
 
-.sidebar-Home-btn:active,
+.sidebar-logout-btn:active,
 .sidebar-reset-btn:active,
 .sidebar-profile-btn:active,
-.sidebar-admin-btn:active {
+.sidebar-admin-btn:active,
+.sidebar-home-btn:active {
   transform: scale(0.98);
 }
 

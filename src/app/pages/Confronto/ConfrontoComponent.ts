@@ -12,7 +12,7 @@ import { ConfrontoService } from '../../services/ConfrontoService';
 import { AutoModel } from '../../models/AutoModel';
 import { RecensioneModel } from '../../models/RecensioneModel';
 import { GaraAnimationComponent } from '../../components/gara/garaComponent';
-import {NavbarComponent} from '../../components/Navbar/NavbarComponent';
+import { NavbarComponent } from '../../components/Navbar/NavbarComponent';
 
 interface ParametroConfronto {
   label: string;
@@ -21,6 +21,8 @@ interface ParametroConfronto {
   invert?: boolean;
   isText?: boolean;
 }
+
+type GaraModalita = 'accelerazione0100' | 'accelerazione100200' | 'accelerazione80140';
 
 @Component({
   selector: 'app-confronto',
@@ -33,8 +35,8 @@ export class ConfrontoComponent implements OnInit {
   auto1?: AutoModel;
   auto2?: AutoModel;
 
-  immagineSrc1: string = '/assets/img/Errore.png';
-  immagineSrc2: string = '/assets/img/Errore.png';
+  immagineSrc1 = '/assets/img/Errore.png';
+  immagineSrc2 = '/assets/img/Errore.png';
 
   recensioniCoppia: RecensioneModel[] = [];
   mediaRecensioni: number | null = null;
@@ -46,32 +48,24 @@ export class ConfrontoComponent implements OnInit {
   idConfronto?: number;
   errore = '';
 
-  score1 = 0;
-  score2 = 0;
   voto = 5;
   commento = '';
   recensioneInviata = false;
 
-  // Variabili Toast
   showToast = false;
   toastMsg = '';
   toastType: 'success' | 'error' = 'success';
   private toastTimeout: any;
 
-  soglieMax: Record<string, number> = {
-    cv: 1800,
-    velocitaMax: 500,
-    accelerazione0100: 10,
-    accelerazione100200: 25,
-    accelerazione80140: 15,
-    coppia: 2000,
-    cilindrata: 9000,
-    pesoKg: 3000,
-    rapportoPesoPotenza: 7,
-    prezzo: 5000000,
-    consumoMedio: 30,
-    co2: 600
-  };
+  soglieConfronto: Partial<Record<keyof AutoModel, number>> = {};
+
+  garaMode: GaraModalita = 'accelerazione0100';
+
+  opzioniGara: { key: GaraModalita; label: string }[] = [
+    { key: 'accelerazione0100', label: '0-100 km/h' },
+    { key: 'accelerazione100200', label: '100-200 km/h' },
+    { key: 'accelerazione80140', label: '80-140 km/h' }
+  ];
 
   elencoParametri: ParametroConfronto[] = [
     { label: 'Potenza', key: 'cv', unit: 'CV', invert: false },
@@ -106,17 +100,21 @@ export class ConfrontoComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       const id1 = Number(params['idAuto1']);
       const id2 = Number(params['idAuto2']);
+
       if (!id1 || !id2) {
         this.loading = false;
         this.errore = 'Parametri non validi.';
         return;
       }
+
       this.inizializzaConfronto(id1, id2);
     });
   }
 
   inizializzaConfronto(id1: number, id2: number): void {
     this.loading = true;
+    this.errore = '';
+
     forkJoin({
       a1: this.autoService.getAutoById(id1),
       a2: this.autoService.getAutoById(id2),
@@ -126,11 +124,13 @@ export class ConfrontoComponent implements OnInit {
         this.auto1 = res.a1;
         this.auto2 = res.a2;
         this.idConfronto = res.confronto?.id;
+
         this.impostaImmagini();
-        this.calcolaPunteggi();
+        this.calcolaSoglieDinamiche();
         this.caricaRecensioniCoppia();
         this.caricaMediaRecensioni();
         this.checkStatoPreferito(id1, id2);
+
         this.loading = false;
         this.cd.detectChanges();
       },
@@ -143,13 +143,21 @@ export class ConfrontoComponent implements OnInit {
   }
 
   private impostaImmagini(): void {
-    this.immagineSrc1 = this.auto1?.codice ? `/assets/img/${this.auto1.codice}.png` : '/assets/img/Errore.png';
-    this.immagineSrc2 = this.auto2?.codice ? `/assets/img/${this.auto2.codice}.png` : '/assets/img/Errore.png';
+    this.immagineSrc1 = this.auto1?.codice
+      ? `/assets/img/${this.auto1.codice}.png`
+      : '/assets/img/Errore.png';
+
+    this.immagineSrc2 = this.auto2?.codice
+      ? `/assets/img/${this.auto2.codice}.png`
+      : '/assets/img/Errore.png';
   }
 
   onImageError(side: number): void {
-    if (side === 1) this.immagineSrc1 = '/assets/img/Errore.png';
-    else this.immagineSrc2 = '/assets/img/Errore.png';
+    if (side === 1) {
+      this.immagineSrc1 = '/assets/img/Errore.png';
+    } else {
+      this.immagineSrc2 = '/assets/img/Errore.png';
+    }
   }
 
   togglePreferito(event: Event): void {
@@ -280,7 +288,6 @@ export class ConfrontoComponent implements OnInit {
     });
   }
 
-  // Se il valore è 0, nullo, undefined o non numerico -> n.d.
   isValoreNonDisponibile(valore: unknown): boolean {
     const n = Number(valore);
     return valore === null || valore === undefined || valore === '' || Number.isNaN(n) || n === 0;
@@ -290,43 +297,165 @@ export class ConfrontoComponent implements OnInit {
     if (isText) {
       return valore !== null && valore !== undefined && String(valore).trim() !== ''
         ? String(valore)
-        : 'n.d';
+        : 'n.d.';
     }
 
     if (this.isValoreNonDisponibile(valore)) {
-      return 'n.d';
+      return 'n.d.';
     }
 
     return String(valore);
   }
 
-  // Barra sempre proporzionale al valore:
-  // 0 = vuota, massimo = piena
-  getPerc(valore: unknown, chiave: keyof AutoModel): number {
-    const max = this.soglieMax[String(chiave)] || 1000;
+  private calcolaSoglieDinamiche(): void {
+    if (!this.auto1 || !this.auto2) return;
+
+    const soglie: Partial<Record<keyof AutoModel, number>> = {};
+
+    this.elencoParametri.forEach(parametro => {
+      if (parametro.isText) return;
+
+      const v1 = Number(this.getVal(this.auto1!, parametro.key)) || 0;
+      const v2 = Number(this.getVal(this.auto2!, parametro.key)) || 0;
+
+      // Prende sempre il valore numerico più alto tra le due auto per questo parametro
+      soglie[parametro.key] = Math.max(v1, v2);
+    });
+
+    this.soglieConfronto = soglie;
+  }
+
+  getPerc(valore: unknown, parametro: ParametroConfronto): number {
+    if (this.isValoreNonDisponibile(valore) || !this.auto1 || !this.auto2) return 0;
+
     const v = Number(valore);
+    const v1 = Number(this.getVal(this.auto1, parametro.key)) || 0;
+    const v2 = Number(this.getVal(this.auto2, parametro.key)) || 0;
 
-    if (this.isValoreNonDisponibile(valore) || max <= 0) return 0;
+    if (v1 === v2) return 100;
 
-    const p = (v / max) * 100;
-    return Math.min(100, Math.max(0, p));
+    let benchmark: number;
+
+    if (parametro.invert) {
+      benchmark = Math.min(v1, v2);
+      return (benchmark / v) * 100;
+    } else {
+      benchmark = Math.max(v1, v2);
+      return (v / benchmark) * 100;
+    }
   }
 
   getBarWidth(auto: AutoModel, parametro: ParametroConfronto): number {
-    return this.getPerc(this.getVal(auto, parametro.key), parametro.key);
+    return this.getPerc(this.getVal(auto, parametro.key), parametro);
   }
 
-  calcolaPunteggi(): void {
-    if (!this.auto1 || !this.auto2) return;
-    const calcola = (auto: AutoModel) =>
-      Math.round(Number(auto.cv) / 6 + Number(auto.velocitaMax) / 5 + Number(auto.coppia) / 40);
+  getVal(auto: AutoModel, key: keyof AutoModel): unknown {
+    return auto[key];
+  }
 
-    this.score1 = calcola(this.auto1);
-    this.score2 = calcola(this.auto2);
+  private compareParametro(parametro: ParametroConfronto): 0 | 1 | 2 {
+    if (!this.auto1 || !this.auto2 || parametro.isText) return 0;
+
+    const raw1 = this.getVal(this.auto1, parametro.key);
+    const raw2 = this.getVal(this.auto2, parametro.key);
+
+    const valido1 = !this.isValoreNonDisponibile(raw1);
+    const valido2 = !this.isValoreNonDisponibile(raw2);
+
+    if (!valido1 && !valido2) return 0;
+    if (valido1 && !valido2) return 1;
+    if (!valido1 && valido2) return 2;
+
+    const v1 = Number(raw1);
+    const v2 = Number(raw2);
+
+    if (v1 === v2) return 0;
+
+    if (parametro.invert) {
+      return v1 < v2 ? 1 : 2;
+    }
+
+    return v1 > v2 ? 1 : 2;
+  }
+
+  isWinner(side: 1 | 2, parametro: ParametroConfronto): boolean {
+    return this.compareParametro(parametro) === side;
+  }
+
+  isTie(parametro: ParametroConfronto): boolean {
+    return this.compareParametro(parametro) === 0;
+  }
+
+  setGaraMode(mode: GaraModalita, event?: Event): void {
+    if (event) event.stopPropagation();
+
+    this.garaMode = mode;
+
+    if (this.garaInCorso && this.canRunSelectedRace()) {
+      this.garaTrigger++;
+      this.cd.detectChanges();
+    }
+  }
+
+  getTempoGara(auto: AutoModel | undefined, mode: GaraModalita = this.garaMode): number | null {
+    if (!auto) return null;
+
+    const value = Number(auto[mode]);
+    return Number.isFinite(value) && value > 0 ? value : null;
+  }
+
+  getTempoDisplayForMode(auto: AutoModel | undefined, mode: GaraModalita = this.garaMode): string {
+    const t = this.getTempoGara(auto, mode);
+    return t !== null ? `${t.toFixed(2)} s` : 'n.d.';
+  }
+
+  hasRaceData(mode: GaraModalita): boolean {
+    return this.getTempoGara(this.auto1, mode) !== null && this.getTempoGara(this.auto2, mode) !== null;
+  }
+
+  canRunSelectedRace(): boolean {
+    return this.hasRaceData(this.garaMode);
+  }
+
+  getLabelGara(mode: GaraModalita = this.garaMode): string {
+    switch (mode) {
+      case 'accelerazione0100':
+        return '0-100 km/h';
+      case 'accelerazione100200':
+        return '100-200 km/h';
+      case 'accelerazione80140':
+        return '80-140 km/h';
+      default:
+        return 'Gara';
+    }
+  }
+
+  getRaceTimeSummary(mode: GaraModalita): string {
+    const t1 = this.getTempoGara(this.auto1, mode);
+    const t2 = this.getTempoGara(this.auto2, mode);
+
+    if (t1 === null || t2 === null) return 'Dati mancanti';
+    return `${t1.toFixed(2)}s vs ${t2.toFixed(2)}s`;
+  }
+
+  getRaceWinnerPreview(mode: GaraModalita = this.garaMode): 0 | 1 | 2 {
+    const t1 = this.getTempoGara(this.auto1, mode);
+    const t2 = this.getTempoGara(this.auto2, mode);
+
+    if (t1 === null || t2 === null) return 0;
+    if (t1 < t2) return 1;
+    if (t2 < t1) return 2;
+    return 0;
   }
 
   startGara(event?: Event): void {
     if (event) event.stopPropagation();
+
+    if (!this.canRunSelectedRace()) {
+      this.triggerToast('Dati non disponibili per questa modalità di gara.', 'error');
+      return;
+    }
+
     this.garaInCorso = true;
     this.garaTrigger++;
     this.cd.detectChanges();
@@ -334,6 +463,12 @@ export class ConfrontoComponent implements OnInit {
 
   resetGara(event?: Event): void {
     if (event) event.stopPropagation();
+
+    if (!this.canRunSelectedRace()) {
+      this.triggerToast('Dati non disponibili per questa modalità di gara.', 'error');
+      return;
+    }
+
     this.garaTrigger++;
     this.cd.detectChanges();
   }
@@ -342,10 +477,6 @@ export class ConfrontoComponent implements OnInit {
     if (event) event.stopPropagation();
     this.voto = n;
     this.cd.detectChanges();
-  }
-
-  getVal(auto: AutoModel, key: keyof AutoModel): unknown {
-    return auto[key];
   }
 
   tornaHome(): void {
