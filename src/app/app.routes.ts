@@ -16,47 +16,47 @@ export const routes: Routes = [
   {
     path: 'Home',
     component: HomeComponent,
-    data: { navbarMode: 'default' }
+    data: { navbarMode: 'default' },
   },
   {
     path: 'Login',
     component: LoginComponent,
-    data: { navbarMode: 'empty' }
+    data: { navbarMode: 'accedere' },
   },
   {
     path: 'Registrazione',
     component: RegistrazioneComponent,
-    data: { navbarMode: 'empty' }
+    data: { navbarMode: 'accedere' },
   },
   {
     path: 'info-auto/:id',
     component: InfoAutoComponent,
-    data: { navbarMode: 'default' }
+    data: { navbarMode: 'default' },
   },
   {
     path: 'Profilo',
     component: ProfiloComponent,
     canActivate: [authGuard],
-    data: { navbarMode: 'Profilo' }
+    data: { navbarMode: 'Profilo' },
   },
   {
     path: 'Confronto',
     component: ConfrontoComponent,
     canActivate: [authGuard],
-    data: { navbarMode: 'default' }
+    data: { navbarMode: 'default' },
   },
   {
     path: 'Preferiti',
     component: PreferitiComponent,
     canActivate: [authGuard],
-    data: { navbarMode: 'preferiti' }
+    data: { navbarMode: 'preferiti' },
   },
   {
     path: 'Admin',
     component: AdminComponent,
     canActivate: [authGuard, adminGuard],
-    data: { navbarMode: 'admin' }
+    data: { navbarMode: 'admin' },
   },
   { path: '', redirectTo: '/Home', pathMatch: 'full' },
-  { path: '**', redirectTo: '/Home' }
+  { path: '**', redirectTo: '/Home' },
 ];

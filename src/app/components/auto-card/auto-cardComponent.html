@@ -1,4 +1,8 @@
-<div class="card-container" (click)="onCardClick()">
+<div
+  class="card-container"
+  [class.selected-card]="isSelezionata"
+  (click)="onCardClick()"
+>
   <div class="image-wrapper">
     <img
       class="auto-image"
@@ -31,8 +35,12 @@
       type="button"
       class="add-compare-btn"
       [class.active]="isSelezionata"
-      (click)="onAggiungiAlConfronto($event)">
-      <i class="fas" [ngClass]="isSelezionata ? 'fa-check-circle' : 'fa-plus-circle'"></i>
+      (click)="onAggiungiAlConfronto($event)"
+    >
+      <i
+        class="fas"
+        [ngClass]="isSelezionata ? 'fa-check-circle' : 'fa-plus-circle'"
+      ></i>
       {{ isSelezionata ? 'Selezionata' : 'Aggiungi al confronto' }}
     </button>
   </div>

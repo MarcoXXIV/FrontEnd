@@ -1,9 +1,11 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ElementRef,
   Input,
+  NgZone,
   OnChanges,
   OnDestroy,
   SimpleChanges,
@@ -30,6 +32,7 @@ interface AutoGara {
   imports: [CommonModule],
   templateUrl: './garaComponent.html',
   styleUrls: ['./garaComponent.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GaraAnimationComponent implements OnChanges, OnDestroy, AfterViewInit {
   @Input() car1: AutoGara | null = null;
@@ -60,21 +63,31 @@ export class GaraAnimationComponent implements OnChanges, OnDestroy, AfterViewIn
   erroreBattaglia = '';
   confronto: ConfrontoModel | null = null;
 
-  private timers: any[] = [];
+  private timers: Array<ReturnType<typeof setTimeout>> = [];
   private raceFrameId: number | null = null;
   private battagliaSub?: Subscription;
   private resizeObserver?: ResizeObserver;
-  private currentBattleRequestId = 0;
 
   private readonly startOffset = 14;
   private readonly stopOffsetDesktop = 182;
   private readonly stopOffsetMobile = 148;
 
+  private readonly goDelayMs = 2550;
+  private readonly winnerDelayMs = 550;
+  private readonly minTravelDistancePx = 120;
+  private readonly frameUpdateThresholdPx = 0.1;
+
   private travelDistancePx = 520;
+
+  // Progress salvato separatamente così se il track cambia misura
+  // durante il resize possiamo ricalcolare le posizioni senza scatti
+  private car1Progress = 0;
+  private car2Progress = 0;
 
   constructor(
     private cd: ChangeDetectorRef,
     private confrontoService: ConfrontoService,
+    private ngZone: NgZone,
   ) {}
 
   ngAfterViewInit(): void {
@@ -83,7 +96,9 @@ export class GaraAnimationComponent implements OnChanges, OnDestroy, AfterViewIn
     if (typeof ResizeObserver !== 'undefined' && this.trackRef?.nativeElement) {
       this.resizeObserver = new ResizeObserver(() => {
         this.updateTrackMetrics();
+        this.cd.detectChanges();
       });
+
       this.resizeObserver.observe(this.trackRef.nativeElement);
     }
   }
@@ -120,9 +135,6 @@ export class GaraAnimationComponent implements OnChanges, OnDestroy, AfterViewIn
 
   eseguiSfida(): void {
     if (!this.car1 || !this.car2) return;
-
-    this.currentBattleRequestId += 1;
-    const requestId = this.currentBattleRequestId;
 
     this.clearTimers();
     this.cancelRaceFrame();
@@ -223,16 +235,17 @@ export class GaraAnimationComponent implements OnChanges, OnDestroy, AfterViewIn
       this.lightState = 'green';
       this.countdownText = 'GO!';
       this.animazioneIniziata = true;
-      this.startRaceFrames(t1, t2);
       this.cd.detectChanges();
-    }, 2550);
+
+      this.startRaceFrames(t1, t2);
+    }, this.goDelayMs);
 
     this.schedule(() => {
       this.countdownText = '';
       this.cd.detectChanges();
     }, 3400);
 
-    const totalDurationMs = 2550 + Math.max(t1, t2) * 1000 + 550;
+    const totalDurationMs = this.goDelayMs + Math.max(t1, t2) * 1000 + this.winnerDelayMs;
 
     this.schedule(() => {
       this.animazioneIniziata = false;
@@ -245,55 +258,55 @@ export class GaraAnimationComponent implements OnChanges, OnDestroy, AfterViewIn
     const duration1 = t1Seconds * 1000;
     const duration2 = t2Seconds * 1000;
     const maxDuration = Math.max(duration1, duration2);
-
     const startAt = performance.now();
 
-    const frame = (now: number) => {
-      const elapsed = now - startAt;
+    this.ngZone.runOutsideAngular(() => {
+      const frame = (now: number) => {
+        const elapsed = now - startAt;
 
-      this.car1PositionPx = this.travelDistancePx * this.getRaceProgress(elapsed, duration1);
-      this.car2PositionPx = this.travelDistancePx * this.getRaceProgress(elapsed, duration2);
+        const nextProgress1 = this.getLinearProgress(elapsed, duration1);
+        const nextProgress2 = this.getLinearProgress(elapsed, duration2);
 
-      if (elapsed < maxDuration) {
-        this.raceFrameId = requestAnimationFrame(frame);
-      } else {
-        this.car1PositionPx = this.travelDistancePx;
-        this.car2PositionPx = this.travelDistancePx;
-        this.cancelRaceFrame();
-      }
+        const nextPos1 = this.travelDistancePx * nextProgress1;
+        const nextPos2 = this.travelDistancePx * nextProgress2;
 
-      this.cd.detectChanges();
-    };
+        const movedEnough =
+          Math.abs(nextPos1 - this.car1PositionPx) >= this.frameUpdateThresholdPx ||
+          Math.abs(nextPos2 - this.car2PositionPx) >= this.frameUpdateThresholdPx ||
+          elapsed >= maxDuration;
 
-    this.raceFrameId = requestAnimationFrame(frame);
+        this.car1Progress = nextProgress1;
+        this.car2Progress = nextProgress2;
+        this.car1PositionPx = nextPos1;
+        this.car2PositionPx = nextPos2;
+
+        if (movedEnough) {
+          this.cd.detectChanges();
+        }
+
+        if (elapsed < maxDuration) {
+          this.raceFrameId = requestAnimationFrame(frame);
+        } else {
+          this.car1Progress = 1;
+          this.car2Progress = 1;
+          this.car1PositionPx = this.travelDistancePx;
+          this.car2PositionPx = this.travelDistancePx;
+          this.cancelRaceFrame();
+          this.cd.detectChanges();
+        }
+      };
+
+      this.raceFrameId = requestAnimationFrame(frame);
+    });
   }
 
-  private getRaceProgress(elapsedMs: number, totalMs: number): number {
+  /**
+   * Progressione lineare reale:
+   * se un'auto impiega 5.20s, arriverà esattamente a fine corsia in 5.20s
+   */
+  private getLinearProgress(elapsedMs: number, totalMs: number): number {
     if (totalMs <= 0) return 0;
-
-    const t = Math.max(0, Math.min(1, elapsedMs / totalMs));
-
-    if (t < 0.18) {
-      return 0.07 * this.easeInCubic(t / 0.18);
-    }
-
-    if (t < 0.72) {
-      return 0.07 + 0.75 * this.easeInOutCubic((t - 0.18) / 0.54);
-    }
-
-    return 0.82 + 0.18 * this.easeOutCubic((t - 0.72) / 0.28);
-  }
-
-  private easeInCubic(x: number): number {
-    return x * x * x;
-  }
-
-  private easeOutCubic(x: number): number {
-    return 1 - Math.pow(1 - x, 3);
-  }
-
-  private easeInOutCubic(x: number): number {
-    return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+    return Math.max(0, Math.min(1, elapsedMs / totalMs));
   }
 
   private resetRaceState(resetScore: boolean): void {
@@ -301,8 +314,12 @@ export class GaraAnimationComponent implements OnChanges, OnDestroy, AfterViewIn
     this.mostraVincitore = false;
     this.countdownText = 'READY';
     this.lightState = 'off';
+
+    this.car1Progress = 0;
+    this.car2Progress = 0;
     this.car1PositionPx = 0;
     this.car2PositionPx = 0;
+
     this.erroreBattaglia = '';
 
     if (resetScore) {
@@ -318,7 +335,14 @@ export class GaraAnimationComponent implements OnChanges, OnDestroy, AfterViewIn
     const width = el.clientWidth;
     const stopOffset = width <= 640 ? this.stopOffsetMobile : this.stopOffsetDesktop;
 
-    this.travelDistancePx = Math.max(120, width - this.startOffset - stopOffset);
+    this.travelDistancePx = Math.max(
+      this.minTravelDistancePx,
+      width - this.startOffset - stopOffset,
+    );
+
+    // Mantiene la posizione proporzionale anche dopo resize
+    this.car1PositionPx = this.travelDistancePx * this.car1Progress;
+    this.car2PositionPx = this.travelDistancePx * this.car2Progress;
   }
 
   private schedule(callback: () => void, delay: number): void {

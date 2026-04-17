@@ -11,19 +11,19 @@ import { AutoModel } from '../../models/AutoModel';
 })
 export class AutoCardComponent implements OnChanges {
   @Input() auto!: AutoModel;
-  @Input() selezionata: boolean = false; // Input per gestire lo stato dall'esterno (es. reset dalla home)
+  @Input() selezionata: boolean = false;
 
-  @Output() seleziona = new EventEmitter<number>();
+  @Output() seleziona = new EventEmitter<AutoModel>();
   @Output() apriDettaglio = new EventEmitter<number>();
 
   isSelezionata: boolean = false;
-  immagineSrc: string = 'assets/img/';
+  immagineSrc: string = '/assets/img/Errore.png';
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['auto']) {
       this.impostaImmagine();
     }
-    // Sincronizziamo lo stato interno con quello esterno se necessario
+
     if (changes['selezionata']) {
       this.isSelezionata = this.selezionata;
     }
@@ -47,9 +47,9 @@ export class AutoCardComponent implements OnChanges {
 
   onAggiungiAlConfronto(event: MouseEvent): void {
     event.stopPropagation();
+
     if (this.auto?.id) {
-      this.isSelezionata = !this.isSelezionata; // Cambia stato al clic
-      this.seleziona.emit(this.auto.id);
+      this.seleziona.emit(this.auto);
     }
   }
 }

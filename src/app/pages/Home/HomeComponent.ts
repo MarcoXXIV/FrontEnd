@@ -14,13 +14,14 @@ import { NavbarComponent } from '../../components/Navbar/NavbarComponent';
   standalone: true,
   imports: [CommonModule, FormsModule, AutoCardComponent, NavbarComponent],
   templateUrl: './HomeComponent.html',
-  styleUrl: './HomeComponent.css'
+  styleUrl: './HomeComponent.css',
 })
 export class HomeComponent implements OnInit, OnDestroy {
   listaAuto: AutoModel[] = [];
   autoFiltrate: AutoModel[] = [];
   autoPaginata: AutoModel[] = [];
-  autoSelezionate: number[] = [];
+
+  autoSelezionate: AutoModel[] = [];
 
   filtroMarca: string = '';
   filtroModello: string = '';
@@ -40,14 +41,14 @@ export class HomeComponent implements OnInit, OnDestroy {
   constructor(
     private autoService: AutoService,
     private router: Router,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
     this.aggiornaStatoUtente();
     this.caricaCatalogo();
 
-    this.routerSub = this.router.events.subscribe(event => {
+    this.routerSub = this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.aggiornaStatoUtente();
       }
@@ -56,6 +57,23 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.routerSub?.unsubscribe();
+  }
+
+  get confrontoCompleto(): boolean {
+    return this.autoSelezionate.length === 2;
+  }
+
+  get primoSelezionato(): AutoModel | null {
+    return this.autoSelezionate[0] ?? null;
+  }
+
+  get secondoSelezionato(): AutoModel | null {
+    return this.autoSelezionate[1] ?? null;
+  }
+
+  isAutoSelezionata(id?: number): boolean {
+    if (!id) return false;
+    return this.autoSelezionate.some((auto) => auto.id === id);
   }
 
   private aggiornaStatoUtente(): void {
@@ -134,14 +152,17 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     this.autoService.getAllAuto().subscribe({
       next: (data) => {
-        this.gestisciRisposta(data, 'Esplora il catalogo. Per sfidare 2 auto serve il login.');
+        this.gestisciRisposta(
+          data,
+          'Esplora il catalogo. Seleziona due auto e apri il confronto quando vuoi dal popup.',
+        );
       },
       error: (err) => {
         console.error('Errore API random:', err);
         this.loading = false;
         this.messaggio = 'Impossibile caricare i bolidi.';
         this.cd.detectChanges();
-      }
+      },
     });
   }
 
@@ -151,9 +172,10 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     this.autoService.searchAuto(this.filtroMarca, this.filtroModello).subscribe({
       next: (risultati) => {
-        const msg = risultati.length === 0
-          ? 'Nessun bolide trovato.'
-          : `Risultati trovati${this.filtroMarca ? ' per marca: ' + this.filtroMarca : ''}${this.filtroModello ? ' / modello: ' + this.filtroModello : ''}`;
+        const msg =
+          risultati.length === 0
+            ? 'Nessun bolide trovato.'
+            : `Risultati trovati${this.filtroMarca ? ' per marca: ' + this.filtroMarca : ''}${this.filtroModello ? ' / modello: ' + this.filtroModello : ''}`;
 
         this.gestisciRisposta(risultati, msg);
       },
@@ -162,7 +184,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.messaggio = 'Errore durante la ricerca.';
         this.cd.detectChanges();
-      }
+      },
     });
   }
 
@@ -174,46 +196,90 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.caricaCatalogo();
   }
 
-  gestisciSelezione(idAuto: number): void {
-    const index = this.autoSelezionate.indexOf(idAuto);
+  gestisciSelezione(auto: AutoModel): void {
+    if (!auto?.id) return;
+
+    const index = this.autoSelezionate.findIndex((item) => item.id === auto.id);
 
     if (index > -1) {
       this.autoSelezionate.splice(index, 1);
+      this.messaggio =
+        this.autoSelezionate.length === 0
+          ? 'Selezione confronto svuotata.'
+          : 'Auto rimossa dal confronto. Hai di nuovo uno slot libero.';
       this.cd.detectChanges();
       return;
     }
 
-    if (this.autoSelezionate.length < 2) {
-      this.autoSelezionate.push(idAuto);
+    if (this.autoSelezionate.length >= 2) {
+      this.messaggio =
+        'Hai già 2 bolidi nel popup confronto. Rimuovine uno per aggiungerne un altro.';
+      this.cd.detectChanges();
+      return;
+    }
+
+    this.autoSelezionate = [...this.autoSelezionate, auto];
+
+    if (this.autoSelezionate.length === 2) {
+      this.messaggio = this.utenteLoggato
+        ? 'Confronto pronto. Premi "Vai al confronto" nel popup.'
+        : 'Confronto pronto. Effettua il login e poi premi "Vai al confronto".';
+    } else {
+      this.messaggio = 'Prima auto aggiunta. Selezionane un’altra per completare il confronto.';
     }
 
     this.cd.detectChanges();
+  }
 
-    if (this.autoSelezionate.length === 2) {
-      if (!this.utenteLoggato) {
-        this.messaggio = 'Per avviare una sfida devi effettuare il login.';
-        this.cd.detectChanges();
+  rimuoviDalConfronto(idAuto: number, event?: MouseEvent): void {
+    event?.stopPropagation();
 
-        setTimeout(() => {
-          this.router.navigate(['/Login']).then(() => {
-            window.scrollTo({ top: 0, behavior: 'auto' });
-          });
-        }, 400);
+    this.autoSelezionate = this.autoSelezionate.filter((auto) => auto.id !== idAuto);
 
-        return;
-      }
+    this.messaggio =
+      this.autoSelezionate.length === 0
+        ? 'Selezione confronto svuotata.'
+        : 'Auto rimossa dal confronto. Hai di nuovo uno slot libero.';
 
-      const [id1, id2] = this.autoSelezionate;
+    this.cd.detectChanges();
+  }
 
-      // Navigazione verso il confronto con reset dello scroll
-      this.router.navigate(['/Confronto'], {
-        queryParams: { idAuto1: id1, idAuto2: id2 }
-      }).then(() => {
-        window.scrollTo({ top: 0, behavior: 'auto' });
-      });
+  svuotaConfronto(): void {
+    this.autoSelezionate = [];
+    this.messaggio = 'Selezione confronto svuotata.';
+    this.cd.detectChanges();
+  }
 
-      this.autoSelezionate = [];
+  vaiAlConfronto(): void {
+    if (!this.confrontoCompleto) {
+      this.messaggio = 'Seleziona due auto per avviare il confronto.';
+      this.cd.detectChanges();
+      return;
     }
+
+    if (!this.utenteLoggato) {
+      this.messaggio = 'Per avviare una sfida devi effettuare il login.';
+      this.cd.detectChanges();
+
+      setTimeout(() => {
+        this.router.navigate(['/Login']).then(() => {
+          window.scrollTo({ top: 0, behavior: 'auto' });
+        });
+      }, 250);
+
+      return;
+    }
+
+    const [auto1, auto2] = this.autoSelezionate;
+
+    this.router
+      .navigate(['/Confronto'], {
+        queryParams: { idAuto1: auto1.id, idAuto2: auto2.id },
+      })
+      .then(() => {
+        window.scrollTo({ top: 0, behavior: 'auto' });
+        this.autoSelezionate = [];
+      });
   }
 
   apriInfoAuto(idAuto: number): void {
@@ -224,7 +290,6 @@ export class HomeComponent implements OnInit, OnDestroy {
       window.scrollTo({ top: 0, behavior: 'auto' });
     });
   }
-
 
   caricaPerCategoria(categoria: string): void {
     if (!categoria) {
@@ -242,7 +307,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.messaggio = 'Errore nel caricamento della categoria.';
         this.cd.detectChanges();
-      }
+      },
     });
   }
 
@@ -257,7 +322,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.messaggio = 'Errore nel caricamento della classifica green.';
         this.cd.detectChanges();
-      }
+      },
     });
   }
 
@@ -272,7 +337,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.messaggio = 'Errore nel caricamento della classifica accelerazione.';
         this.cd.detectChanges();
-      }
+      },
     });
   }
 

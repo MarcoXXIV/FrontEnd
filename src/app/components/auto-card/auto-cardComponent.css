@@ -24,6 +24,14 @@
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
 }
 
+.card-container.selected-card {
+  border-color: rgba(231, 76, 60, 0.6);
+  box-shadow:
+    0 0 0 2px rgba(231, 76, 60, 0.18),
+    0 18px 40px rgba(0, 0, 0, 0.32);
+  transform: translateY(-4px);
+}
+
 .image-wrapper {
   position: relative;
   width: 100%;
@@ -77,7 +85,7 @@
   flex-direction: column;
   gap: 14px;
   flex-grow: 1;
-  min-width: 0; /* Fondamentale per far funzionare l'ellipsis nei flexbox */
+  min-width: 0;
 }
 
 .model {
@@ -86,7 +94,6 @@
   font-weight: 800;
   margin: 0;
   line-height: 1.25;
-  /* Soluzione per i 3 puntini */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -145,7 +152,6 @@
   transition: all 0.3s ease;
 }
 
-/* Hover e Stato Attivo (Arancione) */
 .add-compare-btn:hover,
 .add-compare-btn.active {
   background: #e74c3c !important;
@@ -154,7 +160,7 @@
 }
 
 .add-compare-btn.active {
-  transform: scale(1.02); /* Leggera enfasi quando selezionata */
+  transform: scale(1.02);
 }
 
 .add-compare-btn:active {
@@ -165,9 +171,16 @@
   .card-container {
     min-height: auto;
   }
-  .image-wrapper { height: 190px; }
-  .model {
-    font-size: 1.25rem; /* Ridotto leggermente per mobile per far stare più testo */
+
+  .image-wrapper {
+    height: 190px;
   }
-  .price-tag { font-size: 1.2rem; }
+
+  .model {
+    font-size: 1.25rem;
+  }
+
+  .price-tag {
+    font-size: 1.2rem;
+  }
 }

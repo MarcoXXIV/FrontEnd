@@ -33,6 +33,108 @@
         Reset
       </button>
     </div>
+
+    <div class="compare-popup" *ngIf="autoSelezionate.length > 0">
+      <div class="compare-popup-header">
+        <div>
+          <span class="compare-eyebrow">Garage confronto</span>
+          <h2 class="compare-title">Prepara la tua sfida</h2>
+        </div>
+
+        <button
+          type="button"
+          class="btn-clear-compare"
+          (click)="svuotaConfronto()"
+        >
+          Svuota
+        </button>
+      </div>
+
+      <div class="compare-stage">
+        <div
+          class="compare-slot"
+          [class.filled]="!!primoSelezionato"
+          [class.empty]="!primoSelezionato"
+        >
+          <ng-container *ngIf="primoSelezionato; else slotVuotoUno">
+            <button
+              type="button"
+              class="remove-slot-btn"
+              (click)="rimuoviDalConfronto(primoSelezionato.id!, $event)"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+
+            <span class="slot-label">Auto 1</span>
+            <div class="slot-brand">{{ primoSelezionato.marca }}</div>
+            <div class="slot-model">{{ primoSelezionato.modello }}</div>
+          </ng-container>
+        </div>
+
+        <div class="vs-pill" [class.ready]="confrontoCompleto">
+          VS
+        </div>
+
+        <div
+          class="compare-slot"
+          [class.filled]="!!secondoSelezionato"
+          [class.empty]="!secondoSelezionato"
+        >
+          <ng-container *ngIf="secondoSelezionato; else slotVuotoDue">
+            <button
+              type="button"
+              class="remove-slot-btn"
+              (click)="rimuoviDalConfronto(secondoSelezionato.id!, $event)"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+
+            <span class="slot-label">Auto 2</span>
+            <div class="slot-brand">{{ secondoSelezionato.marca }}</div>
+            <div class="slot-model">{{ secondoSelezionato.modello }}</div>
+          </ng-container>
+        </div>
+      </div>
+
+      <div class="compare-popup-footer">
+        <p class="compare-hint" [class.ready]="confrontoCompleto">
+          <ng-container *ngIf="confrontoCompleto; else hintSelezione">
+            {{ utenteLoggato
+            ? 'Tutto pronto: il confronto partirà solo quando clicchi il pulsante.'
+            : 'Hai scelto 2 auto. Effettua il login e poi clicca il pulsante per iniziare.' }}
+          </ng-container>
+
+          <ng-template #hintSelezione>
+            Seleziona 2 auto dal catalogo. Puoi rimuoverle da qui in qualsiasi momento.
+          </ng-template>
+        </p>
+
+        <button
+          type="button"
+          class="btn-compare-now"
+          [disabled]="!confrontoCompleto"
+          (click)="vaiAlConfronto()"
+        >
+          {{ utenteLoggato ? 'Vai al confronto' : 'Login per confrontare' }}
+        </button>
+      </div>
+    </div>
+
+    <ng-template #slotVuotoUno>
+      <div class="slot-empty">
+        <i class="fas fa-plus-circle"></i>
+        <span>Posto libero</span>
+        <small>Seleziona un'auto dal catalogo</small>
+      </div>
+    </ng-template>
+
+    <ng-template #slotVuotoDue>
+      <div class="slot-empty">
+        <i class="fas fa-plus-circle"></i>
+        <span>Posto libero</span>
+        <small>Seleziona un'auto dal catalogo</small>
+      </div>
+    </ng-template>
   </header>
 
   <div class="quick-actions">
@@ -70,15 +172,17 @@
     <div
       class="card-wrapper"
       *ngFor="let auto of autoPaginata; trackBy: trackByAutoId"
-      [class.selected]="autoSelezionate.includes(auto.id!)"
+      [class.selected]="isAutoSelezionata(auto.id)"
     >
       <app-auto-card
         [auto]="auto"
+        [selezionata]="isAutoSelezionata(auto.id)"
         (apriDettaglio)="apriInfoAuto($event)"
-        (seleziona)="gestisciSelezione($event)">
+        (seleziona)="gestisciSelezione($event)"
+      >
       </app-auto-card>
 
-      <div class="selection-badge" *ngIf="autoSelezionate.includes(auto.id!)">
+      <div class="selection-badge" *ngIf="isAutoSelezionata(auto.id)">
         <i class="fas fa-check"></i> Selezionata
       </div>
     </div>
@@ -101,7 +205,8 @@
       <button
         class="page-nav"
         (click)="paginaPrecedente()"
-        [disabled]="paginaCorrente === 1">
+        [disabled]="paginaCorrente === 1"
+      >
         <i class="fas fa-chevron-left"></i>
       </button>
 
@@ -109,29 +214,18 @@
         class="page-btn"
         *ngFor="let pagina of pagine"
         [class.active]="pagina === paginaCorrente"
-        (click)="vaiAPagina(pagina)">
+        (click)="vaiAPagina(pagina)"
+      >
         {{ pagina }}
       </button>
 
       <button
         class="page-nav"
         (click)="paginaSuccessiva()"
-        [disabled]="paginaCorrente === totalePagine">
+        [disabled]="paginaCorrente === totalePagine"
+      >
         <i class="fas fa-chevron-right"></i>
       </button>
-    </div>
-  </div>
-
-  <div class="comparison-bar" *ngIf="autoSelezionate.length > 0">
-    <p>
-      Veicoli selezionati:
-      <strong>{{ autoSelezionate.length }} / 2</strong>
-      <span *ngIf="!utenteLoggato"> — login richiesto per la sfida</span>
-    </p>
-
-    <div class="dots">
-      <span class="dot" [class.active]="autoSelezionate.length >= 1"></span>
-      <span class="dot" [class.active]="autoSelezionate.length === 2"></span>
     </div>
   </div>
 </div>
