@@ -1,5 +1,16 @@
 <app-navbar></app-navbar>
 
+<div class="toast-notification" [class.active]="showToast" [ngClass]="toastType">
+  <div class="toast-content">
+    <i
+      class="fas"
+      [ngClass]="toastType === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'">
+    </i>
+    <span>{{ toastMsg }}</span>
+  </div>
+  <div class="toast-progress" [class.running]="showToast"></div>
+</div>
+
 <div class="home-container">
   <header class="hero-section">
     <div class="hero-top-layout">
@@ -8,21 +19,28 @@
           Trova il tuo prossimo <span class="highlight">Bolide</span>
         </h1>
 
-        <div class="search-bar">
+        <!-- FORM: ora Cerca parte anche con INVIO -->
+        <form class="search-bar" (ngSubmit)="eseguiRicerca()">
           <div class="input-group">
             <i class="fas fa-search"></i>
             <input
               type="text"
+              name="marca"
               [(ngModel)]="filtroMarca"
               (ngModelChange)="onMarcaChange($event)"
+              (blur)="onMarcaBlur()"
+              autocomplete="off"
               placeholder="Marca (es. Ferrari)"
             />
-
           </div>
 
-          <div class="input-group">
+          <div class="input-group select-group">
             <i class="fas fa-car"></i>
-            <select [(ngModel)]="filtroModello">
+            <select
+              name="modello"
+              [(ngModel)]="filtroModello"
+              [disabled]="!modelliDisponibili.length"
+            >
               <option value="">Tutti i modelli</option>
               <option *ngFor="let modello of modelliDisponibili" [value]="modello">
                 {{ modello }}
@@ -30,14 +48,14 @@
             </select>
           </div>
 
-          <button class="btn-search" (click)="eseguiRicerca()">
+          <button type="submit" class="btn-search">
             Cerca <i class="fas fa-bolt"></i>
           </button>
 
-          <button class="btn-reset" (click)="resetRicerca()">
+          <button type="button" class="btn-reset" (click)="resetRicerca()">
             Reset
           </button>
-        </div>
+        </form>
       </div>
 
       <!-- DESKTOP COMPARE -->
@@ -139,19 +157,22 @@
   </ng-template>
 
   <div class="quick-actions">
-    <button class="chip" (click)="caricaCatalogo()">
+    <button class="chip" type="button" (click)="caricaCatalogo()">
       <i class="fas fa-random"></i> Catalogo Completo
     </button>
 
-    <button class="chip" (click)="caricaTopAccelerazione()">
+    <button class="chip" type="button" (click)="caricaTopAccelerazione()">
       <i class="fas fa-tachometer-alt"></i> Top 10 Accelerazione
     </button>
 
-    <button class="chip" (click)="caricaTopGreen()">
+    <button class="chip" type="button" (click)="caricaTopGreen()">
       <i class="fas fa-leaf"></i> Top 10 Eco Friendly
     </button>
 
-    <select class="chip select-chip" (change)="caricaPerCategoria($any($event.target).value)">
+    <select
+      class="chip select-chip"
+      (change)="caricaPerCategoria($any($event.target).value)"
+    >
       <option value="">Tutte le Categorie</option>
       <option value="berlina">Berlina</option>
       <option value="coupè">Coupè</option>
@@ -193,7 +214,7 @@
     <i class="fas fa-car-crash"></i>
     <h3>Nessun risultato disponibile</h3>
     <p>Prova a cambiare filtro o ricaricare il catalogo.</p>
-    <button class="btn-search" (click)="caricaCatalogo()">Ricarica catalogo</button>
+    <button class="btn-search" type="button" (click)="caricaCatalogo()">Ricarica catalogo</button>
   </div>
 
   <div class="pagination-wrapper" *ngIf="!loading && autoFiltrate.length > 0">
@@ -205,6 +226,7 @@
     <div class="pagination">
       <button
         class="page-nav"
+        type="button"
         (click)="paginaPrecedente()"
         [disabled]="paginaCorrente === 1"
       >
@@ -213,6 +235,7 @@
 
       <button
         class="page-btn"
+        type="button"
         *ngFor="let pagina of pagine"
         [class.active]="pagina === paginaCorrente"
         (click)="vaiAPagina(pagina)"
@@ -222,6 +245,7 @@
 
       <button
         class="page-nav"
+        type="button"
         (click)="paginaSuccessiva()"
         [disabled]="paginaCorrente === totalePagine"
       >

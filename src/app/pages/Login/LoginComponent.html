@@ -1,4 +1,24 @@
 <app-navbar></app-navbar>
+
+<div
+  class="notification-toast"
+  *ngIf="notification.show"
+  [ngClass]="notification.type"
+>
+  <div class="toast-icon">
+    <i class="fas" [ngClass]="notification.type === 'success' ? 'fa-check-circle' : 'fa-times-circle'"></i>
+  </div>
+
+  <div class="toast-content">
+    <h4>{{ notification.title }}</h4>
+    <p>{{ notification.message }}</p>
+  </div>
+
+  <button type="button" class="toast-close" (click)="closeNotification()">
+    <i class="fas fa-times"></i>
+  </button>
+</div>
+
 <div class="login-container">
   <div class="login-card">
     <div class="card-header">
@@ -9,8 +29,8 @@
       <p>Accedi per iniziare una nuova sfida!</p>
     </div>
 
-    <form (ngSubmit)="onLogin()" #loginForm="ngForm" class="login-form">
-      <div class="input-group" [class.error]="errorMessage && !credentials.email">
+    <form (ngSubmit)="onLogin()" class="login-form" novalidate>
+      <div class="input-group" [class.error]="fieldErrors.email">
         <label for="email">Email</label>
         <div class="input-wrapper">
           <i class="fas fa-envelope"></i>
@@ -19,13 +39,16 @@
             id="email"
             name="email"
             [(ngModel)]="credentials.email"
+            (blur)="validateEmailField()"
             placeholder="esempio@mail.com"
+            autocomplete="email"
             required
           />
         </div>
+        <small class="field-error" *ngIf="fieldErrors.email">{{ fieldErrors.email }}</small>
       </div>
 
-      <div class="input-group" [class.error]="errorMessage && !credentials.password">
+      <div class="input-group" [class.error]="fieldErrors.password">
         <label for="password">Password</label>
         <div class="input-wrapper">
           <i class="fas fa-lock"></i>
@@ -35,7 +58,9 @@
             id="password"
             name="password"
             [(ngModel)]="credentials.password"
+            (blur)="validatePasswordField()"
             placeholder="••••••••"
+            autocomplete="current-password"
             required
           />
 
@@ -45,15 +70,14 @@
             (click)="togglePassword()"
           ></i>
         </div>
-      </div>
-
-      <div class="error-banner" *ngIf="errorMessage">
-        <i class="fas fa-exclamation-circle"></i>
-        <span>{{ errorMessage }}</span>
+        <small class="field-error" *ngIf="fieldErrors.password">{{ fieldErrors.password }}</small>
       </div>
 
       <button type="submit" class="btn-login" [disabled]="loading">
-        <span *ngIf="!loading">Accedi al Garage <i class="fas fa-arrow-right"></i></span>
+        <span *ngIf="!loading">
+          Accedi al Garage
+          <i class="fas fa-arrow-right"></i>
+        </span>
         <div class="spinner" *ngIf="loading"></div>
       </button>
     </form>

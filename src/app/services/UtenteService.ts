@@ -48,4 +48,9 @@ export class UtenteService {
   eliminaUtente(id: number): Observable<string> {
     return this.http.delete(`${this.apiUrl}/elimina/${id}`, { responseType: 'text' });
   }
+
+  findByEmail(email: string): Observable<UtenteModel> {
+    return this.http.get<UtenteModel>(`${this.apiUrl}/cerca/${email}`);
+  }
+
 }

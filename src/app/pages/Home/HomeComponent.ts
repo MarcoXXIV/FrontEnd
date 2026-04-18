@@ -2,7 +2,8 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subscription, Observable } from 'rxjs';
+import { finalize, take } from 'rxjs/operators';
 
 import { AutoService } from '../../services/AutoService';
 import { AutoModel } from '../../models/AutoModel';
@@ -14,10 +15,13 @@ import { NavbarComponent } from '../../components/Navbar/NavbarComponent';
   standalone: true,
   imports: [CommonModule, FormsModule, AutoCardComponent, NavbarComponent],
   templateUrl: './HomeComponent.html',
-  styleUrl: './HomeComponent.css',
+  styleUrls: ['./HomeComponent.css'],
 })
 export class HomeComponent implements OnInit, OnDestroy {
-  listaAuto: AutoModel[] = [];
+  // Catalogo completo sempre mantenuto in memoria
+  catalogoCompleto: AutoModel[] = [];
+
+  // Dati mostrati in pagina
   autoFiltrate: AutoModel[] = [];
   autoPaginata: AutoModel[] = [];
 
@@ -25,6 +29,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   filtroMarca: string = '';
   filtroModello: string = '';
+
   loading: boolean = false;
   messaggio: string = '';
 
@@ -41,7 +46,13 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   compareMobileAperto: boolean = false;
 
+  showToast: boolean = false;
+  toastMsg: string = '';
+  toastType: 'success' | 'error' = 'success';
+
   private routerSub?: Subscription;
+  private apiSub?: Subscription;
+  private toastTimeout?: ReturnType<typeof setTimeout>;
 
   constructor(
     private autoService: AutoService,
@@ -62,6 +73,11 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.routerSub?.unsubscribe();
+    this.apiSub?.unsubscribe();
+
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
   }
 
   get confrontoCompleto(): boolean {
@@ -74,6 +90,15 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   get secondoSelezionato(): AutoModel | null {
     return this.autoSelezionate[1] ?? null;
+  }
+
+  get indiceInizio(): number {
+    if (this.autoFiltrate.length === 0) return 0;
+    return (this.paginaCorrente - 1) * this.autoPerPagina + 1;
+  }
+
+  get indiceFine(): number {
+    return Math.min(this.paginaCorrente * this.autoPerPagina, this.autoFiltrate.length);
   }
 
   isAutoSelezionata(id?: number): boolean {
@@ -91,6 +116,23 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.cd.detectChanges();
   }
 
+  private triggerToast(msg: string, type: 'success' | 'error'): void {
+    this.toastMsg = msg;
+    this.toastType = type;
+    this.showToast = true;
+
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
+
+    this.cd.detectChanges();
+
+    this.toastTimeout = setTimeout(() => {
+      this.showToast = false;
+      this.cd.detectChanges();
+    }, 3500);
+  }
+
   private isMobileView(): boolean {
     return typeof window !== 'undefined' && window.innerWidth <= 768;
   }
@@ -101,36 +143,68 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.cd.detectChanges();
   }
 
+  private normalize(value: string | null | undefined): string {
+    return (value ?? '').trim().toLocaleLowerCase('it');
+  }
+
   private estraiValoriUnici(values: Array<string | null | undefined>): string[] {
     return [
-      ...new Set(
-        values
-          .map((v) => (v ?? '').trim())
-          .filter((v): v is string => v.length > 0),
-      ),
+      ...new Set(values.map((v) => (v ?? '').trim()).filter((v): v is string => v.length > 0)),
     ].sort((a, b) => a.localeCompare(b, 'it', { sensitivity: 'base' }));
   }
 
-  private aggiornaSuggerimenti(data: AutoModel[]): void {
-    this.marchiDisponibili = this.estraiValoriUnici(data.map((auto) => auto.marca));
-    this.aggiornaModelliDisponibili(data);
+  private marcaEsistente(marca: string): boolean {
+    const marcaNorm = this.normalize(marca);
+    return this.marchiDisponibili.some((m) => this.normalize(m) === marcaNorm);
   }
 
-  private aggiornaModelliDisponibili(source: AutoModel[] = this.listaAuto): void {
-    const marcaRicercata = this.filtroMarca.trim().toLowerCase();
+  private trovaMarcaCanonica(input: string): string {
+    const valore = input.trim();
+    const normalized = this.normalize(valore);
 
-    const modelli = source
-      .filter((auto) => {
-        const marca = (auto.marca ?? '').trim().toLowerCase();
-        return !marcaRicercata || marca.includes(marcaRicercata);
-      })
+    if (!normalized) return '';
+
+    const exact = this.marchiDisponibili.find((m) => this.normalize(m) === normalized);
+    if (exact) return exact;
+
+    const startsWithMatches = this.marchiDisponibili.filter((m) =>
+      this.normalize(m).startsWith(normalized),
+    );
+
+    if (startsWithMatches.length === 1) {
+      return startsWithMatches[0];
+    }
+
+    return valore;
+  }
+
+  private aggiornaSuggerimenti(): void {
+    this.marchiDisponibili = this.estraiValoriUnici(
+      this.catalogoCompleto.map((auto) => auto.marca),
+    );
+    this.aggiornaModelliDisponibili();
+  }
+
+  private aggiornaModelliDisponibili(): void {
+    const marcaCanonica = this.trovaMarcaCanonica(this.filtroMarca);
+    const marcaNorm = this.normalize(marcaCanonica);
+
+    // Se la marca non è selezionata/esatta, niente modelli
+    if (!marcaNorm || !this.marcaEsistente(marcaCanonica)) {
+      this.modelliDisponibili = [];
+      this.filtroModello = '';
+      return;
+    }
+
+    const modelli = this.catalogoCompleto
+      .filter((auto) => this.normalize(auto.marca) === marcaNorm)
       .map((auto) => auto.modello);
 
     this.modelliDisponibili = this.estraiValoriUnici(modelli);
 
-    const modelloAttuale = this.filtroModello.trim().toLowerCase();
+    const modelloAttuale = this.normalize(this.filtroModello);
     const modelloAncoraValido = this.modelliDisponibili.some(
-      (m) => m.toLowerCase() === modelloAttuale,
+      (m) => this.normalize(m) === modelloAttuale,
     );
 
     if (this.filtroModello && !modelloAncoraValido) {
@@ -140,20 +214,26 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   onMarcaChange(value: string): void {
     this.filtroMarca = value;
+    this.filtroModello = '';
     this.aggiornaModelliDisponibili();
   }
 
-  private gestisciRisposta(data: AutoModel[], msg: string = ''): void {
-    this.listaAuto = [...data];
+  onMarcaBlur(): void {
+    const marcaCanonica = this.trovaMarcaCanonica(this.filtroMarca);
+
+    if (marcaCanonica && this.marcaEsistente(marcaCanonica)) {
+      this.filtroMarca = marcaCanonica;
+      this.aggiornaModelliDisponibili();
+      this.cd.detectChanges();
+    }
+  }
+
+  private gestisciRisultati(data: AutoModel[], msg: string = ''): void {
     this.autoFiltrate = [...data];
     this.messaggio = msg;
-    this.loading = false;
-
-    this.aggiornaSuggerimenti(this.listaAuto);
 
     this.paginaCorrente = 1;
     this.aggiornaPaginazione();
-
     this.cd.detectChanges();
   }
 
@@ -175,6 +255,112 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     this.autoPaginata = this.autoFiltrate.slice(start, end);
     this.pagine = Array.from({ length: this.totalePagine }, (_, i) => i + 1);
+  }
+
+  private eseguiRichiesta<T>(
+    request$: Observable<T>,
+    onSuccess: (data: T) => void,
+    errorMessage: string,
+  ): void {
+    this.apiSub?.unsubscribe();
+    this.loading = true;
+    this.messaggio = '';
+    this.cd.detectChanges();
+
+    this.apiSub = request$
+      .pipe(
+        take(1),
+        finalize(() => {
+          this.loading = false;
+          this.cd.detectChanges();
+        }),
+      )
+      .subscribe({
+        next: onSuccess,
+        error: (err) => {
+          console.error(errorMessage, err);
+          this.messaggio = errorMessage;
+        },
+      });
+  }
+
+  caricaCatalogo(): void {
+    this.eseguiRichiesta(
+      this.autoService.getAllAuto(),
+      (data) => {
+        this.catalogoCompleto = [...data];
+        this.aggiornaSuggerimenti();
+        this.gestisciRisultati(
+          this.catalogoCompleto,
+          'Esplora il catalogo e seleziona due auto per il confronto.',
+        );
+      },
+      'Impossibile caricare i bolidi.',
+    );
+  }
+
+  eseguiRicerca(): void {
+    // Se il catalogo non è ancora pronto, non partire a vuoto
+    if (!this.catalogoCompleto.length) {
+      this.caricaCatalogo();
+      return;
+    }
+
+    const marcaInput = this.filtroMarca.trim();
+    const marcaCanonica = this.trovaMarcaCanonica(marcaInput);
+    const marcaNorm = this.normalize(marcaCanonica);
+    const modelloNorm = this.normalize(this.filtroModello);
+
+    // Se la marca è riconosciuta, riallinea il valore visibile
+    if (marcaCanonica && this.marcaEsistente(marcaCanonica)) {
+      this.filtroMarca = marcaCanonica;
+      this.aggiornaModelliDisponibili();
+    }
+
+    const risultati = this.catalogoCompleto.filter((auto) => {
+      const marcaAuto = this.normalize(auto.marca);
+      const modelloAuto = this.normalize(auto.modello);
+
+      const matchMarca = !marcaInput
+        ? true
+        : this.marcaEsistente(marcaCanonica)
+          ? marcaAuto === marcaNorm
+          : marcaAuto.includes(this.normalize(marcaInput));
+
+      const matchModello = !modelloNorm ? true : modelloAuto === modelloNorm;
+
+      return matchMarca && matchModello;
+    });
+
+    const msg =
+      risultati.length === 0
+        ? 'Nessun bolide trovato.'
+        : `Risultati trovati${this.filtroMarca ? ' per marca: ' + this.filtroMarca : ''}${this.filtroModello ? ' / modello: ' + this.filtroModello : ''}`;
+
+    this.gestisciRisultati(risultati, msg);
+  }
+
+  resetRicerca(): void {
+    this.filtroMarca = '';
+    this.filtroModello = '';
+    this.modelliDisponibili = [];
+
+    this.autoSelezionate = [];
+    this.compareMobileAperto = false;
+    this.paginaCorrente = 1;
+
+    this.showToast = false;
+    this.toastMsg = '';
+
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
+
+    // Reset immediato senza aspettare una nuova API
+    this.gestisciRisultati(
+      this.catalogoCompleto,
+      'Esplora il catalogo e seleziona due auto per il confronto.',
+    );
   }
 
   vaiAPagina(pagina: number): void {
@@ -200,66 +386,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
-  get indiceInizio(): number {
-    if (this.autoFiltrate.length === 0) return 0;
-    return (this.paginaCorrente - 1) * this.autoPerPagina + 1;
-  }
-
-  get indiceFine(): number {
-    return Math.min(this.paginaCorrente * this.autoPerPagina, this.autoFiltrate.length);
-  }
-
-  caricaCatalogo(): void {
-    this.loading = true;
-    this.messaggio = '';
-
-    this.autoService.getAllAuto().subscribe({
-      next: (data) => {
-        this.gestisciRisposta(
-          data,
-          'Esplora il catalogo e seleziona due auto per il confronto.',
-        );
-      },
-      error: (err) => {
-        console.error('Errore API random:', err);
-        this.loading = false;
-        this.messaggio = 'Impossibile caricare i bolidi.';
-        this.cd.detectChanges();
-      },
-    });
-  }
-
-  eseguiRicerca(): void {
-    this.loading = true;
-    this.messaggio = '';
-
-    this.autoService.searchAuto(this.filtroMarca, this.filtroModello).subscribe({
-      next: (risultati) => {
-        const msg =
-          risultati.length === 0
-            ? 'Nessun bolide trovato.'
-            : `Risultati trovati${this.filtroMarca ? ' per marca: ' + this.filtroMarca : ''}${this.filtroModello ? ' / modello: ' + this.filtroModello : ''}`;
-
-        this.gestisciRisposta(risultati, msg);
-      },
-      error: (err) => {
-        console.error('Errore ricerca:', err);
-        this.loading = false;
-        this.messaggio = 'Errore durante la ricerca.';
-        this.cd.detectChanges();
-      },
-    });
-  }
-
-  resetRicerca(): void {
-    this.filtroMarca = '';
-    this.filtroModello = '';
-    this.autoSelezionate = [];
-    this.compareMobileAperto = false;
-    this.paginaCorrente = 1;
-    this.caricaCatalogo();
-  }
-
   gestisciSelezione(auto: AutoModel): void {
     if (!auto?.id) return;
 
@@ -283,7 +409,10 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     if (this.autoSelezionate.length >= 2) {
       this.messaggio = 'Hai già selezionato 2 auto per il confronto.';
-      this.cd.detectChanges();
+      this.triggerToast(
+        'Puoi aggiungere solo 2 auto al confronto. Rimuovi una delle auto selezionate per inserirne un’altra.',
+        'error',
+      );
       return;
     }
 
@@ -297,6 +426,8 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.messaggio = this.utenteLoggato
         ? 'Confronto pronto.'
         : 'Confronto pronto. Se non sei loggato verrai portato al login.';
+
+      this.triggerToast('Confronto pronto. Ora puoi aprire la sfida.', 'success');
     } else {
       this.messaggio = 'Prima auto aggiunta. Selezionane un’altra.';
     }
@@ -324,12 +455,14 @@ export class HomeComponent implements OnInit, OnDestroy {
   vaiAlConfronto(): void {
     if (!this.confrontoCompleto) {
       this.messaggio = 'Seleziona due auto per avviare il confronto.';
+      this.triggerToast('Seleziona due auto per avviare il confronto.', 'error');
       this.cd.detectChanges();
       return;
     }
 
     if (!this.utenteLoggato) {
       this.messaggio = 'Per avviare una sfida devi effettuare il login.';
+      this.triggerToast('Devi effettuare il login prima di iniziare il confronto.', 'error');
       this.cd.detectChanges();
 
       setTimeout(() => {
@@ -364,52 +497,34 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   caricaPerCategoria(categoria: string): void {
     if (!categoria) {
-      this.caricaCatalogo();
+      this.gestisciRisultati(
+        this.catalogoCompleto,
+        'Esplora il catalogo e seleziona due auto per il confronto.',
+      );
       return;
     }
 
-    this.loading = true;
-    this.messaggio = '';
-
-    this.autoService.getAutoByCategoria(categoria).subscribe({
-      next: (data) => this.gestisciRisposta(data, `Categoria selezionata: ${categoria}`),
-      error: (err) => {
-        console.error('Errore categoria:', err);
-        this.loading = false;
-        this.messaggio = 'Errore nel caricamento della categoria.';
-        this.cd.detectChanges();
-      },
-    });
+    this.eseguiRichiesta(
+      this.autoService.getAutoByCategoria(categoria),
+      (data) => this.gestisciRisultati(data, `Categoria selezionata: ${categoria}`),
+      'Errore nel caricamento della categoria.',
+    );
   }
 
   caricaTopGreen(): void {
-    this.loading = true;
-    this.messaggio = '';
-
-    this.autoService.getTopGreen().subscribe({
-      next: (data) => this.gestisciRisposta(data, 'Classifica Eco Friendly (minor CO2)'),
-      error: (err) => {
-        console.error('Errore top green:', err);
-        this.loading = false;
-        this.messaggio = 'Errore nel caricamento della classifica green.';
-        this.cd.detectChanges();
-      },
-    });
+    this.eseguiRichiesta(
+      this.autoService.getTopGreen(),
+      (data) => this.gestisciRisultati(data, 'Classifica Eco Friendly (minor CO2)'),
+      'Errore nel caricamento della classifica green.',
+    );
   }
 
   caricaTopAccelerazione(): void {
-    this.loading = true;
-    this.messaggio = '';
-
-    this.autoService.getTopAccelerazione().subscribe({
-      next: (data) => this.gestisciRisposta(data, 'Top 10 accelerazione 0-100 km/h'),
-      error: (err) => {
-        console.error('Errore top accelerazione:', err);
-        this.loading = false;
-        this.messaggio = 'Errore nel caricamento della classifica accelerazione.';
-        this.cd.detectChanges();
-      },
-    });
+    this.eseguiRichiesta(
+      this.autoService.getTopAccelerazione(),
+      (data) => this.gestisciRisultati(data, 'Top 10 accelerazione 0-100 km/h'),
+      'Errore nel caricamento della classifica accelerazione.',
+    );
   }
 
   trackByAutoId(index: number, auto: AutoModel): number {

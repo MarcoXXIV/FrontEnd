@@ -1,63 +1,96 @@
 <app-navbar></app-navbar>
+
+<div
+  class="notification-toast"
+  *ngIf="notification.show"
+  [ngClass]="notification.type"
+>
+  <div class="toast-icon">
+    <i class="fas" [ngClass]="notification.type === 'success' ? 'fa-check-circle' : 'fa-times-circle'"></i>
+  </div>
+
+  <div class="toast-content">
+    <h4>{{ notification.title }}</h4>
+    <p>{{ notification.message }}</p>
+  </div>
+
+  <button type="button" class="toast-close" (click)="closeNotification()">
+    <i class="fas fa-times"></i>
+  </button>
+</div>
+
 <div class="register-container">
   <div class="register-content-wrapper fade-in">
-
     <div class="register-card">
-      <form (ngSubmit)="onRegister()" #registerForm="ngForm" class="register-form">
-
+      <form (ngSubmit)="onRegister()" class="register-form" novalidate>
         <div class="row">
-          <div class="input-group">
-            <label>Nome</label>
+          <div class="input-group" [class.error]="fieldErrors.nome">
+            <label for="nome">Nome</label>
             <div class="input-wrapper">
               <i class="fas fa-user"></i>
               <input
                 type="text"
+                id="nome"
                 name="nome"
                 [(ngModel)]="user.nome"
+                (blur)="validateNomeField()"
                 placeholder="Mario"
+                autocomplete="given-name"
                 required
               />
             </div>
+            <small class="field-error" *ngIf="fieldErrors.nome">{{ fieldErrors.nome }}</small>
           </div>
 
-          <div class="input-group">
-            <label>Cognome</label>
+          <div class="input-group" [class.error]="fieldErrors.cognome">
+            <label for="cognome">Cognome</label>
             <div class="input-wrapper">
               <i class="fas fa-user-tag"></i>
               <input
                 type="text"
+                id="cognome"
                 name="cognome"
                 [(ngModel)]="user.cognome"
+                (blur)="validateCognomeField()"
                 placeholder="Rossi"
+                autocomplete="family-name"
                 required
               />
             </div>
+            <small class="field-error" *ngIf="fieldErrors.cognome">{{ fieldErrors.cognome }}</small>
           </div>
         </div>
 
-        <div class="input-group">
-          <label>Email</label>
+        <div class="input-group" [class.error]="fieldErrors.email">
+          <label for="email">Email</label>
           <div class="input-wrapper">
             <i class="fas fa-envelope"></i>
             <input
               type="email"
+              id="email"
               name="email"
               [(ngModel)]="user.email"
+              (blur)="onEmailBlur()"
               placeholder="mario.rossi@mail.it"
+              autocomplete="email"
               required
             />
           </div>
+          <small class="field-error" *ngIf="fieldErrors.email">{{ fieldErrors.email }}</small>
         </div>
 
-        <div class="input-group">
-          <label>Password</label>
+        <div class="input-group" [class.error]="fieldErrors.password">
+          <label for="password">Password</label>
           <div class="input-wrapper">
             <i class="fas fa-lock"></i>
             <input
               [type]="showPassword ? 'text' : 'password'"
+              id="password"
               name="password"
               [(ngModel)]="user.password"
+              (blur)="validatePasswordField()"
               placeholder="••••••••"
+              autocomplete="new-password"
               required
             />
             <i
@@ -66,30 +99,36 @@
               (click)="togglePassword()"
             ></i>
           </div>
+          <small class="field-error" *ngIf="fieldErrors.password">{{ fieldErrors.password }}</small>
         </div>
 
-        <div class="input-group">
-          <label>Conferma Password</label>
+        <div class="input-group" [class.error]="fieldErrors.confermaPassword">
+          <label for="confermaPassword">Conferma Password</label>
           <div class="input-wrapper">
             <i class="fas fa-shield-alt"></i>
             <input
               [type]="showPassword ? 'text' : 'password'"
-              name="conferma"
+              id="confermaPassword"
+              name="confermaPassword"
               [(ngModel)]="confermaPassword"
+              (blur)="validateConfermaPasswordField()"
               placeholder="••••••••"
+              autocomplete="new-password"
               required
             />
           </div>
+          <small class="field-error" *ngIf="fieldErrors.confermaPassword">
+            {{ fieldErrors.confermaPassword }}
+          </small>
         </div>
 
-        <div class="error-banner" *ngIf="errorMessage">
-          <i class="fas fa-exclamation-triangle"></i>
-          <span>{{ errorMessage }}</span>
-        </div>
+        <button type="submit" class="btn-register-glow" [disabled]="loading || checkingEmail">
+          <span *ngIf="!loading && !checkingEmail">
+            UNISCITI AL TEAM
+            <i class="fas fa-bolt"></i>
+          </span>
 
-        <button type="submit" class="btn-register-glow" [disabled]="loading">
-          <span *ngIf="!loading">UNISCITI AL TEAM <i class="fas fa-bolt"></i></span>
-          <div class="spinner" *ngIf="loading"></div>
+          <div class="spinner" *ngIf="loading || checkingEmail"></div>
         </button>
       </form>
 

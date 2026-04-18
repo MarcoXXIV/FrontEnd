@@ -17,7 +17,6 @@
   </div>
 
   <div class="admin-container fade-in">
-
     <header class="admin-header-style">
       <div class="title-group">
         <h1><i class="fas fa-tools"></i> Pannello di Controllo</h1>
@@ -32,12 +31,11 @@
           </div>
           <div class="stat-card-mini">
             <span class="stat-label-mini">Auto</span>
-            <span class="stat-value-mini">{{ listaAuto.length }}</span>
+            <span class="stat-value-mini">{{ catalogoAutoCompleto.length }}</span>
           </div>
         </div>
       </div>
     </header>
-
     <div class="admin-content-wrapper">
       <main class="admin-main">
 
@@ -68,7 +66,7 @@
               <tr *ngFor="let u of listaUtenti" class="row-hover">
                 <td>
                   <div class="user-info">
-                    <div class="user-avatar">{{ u.nome.charAt(0) || '?' }}</div>
+                    <div class="user-avatar">{{ u.nome?.charAt(0) || '?' }}</div>
                     <strong>{{ u.nome }} {{ u.cognome }}</strong>
                   </div>
                 </td>
@@ -108,11 +106,82 @@
           <div class="section-header">
             <div>
               <h2>Gestione Catalogo</h2>
-              <p>Controlla, modifica e aggiorna i veicoli presenti nel sistema.</p>
+              <p>Controlla, modifica, cerca e aggiorna i veicoli presenti nel sistema.</p>
             </div>
-            <button class="btn-refresh" type="button" (click)="caricaAuto()" title="Aggiorna auto">
+
+            <button
+              class="btn-refresh"
+              type="button"
+              (click)="ricaricaCatalogoAuto()"
+              title="Ricarica catalogo completo"
+            >
               <i class="fas fa-sync"></i>
             </button>
+          </div>
+
+          <!-- SEARCH -->
+          <div class="search-toolbar">
+            <form class="search-form" (ngSubmit)="eseguiRicercaAuto()">
+              <div class="search-grid">
+                <div class="search-group">
+                  <label for="searchMarcaAdmin">Marca</label>
+                  <input
+                    id="searchMarcaAdmin"
+                    type="text"
+                    name="searchMarcaAdmin"
+                    [(ngModel)]="filtroMarca"
+                    (ngModelChange)="onMarcaChange($event)"
+                    (blur)="onMarcaBlur()"
+                    placeholder="es. Ferrari"
+                    autocomplete="off"
+                  />
+                </div>
+
+                <div class="search-group">
+                  <label for="searchModelloAdmin">Modello</label>
+                  <input
+                    id="searchModelloAdmin"
+                    type="text"
+                    name="searchModelloAdmin"
+                    list="modelliAdminList"
+                    [(ngModel)]="filtroModello"
+                    [disabled]="!marcaSelezionataValida"
+                    [placeholder]="marcaSelezionataValida ? 'es. 488 GTB' : 'Seleziona prima una marca valida'"
+                    autocomplete="off"
+                  />
+                  <datalist id="modelliAdminList">
+                    <option *ngFor="let modello of modelliDisponibili" [value]="modello"></option>
+                  </datalist>
+
+                  <small class="search-hint" *ngIf="!marcaSelezionataValida">
+                    Prima scegli una marca presente nel catalogo.
+                  </small>
+                </div>
+              </div>
+
+              <div class="search-actions">
+                <button type="submit" class="btn-search" [disabled]="loadingRicercaAuto">
+                  <i class="fas fa-search"></i>
+                  <span>{{ loadingRicercaAuto ? 'Ricerca in corso...' : 'Cerca auto' }}</span>
+                </button>
+
+                <button type="button" class="btn-reset" (click)="resetRicercaAuto()" [disabled]="loadingRicercaAuto">
+                  <i class="fas fa-undo-alt"></i>
+                  <span>Reset</span>
+                </button>
+              </div>
+
+              <div class="search-feedback-row" *ngIf="messaggioRicercaAuto || !loadingRicercaAuto">
+                <p class="search-feedback" *ngIf="messaggioRicercaAuto">
+                  {{ messaggioRicercaAuto }}
+                </p>
+
+                <div class="results-pill">
+                  <i class="fas fa-car"></i>
+                  <span>{{ listaAuto.length }} risultato/i</span>
+                </div>
+              </div>
+            </form>
           </div>
 
           <div class="table-container">
@@ -122,6 +191,7 @@
                 <th>Marca/Modello</th>
                 <th>Codice</th>
                 <th>Prezzo</th>
+                <th>Immagine</th>
                 <th class="text-right">Azioni</th>
               </tr>
               </thead>
@@ -139,6 +209,12 @@
                   {{ a.prezzo | currency:'EUR' }}
                 </td>
 
+                <td>
+                    <span class="img-path-mini">
+                      {{ ($any(a).immagine || 'Nessuna foto') }}
+                    </span>
+                </td>
+
                 <td class="text-right action-group">
                   <button class="btn-action-edit" type="button" (click)="modificaAuto(a)">
                     <i class="fas fa-pen"></i>
@@ -149,6 +225,15 @@
                     <i class="fas fa-trash-alt"></i>
                     <span>Rimuovi</span>
                   </button>
+                </td>
+              </tr>
+
+              <tr *ngIf="!loadingRicercaAuto && listaAuto.length === 0">
+                <td colspan="5" class="empty-state-cell">
+                  <div class="empty-state-box">
+                    <i class="fas fa-search"></i>
+                    <span>Nessuna auto trovata con i filtri inseriti.</span>
+                  </div>
                 </td>
               </tr>
               </tbody>
@@ -165,8 +250,8 @@
             <p>
               {{
                 isModifica
-                  ? 'Il form è stato precompilato con i dati dell’auto selezionata. Modifica quello che vuoi e poi salva.'
-                  : 'Compila tutti i parametri tecnici per il confronto'
+                  ? 'Il form è stato precompilato con i dati dell’auto selezionata. Modifica quello che vuoi, aggiorna anche la foto se serve e poi salva.'
+                  : 'Compila tutti i parametri tecnici e carica una foto PNG del veicolo.'
               }}
             </p>
           </header>
@@ -180,6 +265,58 @@
           </div>
 
           <form (ngSubmit)="salvaAuto()" class="auto-form">
+            <div class="form-card">
+              <div class="card-title">
+                <i class="fas fa-image"></i>
+                <span>Foto Veicolo</span>
+              </div>
+
+              <div class="image-upload-wrapper">
+                <div class="upload-box">
+                  <label class="upload-label" for="fotoAuto">
+                    <i class="fas fa-file-image"></i>
+                    <span>Seleziona foto PNG</span>
+                  </label>
+
+                  <input
+                    id="fotoAuto"
+                    type="file"
+                    accept=".png,image/png"
+                    (change)="onFotoSelezionata($event)"
+                  />
+
+                  <p class="upload-hint">
+                    La foto deve essere <strong>obbligatoriamente PNG</strong> e verrà salvata come path in
+                    <code>assets/img/...</code>
+                  </p>
+
+                  <div class="upload-path" *ngIf="pathFotoAssets">
+                    <span class="path-label">Path immagine:</span>
+                    <code>{{ pathFotoAssets }}</code>
+                  </div>
+                </div>
+
+                <div class="preview-card" *ngIf="previewFotoUrl || pathFotoAssets">
+                  <div class="preview-header">
+                    <span>Anteprima foto</span>
+                    <button type="button" class="btn-remove-image" (click)="rimuoviFoto()">
+                      <i class="fas fa-times"></i>
+                      <span>Rimuovi</span>
+                    </button>
+                  </div>
+
+                  <div class="preview-image-wrapper" *ngIf="previewFotoUrl">
+                    <img [src]="previewFotoUrl" alt="Anteprima auto" class="preview-image" />
+                  </div>
+
+                  <div class="preview-meta">
+                    <div><strong>File:</strong> {{ nomeFotoSelezionata || 'immagine-auto.png' }}</div>
+                    <div><strong>Destinazione:</strong> {{ pathFotoAssets }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="form-card">
               <div class="card-title">
                 <i class="fas fa-id-card"></i>

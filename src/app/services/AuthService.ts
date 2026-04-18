@@ -28,7 +28,6 @@ export class AuthService {
 
   private setSession(authResult: AuthResponse) {
     localStorage.setItem('token', authResult.token);
-    // Nota: salviamo email e ruolo se presenti nella risposta
     if(authResult.email) localStorage.setItem('email', authResult.email);
     if(authResult.ruolo) localStorage.setItem('ruolo', authResult.ruolo);
   }

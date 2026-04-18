@@ -1,3 +1,21 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
 .home-container {
   min-height: 100vh;
   padding: 40px 5%;
@@ -7,6 +25,80 @@
   position: relative;
 }
 
+/* =========================
+   TOAST NOTIFICATION
+========================= */
+.toast-notification {
+  position: fixed;
+  top: -140px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3000;
+  min-width: 320px;
+  max-width: calc(100vw - 32px);
+  background: rgba(15, 23, 42, 0.96);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  transition: all 0.45s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  pointer-events: none;
+}
+
+.toast-notification.active {
+  top: 84px;
+}
+
+.toast-content {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toast-content i {
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.toast-content span {
+  color: #e2e8f0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.toast-notification.success .toast-content i {
+  color: #10b981;
+}
+
+.toast-notification.error .toast-content i {
+  color: #ef4444;
+}
+
+.toast-progress {
+  height: 3px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.toast-progress.running::before {
+  content: '';
+  display: block;
+  height: 100%;
+  background: #3b82f6;
+  animation: progressRun 3.5s linear forwards;
+}
+
+.toast-notification.success .toast-progress::before {
+  background: #10b981;
+}
+
+.toast-notification.error .toast-progress::before {
+  background: #ef4444;
+}
+
+/* Hero */
 .hero-section {
   margin-bottom: 38px;
   animation: fadeInDown 0.8s ease-out;
@@ -65,18 +157,22 @@
   left: 15px;
   color: #e74c3c;
   z-index: 2;
+  pointer-events: none;
 }
 
 .input-group input,
 .input-group select {
   width: 100%;
+  min-height: 48px;
   padding: 12px 15px 12px 40px;
   background: rgba(0, 0, 0, 0.45);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   color: white;
-  transition: 0.3s;
+  transition: 0.25s ease;
   appearance: none;
+  -webkit-appearance: none;
+  font-size: 0.98rem;
 }
 
 .input-group select {
@@ -99,15 +195,21 @@
   color: white;
 }
 
+.input-group select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .btn-search,
 .btn-reset {
+  min-height: 48px;
   padding: 12px 20px;
   border: none;
   border-radius: 16px;
   color: white;
   font-weight: 700;
   cursor: pointer;
-  transition: 0.3s;
+  transition: 0.25s ease;
   white-space: nowrap;
 }
 
@@ -238,7 +340,7 @@
 .mini-slot.filled {
   border-style: solid;
   border-color: rgba(231, 76, 60, 0.35);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.06));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.06));
   box-shadow: inset 0 0 0 1px rgba(231, 76, 60, 0.08);
 }
 
@@ -333,7 +435,7 @@
 
 .compare-mini-status.ready {
   color: #d1fae5;
-  background: rgba(46, 204, 113, 0.10);
+  background: rgba(46, 204, 113, 0.1);
   border-color: rgba(46, 204, 113, 0.22);
 }
 
@@ -562,6 +664,15 @@
 }
 
 /* Animations */
+@keyframes progressRun {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -617,6 +728,28 @@
     padding: 24px 16px 90px;
   }
 
+  .toast-notification {
+    top: -140px;
+    left: 12px;
+    right: 12px;
+    transform: none;
+    min-width: unset;
+    max-width: unset;
+    width: auto;
+  }
+
+  .toast-notification.active {
+    top: 76px;
+  }
+
+  .toast-content {
+    padding: 14px 16px;
+  }
+
+  .toast-content span {
+    font-size: 0.88rem;
+  }
+
   .hero-title {
     font-size: 2rem;
     line-height: 1.15;
@@ -627,11 +760,31 @@
     align-items: stretch;
     border-radius: 22px;
     padding: 16px;
+    gap: 12px;
   }
 
   .input-group {
     width: 100%;
     flex: 1 1 100%;
+  }
+
+  .input-group input,
+  .input-group select {
+    font-size: 16px;
+    min-height: 50px;
+  }
+
+  /* su mobile il select modelli resta normale/nativo */
+  .select-group i {
+    display: none;
+  }
+
+  .select-group select {
+    appearance: auto;
+    -webkit-appearance: menulist;
+    -moz-appearance: auto;
+    padding: 12px 14px;
+    background-image: none;
   }
 
   .btn-search,

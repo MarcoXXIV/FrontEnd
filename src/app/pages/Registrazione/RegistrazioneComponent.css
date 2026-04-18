@@ -1,7 +1,3 @@
-/* =========================
-   REGISTER.CSS
-========================= */
-
 *,
 *::before,
 *::after {
@@ -22,6 +18,66 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* TOAST */
+.notification-toast {
+  position: fixed;
+  top: 90px;
+  right: 20px;
+  width: min(430px, calc(100% - 24px));
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  z-index: 9999;
+  color: #fff;
+  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: toastSlideIn 0.35s ease;
+}
+
+.notification-toast.success {
+  background: rgba(23, 166, 107, 0.94);
+  border: 1px solid rgba(80, 255, 170, 0.25);
+}
+
+.notification-toast.error {
+  background: rgba(220, 53, 69, 0.95);
+  border: 1px solid rgba(255, 120, 120, 0.25);
+}
+
+.toast-icon i {
+  font-size: 1.35rem;
+  margin-top: 2px;
+}
+
+.toast-content {
+  flex: 1;
+}
+
+.toast-content h4 {
+  margin: 0 0 4px;
+  font-size: 0.98rem;
+  font-weight: 800;
+}
+
+.toast-content p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.toast-close {
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 2px;
+}
+
+/* REGISTER */
 .register-container {
   position: fixed;
   inset: 0;
@@ -42,34 +98,6 @@ body {
   flex-direction: column;
   justify-content: center;
   gap: 14px;
-}
-
-.admin-header-style {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  background: rgba(30, 41, 59, 0.55);
-  padding: 18px 20px;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.title-group h1 {
-  font-size: 1.65rem;
-  color: #e74c3c;
-  margin: 0;
-  font-weight: 800;
-  line-height: 1.15;
-}
-
-.title-group p {
-  color: #94a3b8;
-  margin: 6px 0 0;
-  font-size: 0.9rem;
-  line-height: 1.4;
 }
 
 .register-card {
@@ -93,6 +121,11 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
 }
 
 .input-group label {
@@ -147,6 +180,15 @@ body {
   color: #e74c3c;
 }
 
+.input-group.error .input-wrapper input {
+  border-color: #ff6b6b;
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.12);
+}
+
+.input-group.error .input-wrapper i:not(.toggle-icon) {
+  color: #ff6b6b;
+}
+
 .toggle-icon {
   position: absolute;
   right: 14px;
@@ -160,8 +202,17 @@ body {
   color: #e74c3c;
 }
 
+.field-error {
+  margin-top: 6px;
+  margin-left: 2px;
+  color: #ff7b7b;
+  font-size: 0.77rem;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
 .btn-register-glow {
-  margin-top: 4px;
+  margin-top: 8px;
   width: 100%;
   height: 46px;
   padding: 0 16px;
@@ -191,19 +242,6 @@ body {
 .btn-register-glow:disabled {
   opacity: 0.7;
   cursor: not-allowed;
-}
-
-.error-banner {
-  background: rgba(231, 76, 60, 0.1);
-  border: 1px solid #e74c3c;
-  padding: 10px 12px;
-  border-radius: 10px;
-  color: #ff7675;
-  font-size: 0.82rem;
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  line-height: 1.4;
 }
 
 .card-footer {
@@ -242,9 +280,6 @@ body {
   animation: fadeIn 0.8s ease-out;
 }
 
-/* =========================
-   TABLET
-========================= */
 @media (max-width: 768px) {
   .register-container {
     padding: 12px;
@@ -255,46 +290,19 @@ body {
     gap: 12px;
   }
 
-  .admin-header-style {
-    padding: 15px 16px;
-    border-radius: 16px;
-  }
-
-  .title-group h1 {
-    font-size: 1.38rem;
-  }
-
-  .title-group p {
-    font-size: 0.82rem;
-  }
-
   .register-card {
     padding: 20px 18px;
     border-radius: 18px;
   }
 
-  .register-form {
-    gap: 11px;
-  }
-
-  .row {
-    gap: 10px;
-  }
-
-  .input-wrapper input {
-    height: 43px;
-    font-size: 0.91rem;
-  }
-
-  .btn-register-glow {
-    height: 45px;
-    font-size: 0.9rem;
+  .notification-toast {
+    top: 82px;
+    right: 12px;
+    left: 12px;
+    width: auto;
   }
 }
 
-/* =========================
-   MOBILE
-========================= */
 @media (max-width: 560px) {
   .register-container {
     padding: 10px;
@@ -304,37 +312,14 @@ body {
     gap: 10px;
   }
 
-  .admin-header-style {
-    padding: 12px 12px;
-    border-radius: 14px;
-  }
-
-  .title-group h1 {
-    font-size: 1.16rem;
-  }
-
-  .title-group p {
-    font-size: 0.76rem;
-    margin-top: 4px;
-  }
-
   .register-card {
     padding: 14px 12px;
     border-radius: 16px;
   }
 
-  .register-form {
-    gap: 9px;
-  }
-
   .row {
     grid-template-columns: 1fr;
     gap: 9px;
-  }
-
-  .input-group label {
-    font-size: 0.68rem;
-    margin-bottom: 5px;
   }
 
   .input-wrapper input {
@@ -345,131 +330,17 @@ body {
     padding-right: 40px;
   }
 
-  .input-wrapper i:not(.toggle-icon) {
-    left: 13px;
-    font-size: 0.88rem;
-  }
-
-  .toggle-icon {
-    right: 13px;
-    font-size: 0.88rem;
-  }
-
-  .error-banner {
-    font-size: 0.76rem;
-    padding: 9px 10px;
-    gap: 8px;
+  .field-error {
+    font-size: 0.73rem;
   }
 
   .btn-register-glow {
     height: 43px;
     font-size: 0.86rem;
     border-radius: 10px;
-    letter-spacing: 0.3px;
-  }
-
-  .card-footer {
-    margin-top: 12px;
-  }
-
-  .card-footer p {
-    font-size: 0.8rem;
   }
 }
 
-/* =========================
-   MOBILE PICCOLO
-========================= */
-@media (max-width: 380px) {
-  .register-container {
-    padding: 8px;
-  }
-
-  .register-content-wrapper {
-    gap: 8px;
-  }
-
-  .admin-header-style {
-    padding: 10px;
-  }
-
-  .title-group h1 {
-    font-size: 1.03rem;
-  }
-
-  .title-group p {
-    font-size: 0.72rem;
-  }
-
-  .register-card {
-    padding: 12px 10px;
-    border-radius: 14px;
-  }
-
-  .register-form {
-    gap: 8px;
-  }
-
-  .row {
-    gap: 8px;
-  }
-
-  .input-group label {
-    font-size: 0.64rem;
-    margin-bottom: 4px;
-  }
-
-  .input-wrapper input {
-    height: 39px;
-    font-size: 0.84rem;
-    padding-left: 38px;
-    padding-right: 38px;
-  }
-
-  .input-wrapper i:not(.toggle-icon) {
-    left: 12px;
-    font-size: 0.84rem;
-  }
-
-  .toggle-icon {
-    right: 12px;
-    font-size: 0.84rem;
-  }
-
-  .btn-register-glow {
-    height: 41px;
-    font-size: 0.82rem;
-  }
-
-  .card-footer {
-    margin-top: 10px;
-  }
-
-  .card-footer p {
-    font-size: 0.76rem;
-  }
-}
-
-/* =========================
-   DESKTOP LARGE
-========================= */
-@media (min-width: 1200px) {
-  .register-content-wrapper {
-    max-width: 640px;
-  }
-
-  .register-card {
-    padding: 26px 24px;
-  }
-
-  .title-group h1 {
-    font-size: 1.72rem;
-  }
-}
-
-/* =========================
-   ANIMATIONS
-========================= */
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -484,5 +355,16 @@ body {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateX(0);
   }
 }
