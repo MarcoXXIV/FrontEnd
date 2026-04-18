@@ -202,9 +202,22 @@
   text-align: center;
 }
 
+.car-info-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+}
+
+.car-title-block {
+  min-width: 0;
+  flex: 1;
+}
+
 .car-info h2 {
   font-size: 1.8rem;
-  margin: 5px 0;
+  margin: 5px 0 0;
   font-weight: 900;
   word-break: break-word;
 }
@@ -214,6 +227,45 @@
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 2px;
+}
+
+.score-badge {
+  flex-shrink: 0;
+  min-width: 92px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+
+.score-badge small {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  opacity: 0.8;
+  margin-bottom: 4px;
+}
+
+.score-badge strong {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.score-left {
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.28);
+  color: #93c5fd;
+  box-shadow: 0 0 18px rgba(59, 130, 246, 0.12);
+}
+
+.score-right {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  color: #fca5a5;
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.12);
 }
 
 .left-side {
@@ -412,8 +464,6 @@
   align-items: center;
 }
 
-/* FIX IMPORTANTE:
-   entrambe le barre partono da sinistra verso destra */
 .track-left,
 .track-right {
   justify-content: flex-start;
@@ -920,6 +970,17 @@ textarea {
     width: 100%;
     justify-content: center;
     padding: 0;
+  }
+
+  .car-info-top {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .score-badge {
+    width: 100%;
+    min-width: 0;
   }
 
   .specs-panel {

@@ -22,17 +22,14 @@ interface ParametroConfronto {
   isText?: boolean;
 }
 
-type GaraModalita =
-  | 'accelerazione0100'
-  | 'accelerazione100200'
-  | 'accelerazione80140';
+type GaraModalita = 'accelerazione0100' | 'accelerazione100200' | 'accelerazione80140';
 
 @Component({
   selector: 'app-confronto',
   standalone: true,
   imports: [CommonModule, FormsModule, GaraAnimationComponent, RouterModule, NavbarComponent],
   templateUrl: './ConfrontoComponent.html',
-  styleUrls: ['./ConfrontoComponent.css']
+  styleUrls: ['./ConfrontoComponent.css'],
 })
 export class ConfrontoComponent implements OnInit, OnDestroy {
   auto1?: AutoModel;
@@ -55,6 +52,9 @@ export class ConfrontoComponent implements OnInit, OnDestroy {
   commento = '';
   recensioneInviata = false;
 
+  punteggioAuto1: number | null = null;
+  punteggioAuto2: number | null = null;
+
   showToast = false;
   toastMsg = '';
   toastType: 'success' | 'error' = 'success';
@@ -69,7 +69,7 @@ export class ConfrontoComponent implements OnInit, OnDestroy {
   opzioniGara: { key: GaraModalita; label: string }[] = [
     { key: 'accelerazione0100', label: '0-100 km/h' },
     { key: 'accelerazione100200', label: '100-200 km/h' },
-    { key: 'accelerazione80140', label: '80-140 km/h' }
+    { key: 'accelerazione80140', label: '80-140 km/h' },
   ];
 
   elencoParametri: ParametroConfronto[] = [
@@ -88,7 +88,7 @@ export class ConfrontoComponent implements OnInit, OnDestroy {
     { label: 'Alimentazione', key: 'alimentazione', isText: true },
     { label: 'Trazione', key: 'trazione', isText: true },
     { label: 'Categoria', key: 'categoria', isText: true },
-    { label: 'Classe Euro', key: 'euro', isText: true }
+    { label: 'Classe Euro', key: 'euro', isText: true },
   ];
 
   constructor(
@@ -98,11 +98,11 @@ export class ConfrontoComponent implements OnInit, OnDestroy {
     private recensioniService: RecensioniService,
     private confrontoService: ConfrontoService,
     private router: Router,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
-    this.queryParamsSub = this.route.queryParams.subscribe(params => {
+    this.queryParamsSub = this.route.queryParams.subscribe((params) => {
       const id1 = Number(params['idAuto1']);
       const id2 = Number(params['idAuto2']);
 
@@ -128,13 +128,14 @@ export class ConfrontoComponent implements OnInit, OnDestroy {
     forkJoin({
       a1: this.autoService.getAutoById(id1),
       a2: this.autoService.getAutoById(id2),
-      confronto: this.confrontoService.eseguiBattaglia(id1, id2)
+      confronto: this.confrontoService.eseguiBattaglia(id1, id2),
     }).subscribe({
-      next: res => {
+      next: (res) => {
         this.auto1 = res.a1;
         this.auto2 = res.a2;
         this.idConfronto = res.confronto?.id;
 
+        this.applicaPunteggiConfronto(res.confronto);
         this.impostaImmagini();
         this.calcolaSoglieDinamiche();
         this.caricaRecensioniCoppia();
@@ -148,8 +149,37 @@ export class ConfrontoComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.errore = 'Errore nel caricamento del confronto.';
         this.cd.detectChanges();
-      }
+      },
     });
+  }
+
+  private applicaPunteggiConfronto(confronto: any): void {
+    if (!confronto) {
+      this.punteggioAuto1 = null;
+      this.punteggioAuto2 = null;
+      return;
+    }
+
+    this.punteggioAuto1 = confronto?.punteggio1 ?? null;
+    this.punteggioAuto2 = confronto?.punteggio2 ?? null;
+  }
+
+  get punteggioAuto1Display(): string {
+    if (this.punteggioAuto1 === null || this.punteggioAuto1 === undefined) {
+      return 'n.d.';
+    }
+
+    const num = Number(this.punteggioAuto1);
+    return Number.isFinite(num) ? num.toFixed(1) : 'n.d.';
+  }
+
+  get punteggioAuto2Display(): string {
+    if (this.punteggioAuto2 === null || this.punteggioAuto2 === undefined) {
+      return 'n.d.';
+    }
+
+    const num = Number(this.punteggioAuto2);
+    return Number.isFinite(num) ? num.toFixed(1) : 'n.d.';
   }
 
   private impostaImmagini(): void {
@@ -175,15 +205,15 @@ export class ConfrontoComponent implements OnInit, OnDestroy {
     if (!this.idConfronto) return;
 
     this.preferitiService.togglePreferito(this.idConfronto).subscribe({
-      next: res => {
+      next: (res) => {
         this.isPreferito = res.toLowerCase().includes('aggiunto');
         this.triggerToast(
           this.isPreferito ? 'Aggiunto ai preferiti!' : 'Rimosso dai preferiti',
-          'success'
+          'success',
         );
         this.cd.detectChanges();
       },
-      error: () => this.triggerToast('Errore durante il salvataggio.', 'error')
+      error: () => this.triggerToast('Errore durante il salvataggio.', 'error'),
     });
   }
 
@@ -215,14 +245,14 @@ export class ConfrontoComponent implements OnInit, OnDestroy {
     if (!ids) return;
 
     this.recensioniService.getPerCoppia(ids.auto1Id, ids.auto2Id).subscribe({
-      next: data => {
+      next: (data) => {
         this.recensioniCoppia = data ?? [];
         this.cd.detectChanges();
       },
       error: () => {
         this.recensioniCoppia = [];
         this.cd.detectChanges();
-      }
+      },
     });
   }
 
@@ -231,14 +261,14 @@ export class ConfrontoComponent implements OnInit, OnDestroy {
     if (!ids) return;
 
     this.recensioniService.getMedia(ids.auto1Id, ids.auto2Id).subscribe({
-      next: media => {
+      next: (media) => {
         this.mediaRecensioni = media ?? 0;
         this.cd.detectChanges();
       },
       error: () => {
         this.mediaRecensioni = 0;
         this.cd.detectChanges();
-      }
+      },
     });
   }
 
@@ -263,13 +293,10 @@ export class ConfrontoComponent implements OnInit, OnDestroy {
             this.cd.detectChanges();
           }, 2000);
         },
-        error: err => {
-          this.triggerToast(
-            err.status === 400 ? err.error : 'Errore invio recensione.',
-            'error'
-          );
+        error: (err) => {
+          this.triggerToast(err.status === 400 ? err.error : 'Errore invio recensione.', 'error');
           this.cd.detectChanges();
-        }
+        },
       });
   }
 
@@ -279,20 +306,19 @@ export class ConfrontoComponent implements OnInit, OnDestroy {
 
   checkStatoPreferito(id1: number, id2: number): void {
     this.preferitiService.getMieiPreferiti().subscribe({
-      next: preferiti => {
-        this.isPreferito = preferiti.some(p =>
-          p.confronto?.id === this.idConfronto ||
-          (
+      next: (preferiti) => {
+        this.isPreferito = preferiti.some(
+          (p) =>
+            p.confronto?.id === this.idConfronto ||
             (p.confronto?.auto1?.id === id1 && p.confronto?.auto2?.id === id2) ||
-            (p.confronto?.auto1?.id === id2 && p.confronto?.auto2?.id === id1)
-          )
+            (p.confronto?.auto1?.id === id2 && p.confronto?.auto2?.id === id1),
         );
         this.cd.detectChanges();
       },
       error: () => {
         this.isPreferito = false;
         this.cd.detectChanges();
-      }
+      },
     });
   }
 
@@ -320,7 +346,7 @@ export class ConfrontoComponent implements OnInit, OnDestroy {
 
     const soglie: Partial<Record<keyof AutoModel, number>> = {};
 
-    this.elencoParametri.forEach(parametro => {
+    this.elencoParametri.forEach((parametro) => {
       if (parametro.isText) return;
 
       const v1 = Number(this.getVal(this.auto1!, parametro.key)) || 0;
@@ -342,7 +368,7 @@ export class ConfrontoComponent implements OnInit, OnDestroy {
       Number(this.soglieConfronto[parametro.key]) ||
       Math.max(
         Number(this.getVal(this.auto1, parametro.key)) || 0,
-        Number(this.getVal(this.auto2, parametro.key)) || 0
+        Number(this.getVal(this.auto2, parametro.key)) || 0,
       );
 
     if (!benchmark || benchmark <= 0) return 0;
@@ -419,7 +445,9 @@ export class ConfrontoComponent implements OnInit, OnDestroy {
   }
 
   hasRaceData(mode: GaraModalita): boolean {
-    return this.getTempoGara(this.auto1, mode) !== null && this.getTempoGara(this.auto2, mode) !== null;
+    return (
+      this.getTempoGara(this.auto1, mode) !== null && this.getTempoGara(this.auto2, mode) !== null
+    );
   }
 
   canRunSelectedRace(): boolean {

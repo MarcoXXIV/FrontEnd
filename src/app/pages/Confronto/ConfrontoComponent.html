@@ -33,14 +33,25 @@
         <div class="car-img-wrapper">
           <img [src]="immagineSrc1" (error)="onImageError(1)" [alt]="auto1.modello">
         </div>
+
         <div class="car-info">
-          <span>{{ auto1.marca }}</span>
-          <h2>{{ auto1.modello }}</h2>
+          <div class="car-info-top">
+            <div class="car-title-block">
+              <span>{{ auto1.marca }}</span>
+              <h2>{{ auto1.modello }}</h2>
+            </div>
+
+            <div class="score-badge score-left">
+              <small>Punteggio</small>
+              <strong>{{ punteggioAuto1Display }}</strong>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="vs-container">
         <div class="vs-hex">VS</div>
+
         <button
           type="button"
           class="btn-fav"
@@ -54,9 +65,19 @@
         <div class="car-img-wrapper">
           <img [src]="immagineSrc2" (error)="onImageError(2)" [alt]="auto2.modello">
         </div>
+
         <div class="car-info">
-          <span>{{ auto2.marca }}</span>
-          <h2>{{ auto2.modello }}</h2>
+          <div class="car-info-top">
+            <div class="car-title-block">
+              <span>{{ auto2.marca }}</span>
+              <h2>{{ auto2.modello }}</h2>
+            </div>
+
+            <div class="score-badge score-right">
+              <small>Punteggio</small>
+              <strong>{{ punteggioAuto2Display }}</strong>
+            </div>
+          </div>
         </div>
       </div>
     </header>

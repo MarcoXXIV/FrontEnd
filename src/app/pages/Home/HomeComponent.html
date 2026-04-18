@@ -2,140 +2,141 @@
 
 <div class="home-container">
   <header class="hero-section">
-    <h1 class="hero-title">
-      Trova il tuo prossimo <span class="highlight">Bolide</span>
-    </h1>
+    <div class="hero-top-layout">
+      <div class="hero-main">
+        <h1 class="hero-title">
+          Trova il tuo prossimo <span class="highlight">Bolide</span>
+        </h1>
 
-    <div class="search-bar">
-      <div class="input-group">
-        <i class="fas fa-search"></i>
-        <input
-          type="text"
-          [(ngModel)]="filtroMarca"
-          placeholder="Marca (es. Ferrari)"
-        >
+        <div class="search-bar">
+          <div class="input-group">
+            <i class="fas fa-search"></i>
+            <input
+              type="text"
+              [(ngModel)]="filtroMarca"
+              (ngModelChange)="onMarcaChange($event)"
+              placeholder="Marca (es. Ferrari)"
+            />
+
+          </div>
+
+          <div class="input-group">
+            <i class="fas fa-car"></i>
+            <select [(ngModel)]="filtroModello">
+              <option value="">Tutti i modelli</option>
+              <option *ngFor="let modello of modelliDisponibili" [value]="modello">
+                {{ modello }}
+              </option>
+            </select>
+          </div>
+
+          <button class="btn-search" (click)="eseguiRicerca()">
+            Cerca <i class="fas fa-bolt"></i>
+          </button>
+
+          <button class="btn-reset" (click)="resetRicerca()">
+            Reset
+          </button>
+        </div>
       </div>
 
-      <div class="input-group">
-        <i class="fas fa-car"></i>
-        <input
-          type="text"
-          [(ngModel)]="filtroModello"
-          placeholder="Modello"
-        >
+      <!-- DESKTOP COMPARE -->
+      <aside class="compare-compact compare-desktop" *ngIf="autoSelezionate.length > 0">
+        <ng-container *ngTemplateOutlet="compareBoxTemplate"></ng-container>
+      </aside>
+    </div>
+  </header>
+
+  <!-- TEMPLATE RIUTILIZZABILE DEL BOX CONFRONTO -->
+  <ng-template #compareBoxTemplate>
+    <div class="compare-compact-header">
+      <div class="compare-header-text">
+        <span class="compare-mini-title">Confronto</span>
+        <span class="compare-mini-subtitle">
+          {{ autoSelezionate.length }}/2 auto selezionate
+        </span>
       </div>
 
-      <button class="btn-search" (click)="eseguiRicerca()">
-        Cerca <i class="fas fa-bolt"></i>
-      </button>
-
-      <button class="btn-reset" (click)="resetRicerca()">
-        Reset
+      <button
+        type="button"
+        class="compare-panel-close"
+        (click)="chiudiCompareMobile()"
+        aria-label="Chiudi confronto"
+      >
+        <i class="fas fa-times"></i>
       </button>
     </div>
 
-    <div class="compare-popup" *ngIf="autoSelezionate.length > 0">
-      <div class="compare-popup-header">
-        <div>
-          <span class="compare-eyebrow">Garage confronto</span>
-          <h2 class="compare-title">Prepara la tua sfida</h2>
-        </div>
+    <div class="compare-mini-stage">
+      <div class="mini-slot" [class.filled]="!!primoSelezionato">
+        <ng-container *ngIf="primoSelezionato; else slotVuotoUno">
+          <button
+            type="button"
+            class="remove-compare-btn"
+            (click)="rimuoviDalConfronto(primoSelezionato.id!, $event)"
+          >
+            <i class="fas fa-times"></i>
+          </button>
 
-        <button
-          type="button"
-          class="btn-clear-compare"
-          (click)="svuotaConfronto()"
-        >
-          Svuota
-        </button>
+          <div class="mini-brand" [title]="primoSelezionato.marca">
+            {{ primoSelezionato.marca }}
+          </div>
+          <div class="mini-model" [title]="primoSelezionato.modello">
+            {{ primoSelezionato.modello }}
+          </div>
+        </ng-container>
       </div>
 
-      <div class="compare-stage">
-        <div
-          class="compare-slot"
-          [class.filled]="!!primoSelezionato"
-          [class.empty]="!primoSelezionato"
-        >
-          <ng-container *ngIf="primoSelezionato; else slotVuotoUno">
-            <button
-              type="button"
-              class="remove-slot-btn"
-              (click)="rimuoviDalConfronto(primoSelezionato.id!, $event)"
-            >
-              <i class="fas fa-times"></i>
-            </button>
+      <div class="mini-vs">VS</div>
 
-            <span class="slot-label">Auto 1</span>
-            <div class="slot-brand">{{ primoSelezionato.marca }}</div>
-            <div class="slot-model">{{ primoSelezionato.modello }}</div>
-          </ng-container>
-        </div>
+      <div class="mini-slot" [class.filled]="!!secondoSelezionato">
+        <ng-container *ngIf="secondoSelezionato; else slotVuotoDue">
+          <button
+            type="button"
+            class="remove-compare-btn"
+            (click)="rimuoviDalConfronto(secondoSelezionato.id!, $event)"
+          >
+            <i class="fas fa-times"></i>
+          </button>
 
-        <div class="vs-pill" [class.ready]="confrontoCompleto">
-          VS
-        </div>
-
-        <div
-          class="compare-slot"
-          [class.filled]="!!secondoSelezionato"
-          [class.empty]="!secondoSelezionato"
-        >
-          <ng-container *ngIf="secondoSelezionato; else slotVuotoDue">
-            <button
-              type="button"
-              class="remove-slot-btn"
-              (click)="rimuoviDalConfronto(secondoSelezionato.id!, $event)"
-            >
-              <i class="fas fa-times"></i>
-            </button>
-
-            <span class="slot-label">Auto 2</span>
-            <div class="slot-brand">{{ secondoSelezionato.marca }}</div>
-            <div class="slot-model">{{ secondoSelezionato.modello }}</div>
-          </ng-container>
-        </div>
-      </div>
-
-      <div class="compare-popup-footer">
-        <p class="compare-hint" [class.ready]="confrontoCompleto">
-          <ng-container *ngIf="confrontoCompleto; else hintSelezione">
-            {{ utenteLoggato
-            ? 'Tutto pronto: il confronto partirà solo quando clicchi il pulsante.'
-            : 'Hai scelto 2 auto. Effettua il login e poi clicca il pulsante per iniziare.' }}
-          </ng-container>
-
-          <ng-template #hintSelezione>
-            Seleziona 2 auto dal catalogo. Puoi rimuoverle da qui in qualsiasi momento.
-          </ng-template>
-        </p>
-
-        <button
-          type="button"
-          class="btn-compare-now"
-          [disabled]="!confrontoCompleto"
-          (click)="vaiAlConfronto()"
-        >
-          {{ utenteLoggato ? 'Vai al confronto' : 'Login per confrontare' }}
-        </button>
+          <div class="mini-brand" [title]="secondoSelezionato.marca">
+            {{ secondoSelezionato.marca }}
+          </div>
+          <div class="mini-model" [title]="secondoSelezionato.modello">
+            {{ secondoSelezionato.modello }}
+          </div>
+        </ng-container>
       </div>
     </div>
+
+    <div class="compare-mini-status" [class.ready]="confrontoCompleto">
+      <i
+        class="fas"
+        [class.fa-check-circle]="confrontoCompleto"
+        [class.fa-plus-circle]="!confrontoCompleto"
+      ></i>
+      <span>
+        {{ confrontoCompleto ? 'Confronto pronto' : 'Seleziona un’altra auto' }}
+      </span>
+    </div>
+
+    <button
+      type="button"
+      class="btn-compare-mini"
+      [disabled]="!confrontoCompleto"
+      (click)="vaiAlConfronto()"
+    >
+      Vai al confronto
+    </button>
 
     <ng-template #slotVuotoUno>
-      <div class="slot-empty">
-        <i class="fas fa-plus-circle"></i>
-        <span>Posto libero</span>
-        <small>Seleziona un'auto dal catalogo</small>
-      </div>
+      <div class="mini-placeholder">Auto 1</div>
     </ng-template>
 
     <ng-template #slotVuotoDue>
-      <div class="slot-empty">
-        <i class="fas fa-plus-circle"></i>
-        <span>Posto libero</span>
-        <small>Seleziona un'auto dal catalogo</small>
-      </div>
+      <div class="mini-placeholder">Auto 2</div>
     </ng-template>
-  </header>
+  </ng-template>
 
   <div class="quick-actions">
     <button class="chip" (click)="caricaCatalogo()">
@@ -195,7 +196,7 @@
     <button class="btn-search" (click)="caricaCatalogo()">Ricarica catalogo</button>
   </div>
 
-  <div class="pagination-wrapper" *ngIf="!loading && autoFiltrate.length > 0 && totalePagine > 1">
+  <div class="pagination-wrapper" *ngIf="!loading && autoFiltrate.length > 0">
     <div class="pagination-info">
       Mostrando <strong>{{ indiceInizio }}</strong> - <strong>{{ indiceFine }}</strong>
       di <strong>{{ autoFiltrate.length }}</strong> auto
@@ -227,5 +228,31 @@
         <i class="fas fa-chevron-right"></i>
       </button>
     </div>
+  </div>
+
+  <!-- MOBILE FLOATING ACTION BUTTON -->
+  <button
+    *ngIf="autoSelezionate.length > 0"
+    type="button"
+    class="compare-fab"
+    [class.open]="compareMobileAperto"
+    (click)="toggleCompareMobile()"
+    aria-label="Apri o chiudi confronto"
+  >
+    <i
+      class="fas"
+      [class.fa-balance-scale]="!compareMobileAperto"
+      [class.fa-times]="compareMobileAperto"
+    ></i>
+    <span class="compare-fab-count">{{ autoSelezionate.length }}</span>
+  </button>
+
+  <!-- MOBILE PANEL -->
+  <div
+    *ngIf="autoSelezionate.length > 0"
+    class="compare-fab-panel"
+    [class.open]="compareMobileAperto"
+  >
+    <ng-container *ngTemplateOutlet="compareBoxTemplate"></ng-container>
   </div>
 </div>

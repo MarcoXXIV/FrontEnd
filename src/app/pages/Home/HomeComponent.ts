@@ -36,6 +36,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   totalePagine: number = 0;
   pagine: number[] = [];
 
+  marchiDisponibili: string[] = [];
+  modelliDisponibili: string[] = [];
+
+  compareMobileAperto: boolean = false;
+
   private routerSub?: Subscription;
 
   constructor(
@@ -76,10 +81,66 @@ export class HomeComponent implements OnInit, OnDestroy {
     return this.autoSelezionate.some((auto) => auto.id === id);
   }
 
+  toggleCompareMobile(): void {
+    this.compareMobileAperto = !this.compareMobileAperto;
+    this.cd.detectChanges();
+  }
+
+  chiudiCompareMobile(): void {
+    this.compareMobileAperto = false;
+    this.cd.detectChanges();
+  }
+
+  private isMobileView(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth <= 768;
+  }
+
   private aggiornaStatoUtente(): void {
     this.utenteLoggato = !!localStorage.getItem('token');
     this.isAdminUser = localStorage.getItem('ruolo') === 'ADMIN';
     this.cd.detectChanges();
+  }
+
+  private estraiValoriUnici(values: Array<string | null | undefined>): string[] {
+    return [
+      ...new Set(
+        values
+          .map((v) => (v ?? '').trim())
+          .filter((v): v is string => v.length > 0),
+      ),
+    ].sort((a, b) => a.localeCompare(b, 'it', { sensitivity: 'base' }));
+  }
+
+  private aggiornaSuggerimenti(data: AutoModel[]): void {
+    this.marchiDisponibili = this.estraiValoriUnici(data.map((auto) => auto.marca));
+    this.aggiornaModelliDisponibili(data);
+  }
+
+  private aggiornaModelliDisponibili(source: AutoModel[] = this.listaAuto): void {
+    const marcaRicercata = this.filtroMarca.trim().toLowerCase();
+
+    const modelli = source
+      .filter((auto) => {
+        const marca = (auto.marca ?? '').trim().toLowerCase();
+        return !marcaRicercata || marca.includes(marcaRicercata);
+      })
+      .map((auto) => auto.modello);
+
+    this.modelliDisponibili = this.estraiValoriUnici(modelli);
+
+    const modelloAttuale = this.filtroModello.trim().toLowerCase();
+    const modelloAncoraValido = this.modelliDisponibili.some(
+      (m) => m.toLowerCase() === modelloAttuale,
+    );
+
+    if (this.filtroModello && !modelloAncoraValido) {
+      this.filtroModello = '';
+    }
+  }
+
+  onMarcaChange(value: string): void {
+    this.filtroMarca = value;
+    this.aggiornaModelliDisponibili();
   }
 
   private gestisciRisposta(data: AutoModel[], msg: string = ''): void {
@@ -87,6 +148,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.autoFiltrate = [...data];
     this.messaggio = msg;
     this.loading = false;
+
+    this.aggiornaSuggerimenti(this.listaAuto);
 
     this.paginaCorrente = 1;
     this.aggiornaPaginazione();
@@ -154,7 +217,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       next: (data) => {
         this.gestisciRisposta(
           data,
-          'Esplora il catalogo. Seleziona due auto e apri il confronto quando vuoi dal popup.',
+          'Esplora il catalogo e seleziona due auto per il confronto.',
         );
       },
       error: (err) => {
@@ -192,6 +255,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.filtroMarca = '';
     this.filtroModello = '';
     this.autoSelezionate = [];
+    this.compareMobileAperto = false;
     this.paginaCorrente = 1;
     this.caricaCatalogo();
   }
@@ -203,29 +267,38 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     if (index > -1) {
       this.autoSelezionate.splice(index, 1);
+
+      if (this.autoSelezionate.length === 0) {
+        this.compareMobileAperto = false;
+      }
+
       this.messaggio =
         this.autoSelezionate.length === 0
           ? 'Selezione confronto svuotata.'
-          : 'Auto rimossa dal confronto. Hai di nuovo uno slot libero.';
+          : 'Auto rimossa dal confronto.';
+
       this.cd.detectChanges();
       return;
     }
 
     if (this.autoSelezionate.length >= 2) {
-      this.messaggio =
-        'Hai già 2 bolidi nel popup confronto. Rimuovine uno per aggiungerne un altro.';
+      this.messaggio = 'Hai già selezionato 2 auto per il confronto.';
       this.cd.detectChanges();
       return;
     }
 
     this.autoSelezionate = [...this.autoSelezionate, auto];
 
+    if (this.isMobileView()) {
+      this.compareMobileAperto = true;
+    }
+
     if (this.autoSelezionate.length === 2) {
       this.messaggio = this.utenteLoggato
-        ? 'Confronto pronto. Premi "Vai al confronto" nel popup.'
-        : 'Confronto pronto. Effettua il login e poi premi "Vai al confronto".';
+        ? 'Confronto pronto.'
+        : 'Confronto pronto. Se non sei loggato verrai portato al login.';
     } else {
-      this.messaggio = 'Prima auto aggiunta. Selezionane un’altra per completare il confronto.';
+      this.messaggio = 'Prima auto aggiunta. Selezionane un’altra.';
     }
 
     this.cd.detectChanges();
@@ -236,17 +309,15 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     this.autoSelezionate = this.autoSelezionate.filter((auto) => auto.id !== idAuto);
 
+    if (this.autoSelezionate.length === 0) {
+      this.compareMobileAperto = false;
+    }
+
     this.messaggio =
       this.autoSelezionate.length === 0
         ? 'Selezione confronto svuotata.'
-        : 'Auto rimossa dal confronto. Hai di nuovo uno slot libero.';
+        : 'Auto rimossa dal confronto.';
 
-    this.cd.detectChanges();
-  }
-
-  svuotaConfronto(): void {
-    this.autoSelezionate = [];
-    this.messaggio = 'Selezione confronto svuotata.';
     this.cd.detectChanges();
   }
 
@@ -279,11 +350,11 @@ export class HomeComponent implements OnInit, OnDestroy {
       .then(() => {
         window.scrollTo({ top: 0, behavior: 'auto' });
         this.autoSelezionate = [];
+        this.compareMobileAperto = false;
       });
   }
 
   apriInfoAuto(idAuto: number): void {
-    console.log('Navigo verso info auto con id:', idAuto);
     if (!idAuto) return;
 
     this.router.navigate(['/info-auto', idAuto]).then(() => {
