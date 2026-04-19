@@ -2,9 +2,9 @@ import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { NavbarComponent } from '../../components/Navbar/NavbarComponent';
 import { AuthService } from '../../services/AuthService';
 import { LoginRequest } from '../../models/LoginRequest';
-import { NavbarComponent } from '../../components/Navbar/NavbarComponent';
 
 @Component({
   selector: 'app-login',
@@ -21,6 +21,7 @@ export class LoginComponent implements OnDestroy {
 
   showPassword = false;
   loading = false;
+  checkingEmail = false;
 
   fieldErrors = {
     email: '',
@@ -35,6 +36,7 @@ export class LoginComponent implements OnDestroy {
   };
 
   private notificationTimeout: ReturnType<typeof setTimeout> | null = null;
+  private redirectTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private authService: AuthService,
@@ -44,6 +46,10 @@ export class LoginComponent implements OnDestroy {
   ngOnDestroy(): void {
     if (this.notificationTimeout) {
       clearTimeout(this.notificationTimeout);
+    }
+
+    if (this.redirectTimeout) {
+      clearTimeout(this.redirectTimeout);
     }
   }
 
@@ -57,6 +63,41 @@ export class LoginComponent implements OnDestroy {
 
   vaiHome(): void {
     this.router.navigate(['/Home']);
+  }
+
+  onEmailInput(): void {
+    this.fieldErrors.email = '';
+  }
+
+  onPasswordInput(): void {
+    this.fieldErrors.password = '';
+  }
+
+  onEmailBlur(): void {
+    if (!this.validateEmailField()) {
+      return;
+    }
+
+    const email = this.credentials.email.trim().toLowerCase();
+    if (!email) {
+      return;
+    }
+
+    this.checkingEmail = true;
+
+    this.authService.checkEmailExists(email).subscribe({
+      next: (response) => {
+        this.checkingEmail = false;
+
+        if (!response.exists) {
+          this.fieldErrors.email =
+            'Questa email non risulta registrata. Controllala oppure crea un account.';
+        }
+      },
+      error: () => {
+        this.checkingEmail = false;
+      }
+    });
   }
 
   validateEmailField(): boolean {
@@ -115,20 +156,49 @@ export class LoginComponent implements OnDestroy {
       return;
     }
 
-    this.loading = true;
-
     const payload: LoginRequest = {
-      email: this.credentials.email.trim(),
+      email: this.credentials.email.trim().toLowerCase(),
       password: this.credentials.password
     };
 
-    this.authService.login(payload).subscribe({
-      next: (response) => {
-        this.loading = false;
+    this.loading = true;
 
-        localStorage.setItem('token', response.token);
-        const ruoloUpper = response.ruolo ? response.ruolo.toUpperCase() : 'USER';
-        localStorage.setItem('ruolo', ruoloUpper);
+    // Pulizia eventuale sessione vecchia
+    this.authService.logout();
+
+    // Prima controllo se l'email esiste
+    this.authService.checkEmailExists(payload.email).subscribe({
+      next: (check) => {
+        if (!check.exists) {
+          this.loading = false;
+          this.fieldErrors.email =
+            'Email non trovata. Controllala oppure registrati.';
+          this.showNotification(
+            'error',
+            'Email non trovata',
+            'Questa email non risulta registrata. Controllala oppure vai in registrazione.'
+          );
+          return;
+        }
+
+        // Se esiste, provo il login
+        this.executeLogin(payload);
+      },
+      error: () => {
+        this.loading = false;
+        this.showNotification(
+          'error',
+          'Errore verifica email',
+          'Non è stato possibile verificare l’email. Riprova tra poco.'
+        );
+      }
+    });
+  }
+
+  private executeLogin(payload: LoginRequest): void {
+    this.authService.login(payload).subscribe({
+      next: () => {
+        this.loading = false;
 
         this.showNotification(
           'success',
@@ -136,19 +206,28 @@ export class LoginComponent implements OnDestroy {
           'Login riuscito. Verrai reindirizzato alla Home.'
         );
 
-        setTimeout(() => {
+        this.redirectTimeout = setTimeout(() => {
           this.router.navigate(['/Home']);
         }, 1400);
       },
       error: (err) => {
         this.loading = false;
+        this.authService.logout();
 
-        const message = this.extractLoginError(err);
-
-        if (err?.status === 401 || err?.status === 403) {
-          this.fieldErrors.password = 'Email o password errate.';
+        if (err?.status === 401) {
+          this.fieldErrors.password = 'Password errata. Riprova.';
         }
 
+        if (err?.status === 404) {
+          this.fieldErrors.email =
+            'Email non trovata. Controllala oppure registrati.';
+        }
+
+        if (err?.status === 400 && !this.fieldErrors.email && !this.fieldErrors.password) {
+          this.fieldErrors.email = 'Verifica i dati inseriti.';
+        }
+
+        const message = this.extractLoginError(err);
         this.showNotification('error', 'Accesso non riuscito', message);
       }
     });
@@ -176,12 +255,16 @@ export class LoginComponent implements OnDestroy {
       return backendError.errore;
     }
 
-    if (err?.status === 401 || err?.status === 403) {
-      return 'Email o password errate.';
+    if (err?.status === 401) {
+      return 'Password errata. Riprova.';
     }
 
     if (err?.status === 404) {
-      return 'Account non trovato.';
+      return 'Email non trovata. Controllala oppure registrati.';
+    }
+
+    if (err?.status === 400) {
+      return 'Dati non validi. Verifica email e password.';
     }
 
     if (err?.status === 0) {
@@ -210,8 +293,10 @@ export class LoginComponent implements OnDestroy {
 
   closeNotification(): void {
     this.notification.show = false;
+
     if (this.notificationTimeout) {
       clearTimeout(this.notificationTimeout);
+      this.notificationTimeout = null;
     }
   }
 }

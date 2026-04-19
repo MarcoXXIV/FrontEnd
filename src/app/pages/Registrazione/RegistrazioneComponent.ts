@@ -2,10 +2,11 @@ import { Component, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs/operators';
+
 import { AuthService } from '../../services/AuthService';
 import { RegisterRequest } from '../../models/RegisterRequest';
 import { NavbarComponent } from '../../components/Navbar/NavbarComponent';
-import { UtenteService} from '../../services/UtenteService';
 
 @Component({
   selector: 'app-registrazione',
@@ -47,7 +48,6 @@ export class RegistrazioneComponent implements OnDestroy {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private utenteService: UtenteService,
   ) {}
 
   ngOnDestroy(): void {
@@ -182,9 +182,7 @@ export class RegistrazioneComponent implements OnDestroy {
   }
 
   onEmailBlur(): void {
-    const valid = this.validateEmailField();
-    if (!valid) return;
-
+    if (!this.validateEmailField()) return;
     this.checkEmailExists(false);
   }
 
@@ -199,9 +197,7 @@ export class RegistrazioneComponent implements OnDestroy {
     const passwordValid = this.validatePasswordField();
     const confermaValid = this.validateConfermaPasswordField();
 
-    const formValid = nomeValid && cognomeValid && emailValid && passwordValid && confermaValid;
-
-    if (!formValid) {
+    if (!(nomeValid && cognomeValid && emailValid && passwordValid && confermaValid)) {
       this.showNotification(
         'error',
         'Controlla i campi',
@@ -213,55 +209,46 @@ export class RegistrazioneComponent implements OnDestroy {
     this.checkEmailExists(true);
   }
 
-  private checkEmailExists(showToastIfExists: boolean): void {
+  private checkEmailExists(andThenRegister: boolean): void {
     const email = this.user.email.trim().toLowerCase();
+
     this.checkingEmail = true;
     this.fieldErrors.email = '';
 
-    this.utenteService.findByEmail(email).subscribe({
-      next: (response: any) => {
-        this.checkingEmail = false;
+    this.authService
+      .checkEmailExists(email)
+      .pipe(finalize(() => (this.checkingEmail = false)))
+      .subscribe({
+        next: (response) => {
+          if (response.exists) {
+            this.fieldErrors.email = 'Questa email è già associata a un account.';
 
-        const exists =
-          typeof response === 'boolean'
-            ? response
-            : typeof response?.exists === 'boolean'
-              ? response.exists
-              : typeof response?.presente === 'boolean'
-                ? response.presente
-                : false;
-
-        if (exists) {
-          this.fieldErrors.email = 'Questa email è già associata a un account.';
-
-          if (showToastIfExists) {
-            this.showNotification(
-              'error',
-              'Email già registrata',
-              'Usa un’altra email oppure accedi con questo account.',
-            );
+            if (andThenRegister) {
+              this.showNotification(
+                'error',
+                'Email già registrata',
+                'Usa un’altra email oppure accedi con questo account.',
+              );
+            }
+            return;
           }
-          return;
-        }
 
-        if (showToastIfExists) {
-          this.executeRegister();
-        }
-      },
-      error: () => {
-        this.checkingEmail = false;
-        this.showNotification(
-          'error',
-          'Verifica email non disponibile',
-          'Non riesco a controllare se l’email è già registrata. Riprova tra poco.',
-        );
-      },
-    });
+          if (andThenRegister) {
+            this.executeRegister();
+          }
+        },
+        error: (err) => {
+          const message =
+            err?.error?.message ||
+            err?.error ||
+            'Non riesco a controllare se l’email è già registrata. Riprova tra poco.';
+
+          this.showNotification('error', 'Verifica email non disponibile', message);
+        },
+      });
   }
 
   private executeRegister(): void {
-    this.loading = true;
-
     const payload: RegisterRequest = {
       nome: this.user.nome.trim(),
       cognome: this.user.cognome.trim(),
@@ -269,32 +256,41 @@ export class RegistrazioneComponent implements OnDestroy {
       password: this.user.password,
     };
 
-    this.authService.register(payload).subscribe({
-      next: () => {
-        this.loading = false;
+    this.loading = true;
 
-        this.showNotification(
-          'success',
-          'Registrazione completata',
-          'Account creato con successo. Verrai reindirizzato alla Home.',
-        );
+    this.authService
+      .register(payload)
+      .pipe(finalize(() => (this.loading = false)))
+      .subscribe({
+        next: () => {
+          this.showNotification(
+            'success',
+            'Registrazione completata',
+            'Account creato con successo. Verrai reindirizzato alla Home.',
+          );
 
-        setTimeout(() => {
-          this.router.navigate(['/Home']);
-        }, 1500);
-      },
-      error: (err) => {
-        this.loading = false;
+          setTimeout(() => {
+            this.router.navigate(['/Home']);
+          }, 1500);
+        },
+        error: (err) => {
+          const message = this.extractRegisterError(err);
 
-        const message = this.extractRegisterError(err);
+          if (err?.status === 409) {
+            this.fieldErrors.email = 'Questa email è già associata a un account.';
+          }
 
-        if (err?.status === 409) {
-          this.fieldErrors.email = 'Questa email è già associata a un account.';
-        }
+          if (err?.error?.validationErrors) {
+            const validationErrors = err.error.validationErrors;
+            this.fieldErrors.nome = validationErrors.nome || '';
+            this.fieldErrors.cognome = validationErrors.cognome || '';
+            this.fieldErrors.email = validationErrors.email || this.fieldErrors.email;
+            this.fieldErrors.password = validationErrors.password || '';
+          }
 
-        this.showNotification('error', 'Registrazione fallita', message);
-      },
-    });
+          this.showNotification('error', 'Registrazione fallita', message);
+        },
+      });
   }
 
   private extractRegisterError(err: any): string {
@@ -312,29 +308,8 @@ export class RegistrazioneComponent implements OnDestroy {
       return backendError.errore;
     }
 
-    if (backendError?.errors) {
-      const errors = backendError.errors;
-
-      if (Array.isArray(errors)) {
-        return errors.join(' • ');
-      }
-
-      if (typeof errors === 'object') {
-        const messages: string[] = [];
-
-        Object.keys(errors).forEach((key) => {
-          const value = errors[key];
-          if (Array.isArray(value)) {
-            messages.push(...value);
-          } else if (typeof value === 'string') {
-            messages.push(value);
-          }
-        });
-
-        if (messages.length > 0) {
-          return messages.join(' • ');
-        }
-      }
+    if (backendError?.validationErrors) {
+      return Object.values(backendError.validationErrors).join(' • ');
     }
 
     if (err?.status === 409) {

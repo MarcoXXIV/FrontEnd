@@ -75,6 +75,9 @@ body {
   cursor: pointer;
   font-size: 0.95rem;
   padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* LOGIN */
@@ -228,6 +231,14 @@ body {
   font-weight: 500;
 }
 
+.field-hint {
+  margin-top: 6px;
+  margin-left: 4px;
+  color: #bdc3c7;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
 .btn-login {
   margin-top: 8px;
   width: 100%;
@@ -329,7 +340,8 @@ body {
     font-size: 0.92rem;
   }
 
-  .field-error {
+  .field-error,
+  .field-hint {
     font-size: 0.75rem;
   }
 
