@@ -31,83 +31,69 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
-.toast-notification {
+/* TOAST */
+.notification-toast {
   position: fixed;
-  top: -120px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 2000;
-  min-width: 320px;
-  max-width: calc(100vw - 32px);
-  background: rgba(15, 23, 42, 0.96);
+  top: 90px;
+  right: 20px;
+  width: min(420px, calc(100% - 24px));
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 18px;
   border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
-  transition: all 0.45s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(16px);
+  z-index: 9999;
+  color: #fff;
+  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: toastSlideIn 0.35s ease;
 }
 
-.toast-notification.active {
-  top: 22px;
+.notification-toast.success {
+  background: rgba(23, 166, 107, 0.94);
+  border: 1px solid rgba(80, 255, 170, 0.25);
+}
+
+.notification-toast.error {
+  background: rgba(220, 53, 69, 0.95);
+  border: 1px solid rgba(255, 120, 120, 0.25);
+}
+
+.toast-icon i {
+  font-size: 1.35rem;
+  margin-top: 2px;
 }
 
 .toast-content {
-  padding: 16px 20px;
+  flex: 1;
+}
+
+.toast-content h4 {
+  margin: 0 0 4px;
+  font-size: 0.98rem;
+  font-weight: 800;
+}
+
+.toast-content p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.toast-close {
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 2px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
 }
 
-.toast-content i {
-  font-size: 1.15rem;
-}
-
-.toast-content span {
-  color: #e2e8f0;
-  font-size: 0.95rem;
-  line-height: 1.4;
-}
-
-.toast-notification.success .toast-content i {
-  color: #10b981;
-}
-
-.toast-notification.error .toast-content i {
-  color: #ef4444;
-}
-
-.toast-progress {
-  height: 3px;
-  width: 100%;
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.toast-progress.running::before {
-  content: '';
-  display: block;
-  height: 100%;
-  background: #3b82f6;
-  animation: progressRun 3.5s linear forwards;
-}
-
-.toast-notification.success .toast-progress::before {
-  background: #10b981;
-}
-
-.toast-notification.error .toast-progress::before {
-  background: #ef4444;
-}
-
-@keyframes progressRun {
-  from {
-    width: 100%;
-  }
-  to {
-    width: 0%;
-  }
-}
-
+/* LOADER */
 .loader-overlay {
   position: fixed;
   inset: 0;
@@ -135,6 +121,13 @@ body {
   animation: spin 1s linear infinite;
 }
 
+.spinner.small {
+  width: 18px;
+  height: 18px;
+  border-width: 2.5px;
+}
+
+/* SHELL */
 .profilo-shell {
   max-width: 1320px;
   margin: 0 auto;
@@ -227,7 +220,6 @@ body {
   line-height: 1.3;
 }
 
-/* NUOVI BLOCCHI SOTTO COMANDANTE */
 .sidebar-stats {
   margin-top: 22px;
   width: 100%;
@@ -395,6 +387,10 @@ input:focus,
   cursor: pointer;
   transition: all 0.25s ease;
   border: none;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-save {
@@ -403,7 +399,7 @@ input:focus,
   box-shadow: 0 10px 18px rgba(37, 99, 235, 0.20);
 }
 
-.btn-save:hover {
+.btn-save:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 14px 24px rgba(37, 99, 235, 0.28);
 }
@@ -414,9 +410,17 @@ input:focus,
   color: #fca5a5;
 }
 
-.btn-password:hover {
+.btn-password:hover:not(:disabled) {
   background: rgba(239, 68, 68, 0.10);
   color: #ffffff;
+}
+
+.btn-save:disabled,
+.btn-password:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .challenges-grid {
@@ -639,6 +643,17 @@ input:focus,
   }
 }
 
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateX(0);
+  }
+}
+
 /* TABLET GRANDI */
 @media (max-width: 1200px) {
   .review-list {
@@ -785,18 +800,11 @@ input:focus,
     margin-top: 8px;
   }
 
-  .toast-notification {
-    top: -120px;
-    left: 12px;
+  .notification-toast {
+    top: 82px;
     right: 12px;
-    transform: none;
-    min-width: unset;
-    max-width: unset;
+    left: 12px;
     width: auto;
-  }
-
-  .toast-notification.active {
-    top: 12px;
   }
 }
 

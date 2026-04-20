@@ -1,15 +1,14 @@
 import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { forkJoin, of, Subscription } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, finalize } from 'rxjs/operators';
 
 import { UtenteService } from '../../services/UtenteService';
 import { ConfrontoService } from '../../services/ConfrontoService';
 import { RecensioniService } from '../../services/RecensioniService';
 import { PreferitiService } from '../../services/PreferitiService';
-import { AuthService } from '../../services/AuthService';
 import { NavbarActionService } from '../../services/NavbarActionService';
 import { ToastService } from '../../services/ToastService';
 import { UtenteModel } from '../../models/UtenteModel';
@@ -26,7 +25,7 @@ import { NavbarComponent } from '../../components/Navbar/NavbarComponent';
 })
 export class ProfiloComponent implements OnInit, OnDestroy {
   utente?: UtenteModel;
-  mieisfide: ConfrontoModel[] = [];
+  mieSfide: ConfrontoModel[] = [];
   totaleSfide = 0;
   totalePreferiti = 0;
   mieRecensioni: RecensioneModel[] = [];
@@ -37,8 +36,19 @@ export class ProfiloComponent implements OnInit, OnDestroy {
 
   showOldPsw = false;
   showNewPsw = false;
-  loading = true;
 
+  loading = true;
+  savingProfile = false;
+  changingPassword = false;
+
+  notification = {
+    show: false,
+    type: 'success' as 'success' | 'error',
+    title: '',
+    message: '',
+  };
+
+  private notificationTimeout: ReturnType<typeof setTimeout> | null = null;
   private subs: Subscription = new Subscription();
 
   constructor(
@@ -46,10 +56,8 @@ export class ProfiloComponent implements OnInit, OnDestroy {
     private confrontoService: ConfrontoService,
     private recensioniService: RecensioniService,
     private preferitiService: PreferitiService,
-    private authService: AuthService,
     private navbarActionService: NavbarActionService,
     private toastService: ToastService,
-    private router: Router,
     private cd: ChangeDetectorRef
   ) {}
 
@@ -60,13 +68,15 @@ export class ProfiloComponent implements OnInit, OnDestroy {
       this.navbarActionService.resetCronologia$.subscribe(() => {
         this.confrontoService.eliminaCronologia().subscribe({
           next: () => {
-            this.mieisfide = [];
+            this.mieSfide = [];
             this.totaleSfide = 0;
             this.toastService.success('Cronologia eliminata dal database!');
+            this.showNotification('success', 'Cronologia eliminata', 'La cronologia è stata eliminata con successo.');
             this.cd.detectChanges();
           },
           error: () => {
             this.toastService.error('Errore tecnico nell’eliminazione della cronologia.');
+            this.showNotification('error', 'Errore', 'Non è stato possibile eliminare la cronologia.');
           }
         });
       })
@@ -75,6 +85,7 @@ export class ProfiloComponent implements OnInit, OnDestroy {
     this.subs.add(
       this.navbarActionService.resetRecensioni$.subscribe(() => {
         this.mieRecensioni = [];
+        this.showNotification('success', 'Recensioni aggiornate', 'L’elenco recensioni è stato aggiornato.');
         this.cd.detectChanges();
       })
     );
@@ -82,6 +93,10 @@ export class ProfiloComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
+
+    if (this.notificationTimeout) {
+      clearTimeout(this.notificationTimeout);
+    }
   }
 
   caricaTutto(): void {
@@ -93,21 +108,25 @@ export class ProfiloComponent implements OnInit, OnDestroy {
       recensioni: this.recensioniService.getMieRecensioni().pipe(catchError(() => of([]))),
       totaleSfide: this.confrontoService.getMioTotale().pipe(catchError(() => of(0))),
       preferitiCount: this.preferitiService.getConteggio().pipe(catchError(() => of(0)))
-    }).subscribe({
-      next: (res) => {
-        this.utente = res.utente || undefined;
-        this.mieisfide = res.sfide;
-        this.mieRecensioni = res.recensioni;
-        this.totaleSfide = Number(res.totaleSfide);
-        this.totalePreferiti = Number(res.preferitiCount);
-        this.loading = false;
-        this.cd.detectChanges();
-      },
-      error: () => {
-        this.loading = false;
-        this.cd.detectChanges();
-      }
-    });
+    })
+      .pipe(
+        finalize(() => {
+          this.loading = false;
+          this.cd.detectChanges();
+        })
+      )
+      .subscribe({
+        next: (res) => {
+          this.utente = res.utente || undefined;
+          this.mieSfide = res.sfide as ConfrontoModel[];
+          this.mieRecensioni = res.recensioni as RecensioneModel[];
+          this.totaleSfide = Number(res.totaleSfide);
+          this.totalePreferiti = Number(res.preferitiCount);
+        },
+        error: () => {
+          this.showNotification('error', 'Errore caricamento', 'Non è stato possibile caricare il profilo.');
+        }
+      });
   }
 
   eliminaRecensione(recensione: RecensioneModel): void {
@@ -116,6 +135,7 @@ export class ProfiloComponent implements OnInit, OnDestroy {
 
     if (!idA1 || !idA2) {
       this.toastService.error('Dati auto mancanti per l’eliminazione.');
+      this.showNotification('error', 'Dati mancanti', 'Dati auto mancanti per l’eliminazione.');
       return;
     }
 
@@ -125,80 +145,145 @@ export class ProfiloComponent implements OnInit, OnDestroy {
           this.mieRecensioni = this.mieRecensioni.filter(
             r => !(r.auto1?.id === idA1 && r.auto2?.id === idA2)
           );
+
           this.toastService.success('Recensione eliminata con successo!');
+          this.showNotification('success', 'Recensione eliminata', 'La recensione è stata eliminata con successo.');
           this.cd.detectChanges();
         },
         error: (err) => {
-          const msg = err?.error || 'Errore durante l’eliminazione.';
+          const msg = typeof err?.error === 'string' ? err.error : 'Errore durante l’eliminazione.';
           this.toastService.error(msg);
+          this.showNotification('error', 'Eliminazione non riuscita', msg);
         }
       });
     }
   }
 
   salvaModificheBase(): void {
-    if (!this.utente) return;
+    if (!this.utente || this.savingProfile) return;
 
-    this.utenteService.aggiornaProfilo(this.utente).subscribe({
-      next: (updated) => {
-        this.utente = updated;
-        this.toastService.success('Profilo aggiornato con successo!');
-      },
-      error: (err) => {
-        const msg = err?.error || 'Errore durante l’aggiornamento.';
-        this.toastService.error(msg);
-      }
-    });
+    const nome = this.utente.nome?.trim();
+    const cognome = this.utente.cognome?.trim();
+
+    if (!nome || !cognome) {
+      this.showNotification('error', 'Campi obbligatori', 'Nome e cognome sono obbligatori.');
+      return;
+    }
+
+    this.savingProfile = true;
+
+    const payload = {
+      ...this.utente,
+      nome,
+      cognome
+    };
+
+    this.utenteService.aggiornaProfilo(payload)
+      .pipe(
+        finalize(() => {
+          this.savingProfile = false;
+          this.cd.detectChanges();
+        })
+      )
+      .subscribe({
+        next: (updated) => {
+          this.utente = updated;
+          this.toastService.success('Profilo aggiornato con successo!');
+          this.showNotification('success', 'Profilo aggiornato', 'Le informazioni account sono state salvate.');
+        },
+        error: (err) => {
+          const msg = typeof err?.error === 'string' ? err.error : 'Errore durante l’aggiornamento del profilo.';
+          this.toastService.error(msg);
+          this.showNotification('error', 'Aggiornamento fallito', msg);
+        }
+      });
   }
 
   aggiornaPassword(event: Event): void {
     event.preventDefault();
 
+    if (this.changingPassword) return;
+
     if (!this.vecchiaPsw || !this.nuovaPsw || !this.confermaNuovaPsw) {
-      this.toastService.error('Compila tutti i campi password.');
+      this.showNotification('error', 'Campi mancanti', 'Compila tutti i campi password.');
+      return;
+    }
+
+    if (this.nuovaPsw.length < 6) {
+      this.showNotification('error', 'Password troppo corta', 'La nuova password deve contenere almeno 6 caratteri.');
       return;
     }
 
     if (this.nuovaPsw !== this.confermaNuovaPsw) {
-      this.toastService.error('Le nuove password non coincidono.');
+      this.showNotification('error', 'Password non coincidenti', 'Le nuove password non coincidono.');
       return;
     }
 
-    this.utenteService.cambiaPassword(this.vecchiaPsw, this.nuovaPsw).subscribe({
-      next: () => {
-        this.toastService.success('Password modificata correttamente!');
-        this.vecchiaPsw = '';
-        this.nuovaPsw = '';
-        this.confermaNuovaPsw = '';
-        this.cd.detectChanges();
-      },
-      error: (err) => {
-        const msg = err?.error || 'Errore: la vecchia password è errata.';
-        this.toastService.error(msg);
-      }
-    });
-  }
-
-  pulisciCronologia(): void {
-    if (this.totaleSfide <= 0) {
-      this.toastService.error('La cronologia è vuota. Non c’è niente da eliminare.');
+    if (this.vecchiaPsw === this.nuovaPsw) {
+      this.showNotification('error', 'Password invariata', 'La nuova password deve essere diversa da quella attuale.');
       return;
     }
 
-    this.confrontoService.eliminaCronologia().subscribe({
-      next: () => {
-        this.mieisfide = [];
-        this.totaleSfide = 0;
-        this.toastService.success('Cronologia resettata!');
-        this.cd.detectChanges();
-      },
-      error: () => {
-        this.toastService.error('Errore nella pulizia della cronologia.');
-      }
-    });
+    this.changingPassword = true;
+
+    this.utenteService.cambiaPassword(this.vecchiaPsw, this.nuovaPsw)
+      .pipe(
+        finalize(() => {
+          this.changingPassword = false;
+          this.cd.detectChanges();
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.vecchiaPsw = '';
+          this.nuovaPsw = '';
+          this.confermaNuovaPsw = '';
+          this.toastService.success('Password modificata correttamente!');
+          this.showNotification('success', 'Password aggiornata', 'Le credenziali sono state aggiornate con successo.');
+        },
+        error: (err) => {
+          const msg = typeof err?.error === 'string'
+            ? err.error
+            : 'Errore: la vecchia password è errata oppure la modifica non è riuscita.';
+
+          this.toastService.error(msg);
+          this.showNotification('error', 'Modifica password fallita', msg);
+        }
+      });
   }
 
   trackByRecensione(index: number, item: RecensioneModel): number {
     return item.id ?? index;
+  }
+
+  showNotification(type: 'success' | 'error', title: string, message: string): void {
+    if (this.notificationTimeout) {
+      clearTimeout(this.notificationTimeout);
+    }
+
+    this.notification = {
+      show: true,
+      type,
+      title,
+      message,
+    };
+
+    this.notificationTimeout = setTimeout(() => {
+      this.notification.show = false;
+      this.cd.detectChanges();
+    }, 3500);
+
+    this.cd.detectChanges();
+  }
+
+  closeNotification(): void {
+    this.notification.show = false;
+
+    if (this.notificationTimeout) {
+      clearTimeout(this.notificationTimeout);
+      this.notificationTimeout = null;
+    }
+
+    this.cd.detectChanges();
   }
 }

@@ -5,6 +5,7 @@ import { environment } from '../environments/environment';
 import { AuthResponse } from '../models/AuthResponse';
 import { LoginRequest } from '../models/LoginRequest';
 import { RegisterRequest } from '../models/RegisterRequest';
+import { ForgotPasswordResponse } from '../models/ForgotPasswordResponse'
 
 @Injectable({
   providedIn: 'root',
@@ -31,7 +32,16 @@ export class AuthService {
     return this.http.get<{ exists: boolean }>(`${this.apiUrl}/check-email`, { params });
   }
 
-  private setSession(authResult: AuthResponse) {
+
+  forgotPassword(email: string): Observable<ForgotPasswordResponse> {
+    return this.http.post<ForgotPasswordResponse>(
+      `${this.apiUrl}/forgot-password`,
+      { email: email.trim().toLowerCase() }
+    );
+  }
+
+
+private setSession(authResult: AuthResponse) {
     localStorage.setItem('token', authResult.token);
     if (authResult.email) localStorage.setItem('email', authResult.email);
     if (authResult.ruolo) localStorage.setItem('ruolo', authResult.ruolo);

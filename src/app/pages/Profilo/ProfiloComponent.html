@@ -1,5 +1,27 @@
 <app-navbar></app-navbar>
 
+<div
+  class="notification-toast"
+  *ngIf="notification.show"
+  [ngClass]="notification.type"
+>
+  <div class="toast-icon">
+    <i
+      class="fas"
+      [ngClass]="notification.type === 'success' ? 'fa-check-circle' : 'fa-times-circle'"
+    ></i>
+  </div>
+
+  <div class="toast-content">
+    <h4>{{ notification.title }}</h4>
+    <p>{{ notification.message }}</p>
+  </div>
+
+  <button type="button" class="toast-close" (click)="closeNotification()">
+    <i class="fas fa-times"></i>
+  </button>
+</div>
+
 <div class="profilo-page">
   <div *ngIf="loading" class="loader-overlay">
     <div class="spinner"></div>
@@ -53,7 +75,8 @@
                   type="text"
                   [(ngModel)]="utente.nome"
                   name="nome"
-                  class="input-sm">
+                  class="input-sm"
+                  autocomplete="given-name">
               </div>
 
               <div class="form-group">
@@ -63,7 +86,8 @@
                   type="text"
                   [(ngModel)]="utente.cognome"
                   name="cognome"
-                  class="input-sm">
+                  class="input-sm"
+                  autocomplete="family-name">
               </div>
             </div>
 
@@ -77,7 +101,10 @@
                 class="disabled-input email-input">
             </div>
 
-            <button type="submit" class="btn-save">Salva Modifiche</button>
+            <button type="submit" class="btn-save" [disabled]="savingProfile">
+              <span *ngIf="!savingProfile">Salva Modifiche</span>
+              <div class="spinner small" *ngIf="savingProfile"></div>
+            </button>
           </form>
         </section>
 
@@ -87,8 +114,8 @@
             <p>Rivedi i confronti effettuati in precedenza.</p>
           </div>
 
-          <div class="challenges-grid" *ngIf="mieisfide.length > 0; else noChallenges">
-            <div class="challenge-card" *ngFor="let s of mieisfide">
+          <div class="challenges-grid" *ngIf="mieSfide.length > 0; else noChallenges">
+            <div class="challenge-card" *ngFor="let s of mieSfide">
               <div class="challenge-cars">
                 <span>{{ s.auto1.marca }} {{ s.auto1.modello }}</span>
                 <span class="vs-text">VS</span>
@@ -131,7 +158,8 @@
                   [type]="showOldPsw ? 'text' : 'password'"
                   [(ngModel)]="vecchiaPsw"
                   name="old"
-                  placeholder="Inserisci la password attuale">
+                  placeholder="Inserisci la password attuale"
+                  autocomplete="current-password">
                 <i
                   class="fas"
                   [ngClass]="showOldPsw ? 'fa-eye-slash' : 'fa-eye'"
@@ -149,7 +177,8 @@
                     [type]="showNewPsw ? 'text' : 'password'"
                     [(ngModel)]="nuovaPsw"
                     name="n1"
-                    placeholder="Inserisci la nuova password">
+                    placeholder="Inserisci la nuova password"
+                    autocomplete="new-password">
                   <i
                     class="fas"
                     [ngClass]="showNewPsw ? 'fa-eye-slash' : 'fa-eye'"
@@ -165,11 +194,15 @@
                   [type]="showNewPsw ? 'text' : 'password'"
                   [(ngModel)]="confermaNuovaPsw"
                   name="n2"
-                  placeholder="Ripeti la nuova password">
+                  placeholder="Ripeti la nuova password"
+                  autocomplete="new-password">
               </div>
             </div>
 
-            <button type="submit" class="btn-password">Aggiorna Credenziali</button>
+            <button type="submit" class="btn-password" [disabled]="changingPassword">
+              <span *ngIf="!changingPassword">Aggiorna Credenziali</span>
+              <div class="spinner small" *ngIf="changingPassword"></div>
+            </button>
           </form>
         </section>
 

@@ -11,28 +11,34 @@ import { LoginRequest } from '../../models/LoginRequest';
   standalone: true,
   imports: [CommonModule, FormsModule, NavbarComponent],
   templateUrl: './LoginComponent.html',
-  styleUrls: ['./LoginComponent.css']
+  styleUrls: ['./LoginComponent.css'],
 })
 export class LoginComponent implements OnDestroy {
   credentials: LoginRequest = {
     email: '',
-    password: ''
+    password: '',
   };
 
   showPassword = false;
   loading = false;
   checkingEmail = false;
 
+  forgotPasswordModalOpen = false;
+  resetPasswordEmail = '';
+  resetEmailError = '';
+  checkingResetEmail = false;
+  sendingResetPassword = false;
+
   fieldErrors = {
     email: '',
-    password: ''
+    password: '',
   };
 
   notification = {
     show: false,
     type: 'success' as 'success' | 'error',
     title: '',
-    message: ''
+    message: '',
   };
 
   private notificationTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -40,7 +46,7 @@ export class LoginComponent implements OnDestroy {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
   ) {}
 
   ngOnDestroy(): void {
@@ -51,6 +57,8 @@ export class LoginComponent implements OnDestroy {
     if (this.redirectTimeout) {
       clearTimeout(this.redirectTimeout);
     }
+
+    document.body.style.overflow = '';
   }
 
   togglePassword(): void {
@@ -96,7 +104,7 @@ export class LoginComponent implements OnDestroy {
       },
       error: () => {
         this.checkingEmail = false;
-      }
+      },
     });
   }
 
@@ -151,37 +159,32 @@ export class LoginComponent implements OnDestroy {
       this.showNotification(
         'error',
         'Controlla i campi',
-        'Correggi gli errori evidenziati prima di continuare.'
+        'Correggi gli errori evidenziati prima di continuare.',
       );
       return;
     }
 
     const payload: LoginRequest = {
       email: this.credentials.email.trim().toLowerCase(),
-      password: this.credentials.password
+      password: this.credentials.password,
     };
 
     this.loading = true;
-
-    // Pulizia eventuale sessione vecchia
     this.authService.logout();
 
-    // Prima controllo se l'email esiste
     this.authService.checkEmailExists(payload.email).subscribe({
       next: (check) => {
         if (!check.exists) {
           this.loading = false;
-          this.fieldErrors.email =
-            'Email non trovata. Controllala oppure registrati.';
+          this.fieldErrors.email = 'Email non trovata. Controllala oppure registrati.';
           this.showNotification(
             'error',
             'Email non trovata',
-            'Questa email non risulta registrata. Controllala oppure vai in registrazione.'
+            'Questa email non risulta registrata. Controllala oppure vai in registrazione.',
           );
           return;
         }
 
-        // Se esiste, provo il login
         this.executeLogin(payload);
       },
       error: () => {
@@ -189,9 +192,9 @@ export class LoginComponent implements OnDestroy {
         this.showNotification(
           'error',
           'Errore verifica email',
-          'Non è stato possibile verificare l’email. Riprova tra poco.'
+          'Non è stato possibile verificare l’email. Riprova tra poco.',
         );
-      }
+      },
     });
   }
 
@@ -203,7 +206,7 @@ export class LoginComponent implements OnDestroy {
         this.showNotification(
           'success',
           'Accesso effettuato',
-          'Login riuscito. Verrai reindirizzato alla Home.'
+          'Login riuscito. Verrai reindirizzato alla Home.',
         );
 
         this.redirectTimeout = setTimeout(() => {
@@ -219,8 +222,7 @@ export class LoginComponent implements OnDestroy {
         }
 
         if (err?.status === 404) {
-          this.fieldErrors.email =
-            'Email non trovata. Controllala oppure registrati.';
+          this.fieldErrors.email = 'Email non trovata. Controllala oppure registrati.';
         }
 
         if (err?.status === 400 && !this.fieldErrors.email && !this.fieldErrors.password) {
@@ -229,14 +231,139 @@ export class LoginComponent implements OnDestroy {
 
         const message = this.extractLoginError(err);
         this.showNotification('error', 'Accesso non riuscito', message);
-      }
+      },
+    });
+  }
+
+  openForgotPasswordModal(): void {
+    this.resetPasswordEmail = this.credentials.email?.trim().toLowerCase() || '';
+    this.resetEmailError = '';
+    this.checkingResetEmail = false;
+    this.sendingResetPassword = false;
+    this.forgotPasswordModalOpen = true;
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeForgotPasswordModal(force: boolean = false): void {
+    if (this.sendingResetPassword && !force) return;
+
+    this.forgotPasswordModalOpen = false;
+    this.resetPasswordEmail = '';
+    this.resetEmailError = '';
+    this.checkingResetEmail = false;
+    this.sendingResetPassword = false;
+    document.body.style.overflow = '';
+  }
+
+  onResetEmailInput(): void {
+    this.resetEmailError = '';
+  }
+
+  onResetEmailBlur(): void {
+    if (!this.validateResetEmailField()) {
+      return;
+    }
+
+    const email = this.resetPasswordEmail.trim().toLowerCase();
+    if (!email) {
+      return;
+    }
+
+    this.checkingResetEmail = true;
+
+    this.authService.checkEmailExists(email).subscribe({
+      next: (response) => {
+        this.checkingResetEmail = false;
+
+        if (!response.exists) {
+          this.resetEmailError = 'Questa email non risulta registrata.';
+        }
+      },
+      error: () => {
+        this.checkingResetEmail = false;
+      },
+    });
+  }
+
+  validateResetEmailField(): boolean {
+    const email = this.resetPasswordEmail?.trim() || '';
+    this.resetEmailError = '';
+
+    if (!email) {
+      this.resetEmailError = 'Inserisci la tua email.';
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    if (!emailRegex.test(email)) {
+      this.resetEmailError = 'Inserisci un indirizzo email valido.';
+      return false;
+    }
+
+    return true;
+  }
+
+  submitForgotPassword(): void {
+    if (this.sendingResetPassword) return;
+
+    const isValid = this.validateResetEmailField();
+    if (!isValid) return;
+
+    const email = this.resetPasswordEmail.trim().toLowerCase();
+    this.sendingResetPassword = true;
+    this.resetEmailError = '';
+
+    this.authService.forgotPassword(email).subscribe({
+      next: (response) => {
+        this.sendingResetPassword = false;
+
+        if (response?.esito) {
+          this.closeForgotPasswordModal(true);
+          this.credentials.password = '';
+
+          this.showNotification(
+            'success',
+            'Email inviata',
+            response.message ||
+              'Controlla la tua posta in arrivo. Ti abbiamo inviato una password temporanea.',
+          );
+        } else {
+          this.resetEmailError = 'Non è stato possibile completare il reset password.';
+          this.showNotification(
+            'error',
+            'Errore Reset',
+            response?.message || 'Non è stato possibile completare il reset password.',
+          );
+        }
+      },
+      error: (err) => {
+        this.sendingResetPassword = false;
+
+        if (err?.status === 404) {
+          this.resetEmailError = 'Questa email non risulta registrata.';
+          return;
+        }
+
+        if (err?.status === 400) {
+          this.resetEmailError = 'Inserisci un indirizzo email valido.';
+          return;
+        }
+
+        console.error('Errore forgot password:', err);
+
+        this.showNotification(
+          'error',
+          'Errore Reset',
+          'Si è verificato un problema tecnico durante l’invio. Riprova tra qualche istante.',
+        );
+      },
     });
   }
 
   private clearFieldErrors(): void {
     this.fieldErrors = {
       email: '',
-      password: ''
+      password: '',
     };
   }
 
@@ -283,7 +410,7 @@ export class LoginComponent implements OnDestroy {
       show: true,
       type,
       title,
-      message
+      message,
     };
 
     this.notificationTimeout = setTimeout(() => {

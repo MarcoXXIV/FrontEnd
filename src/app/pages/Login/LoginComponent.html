@@ -90,6 +90,16 @@
         </small>
       </div>
 
+      <div class="forgot-password-row">
+        <button
+          type="button"
+          class="forgot-password-link"
+          (click)="openForgotPasswordModal()"
+        >
+          Password dimenticata?
+        </button>
+      </div>
+
       <button type="submit" class="btn-login" [disabled]="loading">
         <span *ngIf="!loading">
           Accedi al Garage
@@ -105,6 +115,77 @@
         Nuovo nel circuito?
         <a (click)="goToRegister()">Crea un account</a>
       </p>
+    </div>
+  </div>
+</div>
+
+<div
+  class="modal-overlay"
+  *ngIf="forgotPasswordModalOpen"
+  (click)="closeForgotPasswordModal()"
+>
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Reset password</h3>
+      <button
+        type="button"
+        class="modal-close"
+        (click)="closeForgotPasswordModal()"
+        [disabled]="sendingResetPassword"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <p class="modal-text">
+      Inserisci la tua email. Se esiste, riceverai una nuova password temporanea via email.
+    </p>
+
+    <div class="input-group" [class.error]="resetEmailError">
+      <label for="resetEmail">Email</label>
+
+      <div class="input-wrapper">
+        <i class="fas fa-envelope"></i>
+        <input
+          type="email"
+          id="resetEmail"
+          name="resetEmail"
+          [(ngModel)]="resetPasswordEmail"
+          (input)="onResetEmailInput()"
+          (blur)="onResetEmailBlur()"
+          placeholder="esempio@mail.com"
+          autocomplete="email"
+        />
+      </div>
+
+      <small class="field-error" *ngIf="resetEmailError">
+        {{ resetEmailError }}
+      </small>
+
+      <small class="field-hint" *ngIf="checkingResetEmail && !resetEmailError">
+        Verifica email in corso...
+      </small>
+    </div>
+
+    <div class="modal-actions">
+      <button
+        type="button"
+        class="btn-secondary"
+        (click)="closeForgotPasswordModal()"
+        [disabled]="sendingResetPassword"
+      >
+        Annulla
+      </button>
+
+      <button
+        type="button"
+        class="btn-primary"
+        (click)="submitForgotPassword()"
+        [disabled]="sendingResetPassword"
+      >
+        <span *ngIf="!sendingResetPassword">Invia nuova password</span>
+        <div class="spinner small" *ngIf="sendingResetPassword"></div>
+      </button>
     </div>
   </div>
 </div>
