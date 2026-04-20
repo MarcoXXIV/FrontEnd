@@ -1,17 +1,6 @@
 <app-navbar></app-navbar>
 
 <div class="profilo-page">
-  <div class="toast-notification" [class.active]="showToast" [ngClass]="toastType">
-    <div class="toast-content">
-      <i
-        class="fas"
-        [ngClass]="toastType === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle'">
-      </i>
-      <span>{{ toastMsg }}</span>
-    </div>
-    <div class="toast-progress" [class.running]="showToast"></div>
-  </div>
-
   <div *ngIf="loading" class="loader-overlay">
     <div class="spinner"></div>
     <p>Sincronizzazione dati pilota...</p>
@@ -34,7 +23,6 @@
 
           <h2 class="sidebar-name">{{ utente.nome }} {{ utente.cognome }}</h2>
 
-          <!-- Sfide e Garage sotto Comandante -->
           <div class="sidebar-stats">
             <div class="sidebar-stat-card">
               <span class="sidebar-stat-label">Sfide</span>
@@ -102,9 +90,9 @@
           <div class="challenges-grid" *ngIf="mieisfide.length > 0; else noChallenges">
             <div class="challenge-card" *ngFor="let s of mieisfide">
               <div class="challenge-cars">
-                <span>{{ s.auto1.marca }} {{s.auto1.modello}}</span>
+                <span>{{ s.auto1.marca }} {{ s.auto1.modello }}</span>
                 <span class="vs-text">VS</span>
-                <span>{{ s.auto2.marca }} {{s.auto2.modello}}</span>
+                <span>{{ s.auto2.marca }} {{ s.auto2.modello }}</span>
               </div>
 
               <div class="challenge-date">
@@ -114,7 +102,7 @@
               <a
                 class="btn-view-challenge"
                 [routerLink]="['/Confronto']"
-                [queryParams]="{idAuto1: s.auto1.id, idAuto2: s.auto2.id}">
+                [queryParams]="{ idAuto1: s.auto1.id, idAuto2: s.auto2.id }">
                 Vedi Dettagli
               </a>
             </div>
@@ -208,9 +196,11 @@
               </button>
 
               <div class="review-info">
-                <span class="review-car">{{ r.auto1?.marca }} {{r.auto1?.modello}}
+                <span class="review-car">
+                  {{ r.auto1?.marca }} {{ r.auto1?.modello }}
                   <span class="vs-text">VS</span>
-                  {{ r.auto2?.marca }} {{r.auto2?.modello}}</span>
+                  {{ r.auto2?.marca }} {{ r.auto2?.modello }}
+                </span>
 
                 <div class="stars">
                   <i

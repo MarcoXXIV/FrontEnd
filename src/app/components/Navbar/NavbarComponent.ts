@@ -1,18 +1,23 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd, ActivatedRoute } from '@angular/router';
-import { Subscription, filter } from 'rxjs';
+import { Subscription, filter, take } from 'rxjs';
+
 import { AuthService } from '../../services/AuthService';
 import { NavbarActionService } from '../../services/NavbarActionService';
 import { RecensioniService } from '../../services/RecensioniService';
+import { PreferitiService } from '../../services/PreferitiService';
+import { ConfrontoService } from '../../services/ConfrontoService';
 
 type AdminSection = 'nuova-auto' | 'utenti' | 'gestione-auto';
 type NavbarMode = 'default' | 'Profilo' | 'empty' | 'admin' | 'preferiti' | 'accedere';
+type ToastType = 'success' | 'error';
 
 type QuickActionId =
   | 'home'
   | 'profilo'
   | 'preferiti'
+  | 'svuota-preferiti'
   | 'admin'
   | 'logout'
   | 'login'
@@ -28,6 +33,7 @@ interface QuickAction {
   label: string;
   active?: boolean;
   variant?: 'default' | 'accent' | 'danger';
+  sticker?: string;
 }
 
 @Component({
@@ -45,10 +51,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   showToast = false;
   toastMsg = '';
-  toastType: 'success' | 'error' = 'error';
+  toastType: ToastType = 'success';
 
   private routerSub?: Subscription;
   private toastTimeout?: ReturnType<typeof setTimeout>;
+  private toastRestartTimeout?: ReturnType<typeof setTimeout>;
 
   constructor(
     public authService: AuthService,
@@ -56,6 +63,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
     private activatedRoute: ActivatedRoute,
     private navbarActionService: NavbarActionService,
     private recensioniService: RecensioniService,
+    private preferitiService: PreferitiService,
+    private confrontoService: ConfrontoService,
+    private cd: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -84,6 +94,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (this.toastTimeout) {
       clearTimeout(this.toastTimeout);
     }
+
+    if (this.toastRestartTimeout) {
+      clearTimeout(this.toastRestartTimeout);
+    }
   }
 
   private syncAuthState = (): void => {
@@ -91,18 +105,62 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.aggiornaNavbarMode();
   };
 
-  private triggerToast(msg: string, type: 'success' | 'error' = 'error'): void {
+  private triggerToast(msg: string, type: ToastType = 'success', duration: number = 3500): void {
     if (this.toastTimeout) {
       clearTimeout(this.toastTimeout);
     }
 
+    if (this.toastRestartTimeout) {
+      clearTimeout(this.toastRestartTimeout);
+    }
+
+    this.showToast = false;
     this.toastMsg = msg;
     this.toastType = type;
-    this.showToast = true;
+    this.cd.detectChanges();
 
-    this.toastTimeout = setTimeout(() => {
-      this.showToast = false;
-    }, 3500);
+    this.toastRestartTimeout = setTimeout(() => {
+      this.showToast = true;
+      this.cd.detectChanges();
+
+      this.toastTimeout = setTimeout(() => {
+        this.showToast = false;
+        this.cd.detectChanges();
+      }, duration);
+    }, 35);
+  }
+
+  private confirmAction(confirmMessage: string, action: () => void): void {
+    const conferma = confirm(confirmMessage);
+
+    if (!conferma) {
+      return;
+    }
+
+    try {
+      action();
+    } catch (error) {
+      console.error('Errore durante l’azione:', error);
+      this.triggerToast('Si è verificato un errore durante l’operazione.', 'error');
+    }
+  }
+
+  private refreshCurrentRoute(): void {
+    const currentUrl = this.router.url;
+
+    this.router.navigateByUrl('/Home', { skipLocationChange: true }).then(() => {
+      this.router.navigateByUrl(currentUrl);
+    });
+  }
+
+  private extractNumericValue(value: any): number {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') return Number(value) || 0;
+    if (value == null) return 0;
+
+    return (
+      Number(value.count ?? value.total ?? value.totale ?? value.data ?? value.value ?? 0) || 0
+    );
   }
 
   aggiornaStato(): void {
@@ -264,7 +322,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
           label: 'Gestione auto',
           active: this.isAdminSection('gestione-auto'),
         },
-        { id: 'logout', icon: '🚪', label: 'Esci', variant: 'danger' },
+        {
+          id: 'logout',
+          icon: '🚪',
+          label: 'Esci',
+          variant: 'danger',
+        },
       ];
     }
 
@@ -297,7 +360,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
         });
       }
 
-      actions.push({ id: 'logout', icon: '🚪', label: 'Esci', variant: 'danger' });
+      actions.push({
+        id: 'logout',
+        icon: '🚪',
+        label: 'Esci',
+        variant: 'danger',
+      });
+
       return actions;
     }
 
@@ -315,6 +384,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
           label: 'Preferiti',
           active: true,
           variant: 'accent',
+        },
+        {
+          id: 'svuota-preferiti',
+          icon: '🗑️',
+          label: 'Svuota preferiti',
+          variant: 'danger',
         },
       ];
 
@@ -505,6 +580,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
           active: true,
           variant: 'accent',
         },
+        {
+          id: 'svuota-preferiti',
+          icon: '🗑️',
+          label: 'Svuota',
+          variant: 'danger',
+        },
       ];
 
       if (this.isAdmin()) {
@@ -560,10 +641,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   getProfileMobileEndActions(): QuickAction[] {
     return this.getMobileActions().filter(
-      (action) =>
-        action.id !== 'home' &&
-        action.id !== 'preferiti' &&
-        action.id !== 'profilo',
+      (action) => action.id !== 'home' && action.id !== 'preferiti' && action.id !== 'profilo',
     );
   }
 
@@ -599,6 +677,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
         break;
       case 'preferiti':
         this.vaiPreferiti();
+        break;
+      case 'svuota-preferiti':
+        this.svuotaPreferiti();
         break;
       case 'admin':
         this.vaiAdmin();
@@ -664,32 +745,137 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
-    this.authService.logout();
-    this.loggedIn = false;
-    this.admin = false;
-    this.router.navigate(['/Home']);
+    this.confirmAction('Vuoi effettuare il logout?', () => {
+      try {
+        this.authService.logout();
+        this.loggedIn = false;
+        this.admin = false;
+
+        this.router
+          .navigate(['/Home'])
+          .then((navigated) => {
+            if (navigated) {
+              this.triggerToast('Logout effettuato con successo.', 'success');
+            } else {
+              this.triggerToast(
+                'Logout eseguito, ma non è stato possibile aprire la Home.',
+                'error',
+              );
+            }
+          })
+          .catch((err) => {
+            console.error('Errore dopo il logout:', err);
+            this.triggerToast(
+              'Logout eseguito, ma si è verificato un errore di navigazione.',
+              'error',
+            );
+          });
+      } catch (err) {
+        console.error('Errore durante il logout:', err);
+        this.triggerToast('Errore durante il logout.', 'error');
+      }
+    });
+  }
+
+  svuotaPreferiti(): void {
+    this.preferitiService
+      .getConteggio()
+      .pipe(take(1))
+      .subscribe({
+        next: (count: any) => {
+          const totale = this.extractNumericValue(count);
+
+          if (totale <= 0) {
+            this.triggerToast('I preferiti sono vuoti. Non c’è niente da svuotare.', 'error');
+            return;
+          }
+
+          this.confirmAction('Vuoi rimuovere tutti i preferiti?', () => {
+            this.preferitiService
+              .svuotaTutti()
+              .pipe(take(1))
+              .subscribe({
+                next: () => {
+
+                  this.triggerToast(
+                    'Tutti i preferiti sono stati rimossi con successo.',
+                    'success',
+                  );
+
+                  if (this.isOnPreferiti()) {
+                    setTimeout(() => this.refreshCurrentRoute(), 3500);
+                  }
+                },
+                error: (err) => {
+                  console.error('Errore durante lo svuotamento dei preferiti:', err);
+                  this.triggerToast('Errore durante lo svuotamento dei preferiti.', 'error');
+                },
+              });
+          });
+        },
+        error: (err) => {
+          console.error('Errore verifica preferiti:', err);
+          this.triggerToast('Impossibile verificare i preferiti.', 'error');
+        },
+      });
   }
 
   resetCronologiaProfilo(): void {
-    const conferma = confirm('Vuoi eliminare tutta la cronologia delle sfide?');
-    if (!conferma) return;
+    this.confrontoService
+      .getMioTotale()
+      .pipe(take(1))
+      .subscribe({
+        next: (totale: any) => {
+          const numero = this.extractNumericValue(totale);
 
-    this.navbarActionService.requestResetCronologia();
+          if (numero <= 0) {
+            this.triggerToast('La cronologia è vuota. Non c’è niente da eliminare.', 'error');
+            return;
+          }
+
+          this.confirmAction('Vuoi eliminare tutta la cronologia delle sfide?', () => {
+            this.navbarActionService.requestResetCronologia();
+            this.triggerToast('eliminazione cronologia inviata con successo.', 'success');
+          });
+        },
+        error: (err) => {
+          console.error('Errore verifica cronologia:', err);
+          this.triggerToast('Impossibile verificare la cronologia.', 'error');
+        },
+      });
   }
 
   resetRecensioniProfilo(): void {
-    const conferma = confirm('Vuoi eliminare definitivamente tutte le tue recensioni?');
-    if (!conferma) return;
+    this.recensioniService
+      .getMieRecensioni()
+      .pipe(take(1))
+      .subscribe({
+        next: (recensioni) => {
+          if (!recensioni || recensioni.length === 0) {
+            this.triggerToast('Non ci sono recensioni da eliminare.', 'error');
+            return;
+          }
 
-    this.recensioniService.eliminaTutteLeRecensioni().subscribe({
-      next: () => {
-        this.navbarActionService.requestResetRecensioni();
-        console.log('Recensioni eliminate e UI sincronizzata');
-      },
-      error: (err) => {
-        console.error("Errore durante l'eliminazione:", err);
-        this.triggerToast("Errore tecnico durante l'eliminazione.", 'error');
-      },
-    });
+          this.confirmAction('Vuoi eliminare definitivamente tutte le tue recensioni?', () => {
+            this.recensioniService
+              .eliminaTutteLeRecensioni()
+              .pipe(take(1))
+              .subscribe({
+                next: () => {
+                  this.navbarActionService.requestResetRecensioni();
+                  this.triggerToast('Recensioni eliminate con successo.', 'success');
+                },
+                error: (err) => {
+                  console.error("Errore durante l'eliminazione:", err);
+                  this.triggerToast("Errore tecnico durante l'eliminazione.", 'error');
+                },
+              });
+          });
+        },
+        error: (err) => {
+          console.error('Errore verifica recensioni:', err);
+          this.triggerToast('Impossibile verificare le recensioni.', 'error');
+        },
+      });
   }
 }

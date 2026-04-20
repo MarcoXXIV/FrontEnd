@@ -14,10 +14,10 @@ export class ConfrontoCardComponent {
   @Input() preferito!: PreferitoModel;
   @Output() rimuovi = new EventEmitter<number>();
 
-  constructor(private router: Router) {} // Iniettato per gestire il click
+  constructor(private router: Router) {}
 
   onRemoveClick(event: Event): void {
-    event.stopPropagation(); // Fondamentale per non attivare onCardClick
+    event.stopPropagation();
     if (this.preferito.confronto?.id) {
       this.rimuovi.emit(this.preferito.confronto.id);
     }
@@ -26,7 +26,6 @@ export class ConfrontoCardComponent {
   // AGGIUNTO: Metodo che mancava e causava l'errore
   onCardClick(): void {
     if (this.preferito.confronto?.id) {
-      // Esempio: naviga alla pagina del confronto specifico
       this.router.navigate(['/Confronto'], {
         queryParams: {
           idAuto1: this.preferito.confronto.auto1.id,

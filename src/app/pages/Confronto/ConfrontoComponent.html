@@ -57,7 +57,7 @@
           class="btn-fav"
           (click)="togglePreferito($event)"
           [class.active]="isPreferito">
-          <i [class.fas]="isPreferito" [class.far]="!isPreferito" class="fa-heart"></i>
+          <i class="fa-heart" [ngClass]="isPreferito ? 'fas' : 'far'"></i>
         </button>
       </div>
 

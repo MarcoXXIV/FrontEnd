@@ -18,9 +18,7 @@
   --text-main: #ffffff;
   --text-soft: #b8c0cc;
   --red: #ff4d4f;
-  --red-2: #dc2626;
   --blue: #3b82f6;
-  --blue-2: #2563eb;
   --shadow-main: 0 10px 35px rgba(0, 0, 0, 0.28);
 
   width: 100%;
@@ -31,18 +29,18 @@
 .toast-notification {
   position: fixed;
   top: 88px;
-  right: 22px;
-  min-width: 300px;
-  max-width: 420px;
-  padding: 14px 16px;
+  left: 50%;
+  min-width: 320px;
+  max-width: min(580px, calc(100vw - 32px));
+  padding: 14px 18px;
   border-radius: 16px;
   color: #fff;
-  z-index: 2500;
+  z-index: 9999;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  transform: translateX(130%);
+  transform: translate(-50%, -140%);
   opacity: 0;
   pointer-events: none;
   transition:
@@ -52,7 +50,7 @@
 }
 
 .toast-notification.active {
-  transform: translateX(0);
+  transform: translate(-50%, 0);
   opacity: 1;
 }
 
@@ -67,7 +65,9 @@
 .toast-content {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
+  text-align: center;
 }
 
 .toast-content i {
@@ -298,6 +298,30 @@
   transform: translateY(1px);
 }
 
+.action-sticker {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 24px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff4d4f, #b91c1c);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  box-shadow: 0 8px 16px rgba(185, 28, 28, 0.34);
+  font-size: 0.56rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  text-transform: uppercase;
+  pointer-events: none;
+  z-index: 40;
+}
+
 .icon-pill[data-label]::after {
   content: attr(data-label);
   position: absolute;
@@ -505,12 +529,23 @@
     display: none;
   }
 
+  .mobile-sticker {
+    top: 4px;
+    right: 4px;
+    min-width: 22px;
+    height: 18px;
+    padding: 0 5px;
+    font-size: 0.5rem;
+    box-shadow: 0 6px 14px rgba(185, 28, 28, 0.34);
+  }
+
   .toast-notification {
     top: 80px;
-    right: 12px;
-    left: 12px;
+    left: 50%;
     min-width: unset;
-    max-width: unset;
+    width: calc(100vw - 24px);
+    max-width: 520px;
+    padding: 13px 14px;
   }
 }
 
@@ -565,6 +600,21 @@
 
   .toast-content span {
     font-size: 0.88rem;
+  }
+
+  .mobile-sticker {
+    top: 3px;
+    right: 3px;
+    min-width: 20px;
+    height: 17px;
+    font-size: 0.46rem;
+    padding: 0 4px;
+  }
+
+  .toast-notification {
+    top: 74px;
+    width: calc(100vw - 16px);
+    border-radius: 14px;
   }
 }
 

@@ -27,6 +27,7 @@
               (click)="handleAction(action.id)"
             >
               <span class="icon-pill-emoji">{{ action.icon }}</span>
+              <span *ngIf="action.sticker" class="action-sticker">{{ action.sticker }}</span>
             </button>
           </div>
         </ng-container>
@@ -71,6 +72,7 @@
                 (click)="handleAction(action.id)"
               >
                 <span class="icon-pill-emoji">{{ action.icon }}</span>
+                <span *ngIf="action.sticker" class="action-sticker">{{ action.sticker }}</span>
               </button>
 
               <button type="button" class="btn-login" (click)="vaiLogin()">Accedi</button>
@@ -91,6 +93,7 @@
                 (click)="handleAction(action.id)"
               >
                 <span class="icon-pill-emoji">{{ action.icon }}</span>
+                <span *ngIf="action.sticker" class="action-sticker">{{ action.sticker }}</span>
               </button>
             </div>
           </ng-template>
@@ -122,6 +125,7 @@
       >
         <span class="mobile-tab-icon">{{ action.icon }}</span>
         <span class="mobile-tab-label">{{ action.label }}</span>
+        <span *ngIf="action.sticker" class="action-sticker mobile-sticker">{{ action.sticker }}</span>
       </button>
 
       <button
@@ -148,6 +152,7 @@
       >
         <span class="mobile-tab-icon">{{ action.icon }}</span>
         <span class="mobile-tab-label">{{ action.label }}</span>
+        <span *ngIf="action.sticker" class="action-sticker mobile-sticker">{{ action.sticker }}</span>
       </button>
     </ng-container>
 
@@ -165,6 +170,7 @@
       >
         <span class="mobile-tab-icon">{{ action.icon }}</span>
         <span class="mobile-tab-label">{{ action.label }}</span>
+        <span *ngIf="action.sticker" class="action-sticker mobile-sticker">{{ action.sticker }}</span>
       </button>
     </ng-template>
   </nav>
