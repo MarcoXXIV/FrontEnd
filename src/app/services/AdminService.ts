@@ -9,8 +9,6 @@ import { AutoModel } from '../models/AutoModel';
   providedIn: 'root'
 })
 export class AdminService {
-  // Supponendo che nel back-end tu abbia creato rotte sotto /admin
-  // Altrimenti puoi mantenere le rotte originali, ma centralizzate qui.
   private apiAdmin = `${environment.apiUrl}/admin`;
 
   constructor(private http: HttpClient) { }
@@ -27,7 +25,6 @@ export class AdminService {
     return this.http.delete(`${this.apiAdmin}/elimina-utente/${id}`, { responseType: 'text' });
   }
 
-  // --- GESTIONE AUTO (Azione privilegiata Admin) ---
   aggiungiAuto(auto: AutoModel): Observable<AutoModel> {
     return this.http.post<AutoModel>(`${this.apiAdmin}/aggiungi`, auto);
   }

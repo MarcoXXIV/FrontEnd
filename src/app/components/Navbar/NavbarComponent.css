@@ -33,9 +33,7 @@
   position: relative;
 }
 
-/* =========================
-   TOAST
-========================= */
+/* TOAST*/
 .toast-notification {
   position: fixed;
   top: 88px;
@@ -121,9 +119,7 @@
   }
 }
 
-/* =========================
-   TOP NAVBAR DESKTOP
-========================= */
+/* TOP NAVBAR DESKTOP */
 .navbar {
   position: sticky;
   top: 0;
@@ -167,9 +163,6 @@
   justify-content: flex-end;
 }
 
-/* =========================
-   BRAND
-========================= */
 .brand {
   display: inline-flex;
   align-items: center;
@@ -233,9 +226,7 @@
   white-space: nowrap;
 }
 
-/* =========================
-   DESKTOP DOCK
-========================= */
+/* DESKTOP DOCK */
 .desktop-toolbar {
   display: inline-flex;
   align-items: center;
@@ -416,9 +407,7 @@
   transform: translateX(-50%) translateY(0) rotate(45deg);
 }
 
-/* =========================
-   LOGIN
-========================= */
+/* LOGIN */
 .nav-auth {
   display: flex;
   align-items: center;
@@ -449,9 +438,7 @@
   box-shadow: 0 18px 30px rgba(49, 91, 255, 0.32);
 }
 
-/* =========================
-   MOBILE BOTTOM NAV
-========================= */
+/* MOBILE BOTTOM NAV */
 .mobile-bottom-nav {
   display: none;
 }

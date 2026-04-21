@@ -18,10 +18,8 @@ import { NavbarComponent } from '../../components/Navbar/NavbarComponent';
   styleUrls: ['./HomeComponent.css'],
 })
 export class HomeComponent implements OnInit, OnDestroy {
-  // Catalogo completo sempre mantenuto in memoria
   catalogoCompleto: AutoModel[] = [];
 
-  // Dati mostrati in pagina
   autoFiltrate: AutoModel[] = [];
   autoPaginata: AutoModel[] = [];
 
@@ -189,7 +187,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     const marcaCanonica = this.trovaMarcaCanonica(this.filtroMarca);
     const marcaNorm = this.normalize(marcaCanonica);
 
-    // Se la marca non è selezionata/esatta, niente modelli
     if (!marcaNorm || !this.marcaEsistente(marcaCanonica)) {
       this.modelliDisponibili = [];
       this.filtroModello = '';
@@ -300,7 +297,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   eseguiRicerca(): void {
-    // Se il catalogo non è ancora pronto, non partire a vuoto
     if (!this.catalogoCompleto.length) {
       this.caricaCatalogo();
       return;
@@ -311,7 +307,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     const marcaNorm = this.normalize(marcaCanonica);
     const modelloNorm = this.normalize(this.filtroModello);
 
-    // Se la marca è riconosciuta, riallinea il valore visibile
     if (marcaCanonica && this.marcaEsistente(marcaCanonica)) {
       this.filtroMarca = marcaCanonica;
       this.aggiornaModelliDisponibili();
@@ -356,7 +351,6 @@ export class HomeComponent implements OnInit, OnDestroy {
       clearTimeout(this.toastTimeout);
     }
 
-    // Reset immediato senza aspettare una nuova API
     this.gestisciRisultati(
       this.catalogoCompleto,
       'Esplora il catalogo e seleziona due auto per il confronto.',

@@ -17,7 +17,6 @@ export class ConfrontoService {
       .set('idAuto1', idAuto1.toString())
       .set('idAuto2', idAuto2.toString());
 
-    // Passiamo un corpo vuoto {} perché è una POST che usa @RequestParam
     return this.http.post<ConfrontoModel>(`${this.apiUrl}/battaglia`, {}, { params });
   }
 

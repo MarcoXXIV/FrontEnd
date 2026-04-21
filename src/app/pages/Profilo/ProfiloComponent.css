@@ -31,7 +31,6 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
-/* TOAST */
 .notification-toast {
   position: fixed;
   top: 90px;
@@ -93,7 +92,6 @@ body {
   justify-content: center;
 }
 
-/* LOADER */
 .loader-overlay {
   position: fixed;
   inset: 0;
@@ -127,7 +125,6 @@ body {
   border-width: 2.5px;
 }
 
-/* SHELL */
 .profilo-shell {
   max-width: 1320px;
   margin: 0 auto;
@@ -486,7 +483,6 @@ input:focus,
   color: white;
 }
 
-/* RECENSIONI */
 .review-list {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -654,7 +650,6 @@ input:focus,
   }
 }
 
-/* TABLET GRANDI */
 @media (max-width: 1200px) {
   .review-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -173,6 +173,8 @@
   overflow: hidden;
   border-bottom: 4px solid #334155;
   transition: transform 0.3s ease;
+  isolation: isolate;
+  mask-image: radial-gradient(white, black);
 }
 
 .car-box:hover {
@@ -200,6 +202,7 @@
 .car-info {
   padding: 20px;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .car-info-top {
@@ -236,6 +239,8 @@
   border-radius: 16px;
   text-align: center;
   backdrop-filter: blur(8px);
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .score-badge small {
@@ -320,6 +325,7 @@
   line-height: 1.5;
 }
 
+/* 2 COLONNE */
 .specs-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -401,49 +407,75 @@
   border: 1px solid rgba(245,158,11,0.25);
 }
 
-/* BAR SYSTEM */
+/* AUTO 1 SOPRA / AUTO 2 SOTTO */
 .bar-system {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 20px;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.side-a,
-.side-b {
+.bar-row {
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 16px;
+  padding: 14px;
+}
+
+.row-blue {
+  box-shadow: inset 0 0 0 1px rgba(59,130,246,0.08);
+}
+
+.row-red {
+  box-shadow: inset 0 0 0 1px rgba(239,68,68,0.08);
+}
+
+.row-best-blue {
+  border-color: rgba(59,130,246,0.28);
+  box-shadow: inset 0 0 0 1px rgba(59,130,246,0.14), 0 0 18px rgba(59,130,246,0.08);
+}
+
+.row-best-red {
+  border-color: rgba(239,68,68,0.28);
+  box-shadow: inset 0 0 0 1px rgba(239,68,68,0.14), 0 0 18px rgba(239,68,68,0.08);
+}
+
+.row-tie {
+  border-color: rgba(245,158,11,0.25);
+}
+
+.bar-row-head {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
+  gap: 14px;
+  margin-bottom: 10px;
   min-width: 0;
 }
 
-.side-a {
-  flex-direction: row;
-  justify-content: flex-end;
-}
-
-.side-b {
-  flex-direction: row;
-  justify-content: flex-start;
+.row-car-name {
+  min-width: 0;
+  flex: 1;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.9;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .val {
   flex-shrink: 0;
-  width: 105px;
+  width: auto;
+  max-width: 45%;
   font-weight: 800;
   font-size: 0.95rem;
   line-height: 1.1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.side-a .val {
   text-align: right;
-}
-
-.side-b .val {
-  text-align: left;
 }
 
 .val small {
@@ -453,20 +485,16 @@
 }
 
 .track {
-  flex: 1;
-  min-width: 0;
-  height: 10px;
+  width: 100%;
+  height: 12px;
   background: rgba(255,255,255,0.1);
   border-radius: 10px;
   overflow: hidden;
   position: relative;
-  display: flex;
-  align-items: center;
 }
 
-.track-left,
-.track-right {
-  justify-content: flex-start;
+.full-track {
+  display: block;
 }
 
 .fill {
@@ -514,16 +542,24 @@
 }
 
 .text-system {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 12px;
 }
 
+.text-row {
+  background: rgba(0,0,0,0.22);
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
 .txt-val {
-  background: rgba(0,0,0,0.3);
+  margin-top: 8px;
+  background: rgba(255,255,255,0.03);
   padding: 12px;
   border-radius: 12px;
-  text-align: center;
+  text-align: left;
   font-weight: 800;
   border: 1px solid rgba(255,255,255,0.05);
   word-break: break-word;
@@ -981,14 +1017,19 @@ textarea {
   .score-badge {
     width: 100%;
     min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin-top: 6px;
   }
 
   .specs-panel {
     padding: 20px;
   }
 
+  /* 2 COLONNE */
   .specs-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
   }
 
   .spec-card {
@@ -1007,62 +1048,26 @@ textarea {
     min-width: 0;
   }
 
-  .bar-system {
-    grid-template-columns: 1fr;
-    gap: 14px;
+  .bar-row-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 
-  .side-a,
-  .side-b {
-    width: 100%;
-    min-width: 0;
-    gap: 10px;
-  }
-
-  .side-a {
-    display: grid;
-    grid-template-columns: 78px minmax(0, 1fr);
-    align-items: center;
-    justify-content: stretch;
-  }
-
-  .side-b {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 78px;
-    align-items: center;
-    justify-content: stretch;
+  .row-car-name {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
   }
 
   .val {
+    max-width: 100%;
     width: auto;
-    min-width: 0;
-    max-width: none;
+    text-align: left;
     overflow: visible;
     text-overflow: clip;
     white-space: nowrap;
-    font-size: 0.85rem;
-  }
-
-  .side-a .val {
-    text-align: left;
-  }
-
-  .side-b .val {
-    text-align: right;
-  }
-
-  .track {
-    width: 100%;
-    height: 12px;
-  }
-
-  .track-left,
-  .track-right {
-    justify-content: flex-start;
-  }
-
-  .text-system {
-    grid-template-columns: 1fr;
+    font-size: 0.88rem;
   }
 
   .txt-val {
@@ -1133,16 +1138,31 @@ textarea {
     padding: 4px 8px;
   }
 
-  .side-a {
-    grid-template-columns: 70px minmax(0, 1fr);
+  .specs-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
 
-  .side-b {
-    grid-template-columns: minmax(0, 1fr) 70px;
+  .spec-card {
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .bar-row {
+    padding: 10px;
+  }
+
+  .row-car-name {
+    font-size: 0.64rem;
+    letter-spacing: 0.6px;
   }
 
   .val {
     font-size: 0.78rem;
+  }
+
+  .track {
+    height: 10px;
   }
 
   .btn-race {
@@ -1169,5 +1189,6 @@ textarea {
 
   .txt-val {
     font-size: 0.8rem;
+    padding: 10px;
   }
 }

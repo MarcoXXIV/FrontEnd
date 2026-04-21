@@ -21,10 +21,6 @@
     <i class="fas fa-triangle-exclamation"></i>
     <h2>Ops, qualcosa è andato storto</h2>
     <p>{{ errore }}</p>
-    <button type="button" class="btn-home" (click)="tornaHome()">
-      <i class="fas fa-home"></i>
-      Torna alla Home
-    </button>
   </div>
 
   <div *ngIf="!loading && auto1 && auto2 && !errore" class="container fade-in">
@@ -109,17 +105,24 @@
               </div>
             </div>
 
+            <!-- VALORI NUMERICI -->
             <div class="bar-system" *ngIf="!p.isText">
-              <div class="side-a">
-                <span
-                  class="val blue"
-                  [class.winner-text]="isWinner(1, p)"
-                  [class.tie-text]="isTie(p)">
-                  {{ formatValore(getVal(auto1, p.key)) }}
-                  <small *ngIf="!isValoreNonDisponibile(getVal(auto1, p.key))">{{ p.unit }}</small>
-                </span>
-
-                <div class="track track-left">
+              <div
+                class="bar-row row-blue"
+                [class.row-best-blue]="isWinner(1, p)"
+                [class.row-tie]="isTie(p)"
+              >
+                <div class="bar-row-head">
+                  <span
+                    class="val blue"
+                    [class.winner-text]="isWinner(1, p)"
+                    [class.tie-text]="isTie(p)"
+                  >
+                    {{ formatValore(getVal(auto1, p.key)) }}
+                    <small *ngIf="!isValoreNonDisponibile(getVal(auto1, p.key))">{{ p.unit }}</small>
+                  </span>
+                </div>
+                <div class="track full-track">
                   <div
                     class="fill blue-bar"
                     [class.best-fill]="isWinner(1, p)"
@@ -129,8 +132,23 @@
                 </div>
               </div>
 
-              <div class="side-b">
-                <div class="track track-right">
+              <div
+                class="bar-row row-red"
+                [class.row-best-red]="isWinner(2, p)"
+                [class.row-tie]="isTie(p)"
+              >
+                <div class="bar-row-head">
+                  <span
+                    class="val red"
+                    [class.winner-text]="isWinner(2, p)"
+                    [class.tie-text]="isTie(p)"
+                  >
+                    {{ formatValore(getVal(auto2, p.key)) }}
+                    <small *ngIf="!isValoreNonDisponibile(getVal(auto2, p.key))">{{ p.unit }}</small>
+                  </span>
+                </div>
+
+                <div class="track full-track">
                   <div
                     class="fill red-bar"
                     [class.best-fill]="isWinner(2, p)"
@@ -138,20 +156,23 @@
                     [style.width.%]="getBarWidth(auto2, p)">
                   </div>
                 </div>
-
-                <span
-                  class="val red"
-                  [class.winner-text]="isWinner(2, p)"
-                  [class.tie-text]="isTie(p)">
-                  {{ formatValore(getVal(auto2, p.key)) }}
-                  <small *ngIf="!isValoreNonDisponibile(getVal(auto2, p.key))">{{ p.unit }}</small>
-                </span>
               </div>
             </div>
 
             <div class="text-system" *ngIf="p.isText">
-              <div class="txt-val blue-t">{{ formatValore(getVal(auto1, p.key), true) }}</div>
-              <div class="txt-val red-t">{{ formatValore(getVal(auto2, p.key), true) }}</div>
+              <div class="text-row">
+                <span class="row-car-name blue">
+                  {{ auto1.marca }} {{ auto1.modello }}
+                </span>
+                <div class="txt-val blue-t">{{ formatValore(getVal(auto1, p.key), true) }}</div>
+              </div>
+
+              <div class="text-row">
+                <span class="row-car-name red">
+                  {{ auto2.marca }} {{ auto2.modello }}
+                </span>
+                <div class="txt-val red-t">{{ formatValore(getVal(auto2, p.key), true) }}</div>
+              </div>
             </div>
           </div>
         </div>

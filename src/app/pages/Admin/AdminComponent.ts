@@ -23,10 +23,8 @@ type AdminSection = 'utenti' | 'nuova-auto' | 'gestione-auto';
 export class AdminComponent implements OnInit, OnDestroy {
   listaUtenti: UtenteModel[] = [];
 
-  // Catalogo completo sempre disponibile in memoria
   catalogoAutoCompleto: AutoModel[] = [];
 
-  // Risultati mostrati nella tabella
   listaAuto: AutoModel[] = [];
 
   sezioneAttiva: AdminSection = 'nuova-auto';
@@ -43,7 +41,6 @@ export class AdminComponent implements OnInit, OnDestroy {
   pathFotoAssets = '';
   nomeFotoSelezionata = '';
 
-  // Ricerca
   filtroMarca = '';
   filtroModello = '';
   marchiDisponibili: string[] = [];
@@ -119,9 +116,6 @@ export class AdminComponent implements OnInit, OnDestroy {
     }
   }
 
-  // =========================
-  // UTENTI
-  // =========================
   caricaUtenti(): void {
     this.adminService.getAllUtenti().subscribe({
       next: (data: UtenteModel[]) => {
@@ -177,9 +171,6 @@ export class AdminComponent implements OnInit, OnDestroy {
     }
   }
 
-  // =========================
-  // HELPERS RICERCA AUTO
-  // =========================
   private normalize(value: string | null | undefined): string {
     return (value ?? '').trim().toLocaleLowerCase('it');
   }
@@ -296,9 +287,6 @@ export class AdminComponent implements OnInit, OnDestroy {
       });
   }
 
-  // =========================
-  // AUTO - LOAD / SEARCH
-  // =========================
   caricaAuto(mostraMessaggio: boolean = false): void {
     this.eseguiRichiestaAuto(
       this.autoService.getAllAuto(),
@@ -415,9 +403,6 @@ export class AdminComponent implements OnInit, OnDestroy {
     return copia;
   }
 
-  // =========================
-  // FOTO
-  // =========================
   onFotoSelezionata(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -457,9 +442,6 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.triggerToast('Foto rimossa dal form.', 'success');
   }
 
-  // =========================
-  // CRUD AUTO
-  // =========================
   salvaAuto(): void {
     if (!this.pathFotoAssets) {
       this.triggerToast('Devi caricare una foto PNG prima di salvare l’auto.', 'error');
@@ -623,9 +605,6 @@ export class AdminComponent implements OnInit, OnDestroy {
     }
   }
 
-  // =========================
-  // UTILS
-  // =========================
   private triggerToast(msg: string, type: 'success' | 'error', duration: number = 3500): void {
     if (this.toastTimeout) clearTimeout(this.toastTimeout);
 

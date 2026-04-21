@@ -6,9 +6,9 @@ export const adminGuard: CanActivateFn = (route, state) => {
   const ruolo = localStorage.getItem('ruolo');
 
   if (ruolo === "ADMIN") {
-    return true; // È un amministratore, può passare
+    return true;
   } else {
-    router.navigate(['/Home']); // Un utente normale viene rimandato in Home
+    router.navigate(['/Home']);
     return false;
   }
 };

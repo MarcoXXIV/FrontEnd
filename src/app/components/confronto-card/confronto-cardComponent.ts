@@ -23,7 +23,6 @@ export class ConfrontoCardComponent {
     }
   }
 
-  // AGGIUNTO: Metodo che mancava e causava l'errore
   onCardClick(): void {
     if (this.preferito.confronto?.id) {
       this.router.navigate(['/Confronto'], {

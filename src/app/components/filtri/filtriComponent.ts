@@ -10,7 +10,6 @@ import { FormsModule } from '@angular/forms';
   styleUrls: ['./filtriComponent.css']
 })
 export class FiltriComponent {
-  // Variabili legate agli input HTML
   marca: string = '';
   modello: string = '';
 

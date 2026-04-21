@@ -70,13 +70,10 @@ export class ProfiloComponent implements OnInit, OnDestroy {
           next: () => {
             this.mieSfide = [];
             this.totaleSfide = 0;
-            this.toastService.success('Cronologia eliminata dal database!');
-            this.showNotification('success', 'Cronologia eliminata', 'La cronologia è stata eliminata con successo.');
             this.cd.detectChanges();
           },
           error: () => {
             this.toastService.error('Errore tecnico nell’eliminazione della cronologia.');
-            this.showNotification('error', 'Errore', 'Non è stato possibile eliminare la cronologia.');
           }
         });
       })
@@ -85,7 +82,6 @@ export class ProfiloComponent implements OnInit, OnDestroy {
     this.subs.add(
       this.navbarActionService.resetRecensioni$.subscribe(() => {
         this.mieRecensioni = [];
-        this.showNotification('success', 'Recensioni aggiornate', 'L’elenco recensioni è stato aggiornato.');
         this.cd.detectChanges();
       })
     );

@@ -21,7 +21,6 @@
   margin: 0 auto;
 }
 
-
 .btn-back {
   display: inline-flex;
   align-items: center;
@@ -46,7 +45,6 @@
   filter: brightness(1.1);
 }
 
-/* --- HERO SECTION --- */
 .hero-info {
   position: relative;
   padding: 40px;
@@ -159,9 +157,9 @@
   object-fit: cover;
 }
 
-/* --- SCHEDA TECNICA (MODIFICATA) --- */
+/* --- SCHEDA TECNICA --- */
 .section-heading {
-  margin-bottom: 30px; /* Più spazio sotto il titolo della sezione */
+  margin-bottom: 30px;
 }
 
 .section-heading h2 {
@@ -173,32 +171,32 @@
 .details-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 24px; /* Aumentato gap per staccare le card */
+  gap: 24px;
+  cursor: pointer;
 }
 
 .detail-card {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 24px; /* Aumentato padding interno */
+  padding: 24px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  border-left: 4px solid transparent; /* Spazio per la linea arancione */
+  border-left: 4px solid transparent;
   transition: all 0.3s ease;
   position: relative;
 }
 
-/* EFFETTO HOVER ARANCIONE RICHIESTO */
 .detail-card:hover {
   background: rgba(255, 255, 255, 0.08);
-  border-left: 4px solid #e74c3c; /* Lato colorato di arancione */
-  transform: translateX(5px); /* Leggera traslazione per eleganza */
+  border-left: 4px solid #e74c3c;
+  transform: translateX(5px);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
 .detail-icon {
-  width: 52px; /* Leggermente più grande */
+  width: 52px;
   height: 52px;
   border-radius: 14px;
   display: flex;
@@ -222,12 +220,11 @@
 }
 
 .detail-value {
-  font-size: 1.15rem; /* Valore più leggibile */
+  font-size: 1.15rem;
   font-weight: 700;
   color: #fff;
 }
 
-/* --- RESPONSIVE / MOBILE --- */
 @media (max-width: 900px) {
   .hero-content {
     grid-template-columns: 1fr;

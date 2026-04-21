@@ -1,6 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { RouterOutlet, Router } from '@angular/router';
-import { PlatformLocation } from '@angular/common'; // Import necessario per il tasto indietro
+import { PlatformLocation } from '@angular/common';
 
 @Component({
   selector: 'app-root',

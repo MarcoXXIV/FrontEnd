@@ -10,12 +10,10 @@ export class PreferitiService {
 
   constructor(private http: HttpClient) { }
 
-  // Restituisce la lista tipizzata di PreferitoModel
   getMieiPreferiti(): Observable<PreferitoModel[]> {
     return this.http.get<PreferitoModel[]>(`${this.apiUrl}/miei`);
   }
 
-  // Il backend risponde con una stringa ("Aggiunto" / "Rimosso")
   togglePreferito(confrontoId: number): Observable<string> {
     return this.http.post(`${this.apiUrl}/toggle/${confrontoId}`, {}, { responseType: 'text' });
   }

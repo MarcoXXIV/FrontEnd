@@ -38,7 +38,7 @@
 .filter-group input:focus { border-color: #e74c3c; box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.1); }
 
 .btn-reset {
-  background: #e74c3c; /* Rosso sportivo */
+  background: #e74c3c;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -46,7 +46,7 @@
   cursor: pointer;
   font-weight: bold;
   transition: 0.3s;
-  height: 45px; /* Allineato agli input */
+  height: 45px;
 }
 
 .btn-reset:hover {
