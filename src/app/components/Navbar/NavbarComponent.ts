@@ -633,16 +633,20 @@ export class NavbarComponent implements OnInit, OnDestroy {
     return actions;
   }
 
+  private getProfileMobileSideActions(): QuickAction[] {
+    return this.getMobileActions().filter((action) => action.id !== 'profilo');
+  }
+
   getProfileMobileStartActions(): QuickAction[] {
-    return this.getMobileActions().filter(
-      (action) => action.id === 'home' || action.id === 'preferiti',
-    );
+    const actions = this.getProfileMobileSideActions();
+    const splitIndex = Math.ceil(actions.length / 2);
+    return actions.slice(0, splitIndex);
   }
 
   getProfileMobileEndActions(): QuickAction[] {
-    return this.getMobileActions().filter(
-      (action) => action.id !== 'home' && action.id !== 'preferiti' && action.id !== 'profilo',
-    );
+    const actions = this.getProfileMobileSideActions();
+    const splitIndex = Math.ceil(actions.length / 2);
+    return actions.slice(splitIndex);
   }
 
   handleAction(actionId: QuickActionId): void {
@@ -796,7 +800,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
               .pipe(take(1))
               .subscribe({
                 next: () => {
-
                   this.triggerToast(
                     'Tutti i preferiti sono stati rimossi con successo.',
                     'success',

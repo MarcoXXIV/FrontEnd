@@ -78,9 +78,6 @@ export class GaraAnimationComponent implements OnChanges, OnDestroy, AfterViewIn
   private readonly frameUpdateThresholdPx = 0.1;
 
   private travelDistancePx = 520;
-
-  // Progress salvato separatamente così se il track cambia misura
-  // durante il resize possiamo ricalcolare le posizioni senza scatti
   private car1Progress = 0;
   private car2Progress = 0;
 
@@ -300,10 +297,6 @@ export class GaraAnimationComponent implements OnChanges, OnDestroy, AfterViewIn
     });
   }
 
-  /**
-   * Progressione lineare reale:
-   * se un'auto impiega 5.20s, arriverà esattamente a fine corsia in 5.20s
-   */
   private getLinearProgress(elapsedMs: number, totalMs: number): number {
     if (totalMs <= 0) return 0;
     return Math.max(0, Math.min(1, elapsedMs / totalMs));
@@ -340,7 +333,6 @@ export class GaraAnimationComponent implements OnChanges, OnDestroy, AfterViewIn
       width - this.startOffset - stopOffset,
     );
 
-    // Mantiene la posizione proporzionale anche dopo resize
     this.car1PositionPx = this.travelDistancePx * this.car1Progress;
     this.car2PositionPx = this.travelDistancePx * this.car2Progress;
   }

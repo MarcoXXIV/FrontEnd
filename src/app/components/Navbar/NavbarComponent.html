@@ -10,6 +10,7 @@
     <div class="toast-progress" [class.running]="showToast"></div>
   </div>
 
+  <!-- NAVBAR DESKTOP / TABLET TOP -->
   <nav class="navbar">
     <div class="nav-container">
       <div class="nav-left">
@@ -106,31 +107,34 @@
     </div>
   </nav>
 
+  <!-- NAVBAR MOBILE BOTTOM -->
   <nav
     class="mobile-bottom-nav"
     *ngIf="shouldShowBottomMobileNavbar()"
     [class.mobile-bottom-nav-profile]="isProfileNavbar()"
   >
     <ng-container *ngIf="isProfileNavbar(); else defaultMobileActions">
-      <button
-        *ngFor="let action of getProfileMobileStartActions(); trackBy: trackByActionId"
-        type="button"
-        class="mobile-tab"
-        [class.active]="action.active"
-        [class.accent]="action.variant === 'accent'"
-        [class.danger]="action.variant === 'danger'"
-        [attr.aria-label]="action.label"
-        [attr.data-label]="action.label"
-        (click)="handleAction(action.id)"
-      >
-        <span class="mobile-tab-icon">{{ action.icon }}</span>
-        <span class="mobile-tab-label">{{ action.label }}</span>
-        <span *ngIf="action.sticker" class="action-sticker mobile-sticker">{{ action.sticker }}</span>
-      </button>
+      <div class="mobile-side-group">
+        <button
+          *ngFor="let action of getProfileMobileStartActions(); trackBy: trackByActionId"
+          type="button"
+          class="mobile-tab"
+          [class.active]="action.active"
+          [class.accent]="action.variant === 'accent'"
+          [class.danger]="action.variant === 'danger'"
+          [attr.aria-label]="action.label"
+          [attr.data-label]="action.label"
+          (click)="handleAction(action.id)"
+        >
+          <span class="mobile-tab-icon">{{ action.icon }}</span>
+          <span class="mobile-tab-label">{{ action.label }}</span>
+          <span *ngIf="action.sticker" class="action-sticker mobile-sticker">{{ action.sticker }}</span>
+        </button>
+      </div>
 
       <button
         type="button"
-        class="mobile-tab active accent mobile-tab-profile"
+        class="mobile-tab mobile-tab-center active accent mobile-tab-profile"
         aria-label="Profilo"
         data-label="Profilo"
         (click)="handleAction('profilo')"
@@ -139,39 +143,101 @@
         <span class="mobile-tab-label">Profilo</span>
       </button>
 
-      <button
-        *ngFor="let action of getProfileMobileEndActions(); trackBy: trackByActionId"
-        type="button"
-        class="mobile-tab"
-        [class.active]="action.active"
-        [class.accent]="action.variant === 'accent'"
-        [class.danger]="action.variant === 'danger'"
-        [attr.aria-label]="action.label"
-        [attr.data-label]="action.label"
-        (click)="handleAction(action.id)"
-      >
-        <span class="mobile-tab-icon">{{ action.icon }}</span>
-        <span class="mobile-tab-label">{{ action.label }}</span>
-        <span *ngIf="action.sticker" class="action-sticker mobile-sticker">{{ action.sticker }}</span>
-      </button>
+      <div class="mobile-side-group">
+        <button
+          *ngFor="let action of getProfileMobileEndActions(); trackBy: trackByActionId"
+          type="button"
+          class="mobile-tab"
+          [class.active]="action.active"
+          [class.accent]="action.variant === 'accent'"
+          [class.danger]="action.variant === 'danger'"
+          [attr.aria-label]="action.label"
+          [attr.data-label]="action.label"
+          (click)="handleAction(action.id)"
+        >
+          <span class="mobile-tab-icon">{{ action.icon }}</span>
+          <span class="mobile-tab-label">{{ action.label }}</span>
+          <span *ngIf="action.sticker" class="action-sticker mobile-sticker">{{ action.sticker }}</span>
+        </button>
+      </div>
     </ng-container>
 
     <ng-template #defaultMobileActions>
-      <button
-        *ngFor="let action of getMobileActions(); trackBy: trackByActionId"
-        type="button"
-        class="mobile-tab"
-        [class.active]="action.active"
-        [class.accent]="action.variant === 'accent'"
-        [class.danger]="action.variant === 'danger'"
-        [attr.aria-label]="action.label"
-        [attr.data-label]="action.label"
-        (click)="handleAction(action.id)"
-      >
-        <span class="mobile-tab-icon">{{ action.icon }}</span>
-        <span class="mobile-tab-label">{{ action.label }}</span>
-        <span *ngIf="action.sticker" class="action-sticker mobile-sticker">{{ action.sticker }}</span>
-      </button>
+      <ng-container *ngIf="getMobileActions().length === 5; else compactMobileActions">
+        <div class="mobile-side-group">
+          <button
+            *ngFor="let action of getMobileActions() | slice:0:2; trackBy: trackByActionId"
+            type="button"
+            class="mobile-tab"
+            [class.active]="action.active"
+            [class.accent]="action.variant === 'accent'"
+            [class.danger]="action.variant === 'danger'"
+            [attr.aria-label]="action.label"
+            [attr.data-label]="action.label"
+            (click)="handleAction(action.id)"
+          >
+            <span class="mobile-tab-icon">{{ action.icon }}</span>
+            <span class="mobile-tab-label">{{ action.label }}</span>
+            <span *ngIf="action.sticker" class="action-sticker mobile-sticker">{{ action.sticker }}</span>
+          </button>
+        </div>
+
+        <button
+          type="button"
+          class="mobile-tab mobile-tab-center"
+          [class.active]="getMobileActions()[2].active"
+          [class.accent]="getMobileActions()[2].variant === 'accent'"
+          [class.danger]="getMobileActions()[2].variant === 'danger'"
+          [attr.aria-label]="getMobileActions()[2].label"
+          [attr.data-label]="getMobileActions()[2].label"
+          (click)="handleAction(getMobileActions()[2].id)"
+        >
+          <span class="mobile-tab-icon">{{ getMobileActions()[2].icon }}</span>
+          <span class="mobile-tab-label">{{ getMobileActions()[2].label }}</span>
+          <span
+            *ngIf="getMobileActions()[2].sticker"
+            class="action-sticker mobile-sticker"
+          >
+            {{ getMobileActions()[2].sticker }}
+          </span>
+        </button>
+
+        <div class="mobile-side-group">
+          <button
+            *ngFor="let action of getMobileActions() | slice:3:5; trackBy: trackByActionId"
+            type="button"
+            class="mobile-tab"
+            [class.active]="action.active"
+            [class.accent]="action.variant === 'accent'"
+            [class.danger]="action.variant === 'danger'"
+            [attr.aria-label]="action.label"
+            [attr.data-label]="action.label"
+            (click)="handleAction(action.id)"
+          >
+            <span class="mobile-tab-icon">{{ action.icon }}</span>
+            <span class="mobile-tab-label">{{ action.label }}</span>
+            <span *ngIf="action.sticker" class="action-sticker mobile-sticker">{{ action.sticker }}</span>
+          </button>
+        </div>
+      </ng-container>
+
+      <ng-template #compactMobileActions>
+        <button
+          *ngFor="let action of getMobileActions(); trackBy: trackByActionId"
+          type="button"
+          class="mobile-tab"
+          [class.active]="action.active"
+          [class.accent]="action.variant === 'accent'"
+          [class.danger]="action.variant === 'danger'"
+          [attr.aria-label]="action.label"
+          [attr.data-label]="action.label"
+          (click)="handleAction(action.id)"
+        >
+          <span class="mobile-tab-icon">{{ action.icon }}</span>
+          <span class="mobile-tab-label">{{ action.label }}</span>
+          <span *ngIf="action.sticker" class="action-sticker mobile-sticker">{{ action.sticker }}</span>
+        </button>
+      </ng-template>
     </ng-template>
   </nav>
 </div>
